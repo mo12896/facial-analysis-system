@@ -11,7 +11,7 @@ class EmotionSet:
 
     name: str
     emotion_count: int
-    emotion_list: list(str)
+    emotion_list: list[str]
 
     def get_emotions(self, indices: Union[int, np.ndarray]) -> np.ndarray:
         """Getter function for selecting emotions
