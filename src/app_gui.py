@@ -13,8 +13,8 @@ def parse_arguments() -> argparse.ArgumentParser:
         "-c",
         "--config",
         dest="config",
-        default="config.json",
-        help="Path to config file (default: config.json).",
+        default="config.yaml",
+        help="Path to config file (default: config.yaml).",
     )
     parser.add_argument(
         "-d",
