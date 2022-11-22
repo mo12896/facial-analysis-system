@@ -1,5 +1,10 @@
+from app_gui import parse_arguments
+import controller as ctrl
+
+
 def main() -> None:
-    pass
+    args = parse_arguments()
+    ctrl.controller(args)
 
 
 if __name__ == "__main__":

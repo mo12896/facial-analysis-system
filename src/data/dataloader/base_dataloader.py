@@ -11,7 +11,10 @@ class BaseDataLoader(ABC):
         self.file_path = file_path
         if not self.file_path.exists():
             raise FileNotFoundError(f"File {self.file_path} does not exist")
-        self.frequency = frequency
+        if frequency not in (0, None):
+            self.frequency = frequency
+        else:
+            raise ValueError("Frequency cannot be 0 or None")
 
     def __iter__(self):
         """Return the iterator object itself"""
