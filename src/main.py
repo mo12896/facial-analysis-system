@@ -1,5 +1,5 @@
+import app_controller as ctrl
 from app_gui import parse_arguments
-import controller as ctrl
 
 
 def main() -> None:

@@ -1,8 +1,8 @@
+from enum import Enum
 from typing import Protocol, Tuple
 
-import numpy as np
 import cv2
-from enum import Enum
+import numpy as np
 
 
 class DeepFaceBackends(Enum):
@@ -20,32 +20,30 @@ class FaceDetector(Protocol):
     def __init__(self, face_detector):
         ...
 
-    def detect_faces(self, frame: np.ndarray) -> Tuple[np.ndarray, np.ndarray]:
+    def detect_faces(self, frame: np.ndarray) -> Tuple[list[np.ndarray], np.ndarray]:
         ...
 
-    def display_detected_faces(self, frame: np.ndarray):
+    def display_detected_faces(self, frame: np.ndarray) -> np.ndarray:
         ...
 
 
 class OpenCVFaceDetector:
-    def __init__(
-        self, face_detector=cv2.CascadeClassifier("haarcascade_frontalface_default.xml")
-    ):
-        self.face_detector = face_detector
-        self.bboxes: np.ndarray = []
+    """Face detector using OpenCV's Haar Cascade Classifier."""
 
-    def detect_faces(self, frame: np.ndarray) -> Tuple[np.ndarray, np.ndarray]:
+    def __init__(self, face_detector):
+        self.face_detector = face_detector
+        self.bboxes: np.ndarray = np.array([])
+
+    def detect_faces(self, frame: np.ndarray) -> Tuple[list[np.ndarray], np.ndarray]:
         gray_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
         self.bboxes = self.face_detector.detectMultiScale(gray_frame)
-        face_crops = [
-            frame[y : y + h, x : x + w] for (x, y, w, h) in self.face_coordinates
-        ]
+        face_crops = [frame[y : y + h, x : x + w] for (x, y, w, h) in self.bboxes]
         return (
             face_crops,
             self.bboxes,
         )
 
-    def display_detected_faces(self, frame: np.ndarray) -> np.ndarray[float()]:
+    def display_detected_faces(self, frame: np.ndarray) -> np.ndarray:
         for (x, y, w, h) in self.bboxes:
             cv2.rectangle(frame, (x, y), (x + w, y + h), (0, 255, 0), 2)
         return frame

@@ -1,7 +1,9 @@
 import argparse
 
+import setup_file as setup
 
-def parse_arguments() -> argparse.ArgumentParser:
+
+def parse_arguments():
     """Parse command line arguments.
 
     Returns:
@@ -13,7 +15,7 @@ def parse_arguments() -> argparse.ArgumentParser:
         "-c",
         "--config",
         dest="config",
-        default="config.yaml",
+        default=setup.CONFIG_DIR / "config.yaml",
         help="Path to config file (default: config.yaml).",
     )
     parser.add_argument(

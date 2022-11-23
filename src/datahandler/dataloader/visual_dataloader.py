@@ -1,7 +1,9 @@
-import cv2
-
 from pathlib import Path
-from base_dataloader import BaseDataLoader
+
+import cv2
+import numpy as np
+
+from .base_dataloader import BaseDataLoader
 
 
 class VisualDataLoader(BaseDataLoader):
@@ -9,7 +11,7 @@ class VisualDataLoader(BaseDataLoader):
     This is a class for loading visual data from a video file frame by frame.
     """
 
-    def __init__(self, file_path, frequency=1):
+    def __init__(self, file_path: Path, frequency=1):
         super().__init__(file_path, frequency)
         try:
             self.cap = cv2.VideoCapture(str(self.file_path))
@@ -23,7 +25,7 @@ class VisualDataLoader(BaseDataLoader):
             raise RuntimeError("Video file is not opened.")
         return self
 
-    def __next__(self):
+    def __next__(self) -> np.ndarray:
         for _ in range(self.frequency):
             success, frame = self.cap.read()
             if not success:

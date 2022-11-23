@@ -1,9 +1,10 @@
 from typing import Protocol, Tuple
+
+import cv2
 import dlib
 import numpy as np
-import cv2
 
-from face_detector import FaceDetector
+from .face_detector import FaceDetector
 
 
 class Tracker(Protocol):
@@ -21,7 +22,7 @@ class DlibTracker:
         self.face_detector = face_detector
         self.tracker = dlib.correlation_tracker()
 
-        self.trackers: list() = []
+        self.trackers: list = []
 
     def track_faces(
         self, image: np.ndarray, frame_count: int
@@ -44,7 +45,7 @@ class DlibTracker:
                 self.tracker.start_track(image, rect)
                 self.trackers.append(self.tracker)
 
-            return (face_crops, bboxes)
+            return (np.array(face_crops), bboxes)
 
         else:
             bboxes = []
