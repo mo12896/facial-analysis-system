@@ -6,8 +6,10 @@ import yaml
 from tqdm import tqdm
 
 import setup_file as setup
-from data.dataloader import visual_dataloader
-from data.dataprocessor import emotion_detector, face_detector, face_tracker
+from datahandler.dataloader import visual_dataloader
+from datahandler.dataprocessor import emotion_detector, face_detector, face_tracker
+from datahandler.datawriter import video_datawriter
+from datahandler.visualizer import Visualizer
 
 
 def controller(args):
@@ -27,6 +29,9 @@ def controller(args):
     )
     face_track = face_tracker.DlibTracker(face_detect)
     emotion_detect = emotion_detector.DeepFaceEmotionDetector()
+    frame_writer = video_datawriter.VideoDataWriter(
+        output_path=setup.DATA_DIR / "output.mp4", fps=frame_loader.fps
+    )
 
     frame_count: int = 0
 
@@ -40,10 +45,15 @@ def controller(args):
         if image_cpy is None:
             break
 
-        face_crops, _ = face_track.track_faces(image_cpy, frame_count)
+        face_crops, bboxes = face_track.track_faces(image_cpy, frame_count)
         frame_count += 1
-        for crop in face_crops:
-            emotions = emotion_detect.detect_emotions(crop)
+        # for crop in face_crops:
+        #    emotions = emotion_detect.detect_emotions(crop)
+
+        visualizer = Visualizer(image, bboxes)
+        visualizer.draw_bboxes
+
+        frame_writer.write_video(visualizer.image)
 
         # if the `q` key was pressed, break from the loop
         key = cv2.waitKey(1) & 0xFF

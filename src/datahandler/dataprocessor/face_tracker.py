@@ -31,16 +31,16 @@ class DlibTracker:
         if frame_count == 0:
             face_crops, bboxes = self.face_detector.detect_faces(image)
 
-            for bbox in bboxes:
+            for (x, y, w, h) in bboxes:
                 cv2.rectangle(
                     image,
-                    (bbox[0], bbox[1]),
-                    (bbox[2], bbox[3]),
+                    (x, y),
+                    (x + w, y + h),
                     (255, 0, 0),
-                    2,
+                    thickness=2,
                 )
 
-                rect = dlib.rectangle(bbox[0], bbox[1], bbox[2], bbox[3])
+                rect = dlib.rectangle(x, y, x + w, y + h)
 
                 self.tracker.start_track(image, rect)
                 self.trackers.append(self.tracker)
@@ -63,4 +63,5 @@ class DlibTracker:
 
             face_crops = [image[y : y + h, x : x + w] for (x, y, w, h) in bboxes]
 
+            # TODO: Fix Broadcasting Error!!!
             return (np.array(face_crops), np.array(bboxes))

@@ -1,6 +1,7 @@
 # Custom Files
 */logs
 *data/
+.idea/
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

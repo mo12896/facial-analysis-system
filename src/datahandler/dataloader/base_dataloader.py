@@ -4,7 +4,7 @@ from pathlib import Path
 
 class BaseDataLoader(ABC):
     """
-    This is the abstract base class for
+    This is the abstract base class for loading data from a file.
     """
 
     def __init__(self, file_path: Path, frequency: int):
