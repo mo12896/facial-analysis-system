@@ -25,7 +25,7 @@ class VisualDataLoader(BaseDataLoader):
 
     def __next__(self):
         for _ in range(self.frequency):
-            success, image = self.cap.read()
+            success, frame = self.cap.read()
             if not success:
                 raise StopIteration
-        return image
+        return frame
