@@ -3,17 +3,16 @@ import numpy as np
 
 
 class Visualizer:
-    def __init__(self, image: np.ndarray, bboxes: np.ndarray):
+    def __init__(self, image: np.ndarray):
         self.image = image
-        self.bboxes = bboxes
 
-    def draw_bboxes(self) -> np.ndarray:
-        for (x, y, w, h) in self.bboxes:
+    def draw_bboxes(self, bboxes: np.ndarray) -> np.ndarray:
+        for (x, y, w, h) in bboxes:
             cv2.rectangle(
                 self.image,
                 (x, y),
                 (x + w, y + h),
-                (255, 0, 0),
-                2,
+                (0, 0, 255),
+                thickness=5,
             )
         return self.image

@@ -18,15 +18,15 @@ class Tracker(Protocol):
 
 
 class DlibTracker:
-    def __init__(self, face_detector: FaceDetector):
+    def __init__(self, face_detector: FaceDetector, tracker=dlib.correlation_tracker()):
         self.face_detector = face_detector
-        self.tracker = dlib.correlation_tracker()
+        self.tracker = tracker
 
         self.trackers: list = []
 
     def track_faces(
         self, image: np.ndarray, frame_count: int
-    ) -> Tuple[np.ndarray, np.ndarray]:
+    ) -> Tuple[list, np.ndarray]:
         # TODO: Has to be reinitialized every time a face gets excluded!
         if frame_count == 0:
             face_crops, bboxes = self.face_detector.detect_faces(image)
@@ -45,7 +45,7 @@ class DlibTracker:
                 self.tracker.start_track(image, rect)
                 self.trackers.append(self.tracker)
 
-            return (np.array(face_crops), bboxes)
+            return (face_crops, np.array(bboxes))
 
         else:
             bboxes = []
@@ -63,5 +63,4 @@ class DlibTracker:
 
             face_crops = [image[y : y + h, x : x + w] for (x, y, w, h) in bboxes]
 
-            # TODO: Fix Broadcasting Error!!!
-            return (np.array(face_crops), np.array(bboxes))
+            return (face_crops, np.array(bboxes))

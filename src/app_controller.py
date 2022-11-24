@@ -29,7 +29,7 @@ def controller(args):
     )
     face_track = face_tracker.DlibTracker(face_detect)
     emotion_detect = emotion_detector.DeepFaceEmotionDetector()
-    frame_writer = video_datawriter.VideoDataWriter(
+    video_writer = video_datawriter.VideoDataWriter(
         output_path=setup.DATA_DIR / "output.mp4", fps=frame_loader.fps
     )
 
@@ -39,29 +39,28 @@ def controller(args):
         tqdm(frame_loader, desc="Loading frames", total=frame_loader.total_frames)
     ):
         # TODO: Resizing the image!?
-        image = frame
-        image_cpy = np.copy(image)
+        image_cpy = np.copy(frame)
 
         if image_cpy is None:
             break
 
-        face_crops, bboxes = face_track.track_faces(image_cpy, frame_count)
+        _, bboxes = face_track.track_faces(image_cpy, frame_count)
         frame_count += 1
         # for crop in face_crops:
         #    emotions = emotion_detect.detect_emotions(crop)
 
-        visualizer = Visualizer(image, bboxes)
-        visualizer.draw_bboxes
+        visualizer = Visualizer(frame)
+        visualizer.draw_bboxes(bboxes)
 
-        frame_writer.write_video(visualizer.image)
+        video_writer.write_video(visualizer.image)
 
         # if the `q` key was pressed, break from the loop
         key = cv2.waitKey(1) & 0xFF
         if key == ord("q"):
             break
 
-
-print("Finished processing")
-# Release the video capture object and close all windows
-# visual_dataloader.VisualDataLoader.cap.release()
-cv2.destroyAllWindows()
+    print("Finished processing")
+    # Release the video capture object and close all windows
+    frame_loader.cap.release()
+    video_writer.frame_writer.release()
+    cv2.destroyAllWindows()
