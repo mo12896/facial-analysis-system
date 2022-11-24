@@ -10,3 +10,10 @@ class DeepFaceBackends(Enum):
     MTCNN = "mtcnn"
     RETINAFACE = "retinaface"
     MEDIAPIPE = "mediapipe"
+
+
+class VideoCodecs(Enum):
+    """Enum for the different OpenCV codecs."""
+
+    MP4V = ".mp4"
+    XVID = ".avi"

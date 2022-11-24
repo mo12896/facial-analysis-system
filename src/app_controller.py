@@ -10,6 +10,7 @@ from datahandler.dataloader import visual_dataloader
 from datahandler.dataprocessor import emotion_detector, face_detector, face_tracker
 from datahandler.datawriter import video_datawriter
 from datahandler.visualizer import Visualizer
+from utils.app_enums import VideoCodecs
 
 
 def controller(args):
@@ -25,12 +26,14 @@ def controller(args):
 
     frame_loader = visual_dataloader.VisualDataLoader(setup.DATA_DIR / "test_video.mp4")
     face_detect = face_detector.OpenCVFaceDetector(
-        face_detector=cv2.CascadeClassifier(configs["FACEDETECTOR"])
+        face_detector=cv2.CascadeClassifier(configs["FACE_DETECTOR"])
     )
     face_track = face_tracker.DlibTracker(face_detect)
     emotion_detect = emotion_detector.DeepFaceEmotionDetector()
     video_writer = video_datawriter.VideoDataWriter(
-        output_path=setup.DATA_DIR / "output.mp4", fps=frame_loader.fps
+        output_path=setup.DATA_DIR,
+        fps=frame_loader.fps,
+        video_codec=VideoCodecs[configs["VIDEO_CODEC"]],
     )
 
     frame_count: int = 0
