@@ -1,6 +1,7 @@
 from typing import Protocol, Tuple
 
 import cv2
+import matplotlib.pyplot as plt
 import numpy as np
 from retinaface import RetinaFace
 
@@ -73,6 +74,7 @@ class RetinaFaceDetector:
     def detect_faces(self, frame: np.ndarray) -> Tuple[list, np.ndarray]:
         faces = self.face_detector.detect_faces(frame)
         self.bboxes = np.array([faces[face]["facial_area"] for face in faces])
+
         if self.bboxes.any():
             face_crops = [frame[y : y + h, x : x + w] for (x, y, w, h) in self.bboxes]
             return (
@@ -86,11 +88,11 @@ class RetinaFaceDetector:
         frame_cpy = np.copy(frame)
         for bbox in self.bboxes:
             cv2.rectangle(
-                frame,
+                frame_cpy,
                 (bbox[0], bbox[1]),
-                (bbox[0] + bbox[2], bbox[1] + bbox[3]),
+                (bbox[2], bbox[3]),
                 (0, 0, 255),
-                thickness=1,
+                5,
             )
         cv2.imshow("Detected Faces", frame_cpy)
         return frame_cpy

@@ -26,7 +26,7 @@ def controller(args):
 
     frame_loader = visual_dataloader.VideoDataLoader(setup.DATA_DIR / "test_video.mp4")
     face_detect = face_detector.FaceDetectorFactory.create_face_detector(
-        detector="opencv"
+        detector="retinaface"
     )
     face_track = face_tracker.DlibTracker(face_detect)
     emotion_detect = emotion_detector.DeepFaceEmotionDetector()
