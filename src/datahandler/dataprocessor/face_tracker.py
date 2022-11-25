@@ -18,9 +18,8 @@ class Tracker(Protocol):
 
 
 class DlibTracker:
-    def __init__(self, face_detector: FaceDetector, tracker=dlib.correlation_tracker()):
+    def __init__(self, face_detector: FaceDetector):
         self.face_detector = face_detector
-        self.tracker = tracker
 
         self.trackers: list = []
 
@@ -36,24 +35,25 @@ class DlibTracker:
                 cv2.rectangle(
                     image,
                     (x, y),
-                    (x + w, y + h),
+                    (w, h),
                     (255, 0, 0),
                     thickness=2,
                 )
 
-                rect = dlib.rectangle(x, y, x + w, y + h)
+                tracker = dlib.correlation_tracker()
+                rect = dlib.rectangle(x, y, w, h)
 
-                self.tracker.start_track(image, rect)
-                self.trackers.append(self.tracker)
+                tracker.start_track(image, rect)
+                self.trackers.append(tracker)
 
             return (face_crops, np.array(bboxes))
 
         else:
             bboxes = []
 
-            for tracker in self.trackers:
-                tracker.update(image)
-                pos = tracker.get_position()
+            for track in self.trackers:
+                track.update(image)
+                pos = track.get_position()
 
                 startX = int(pos.left())
                 startY = int(pos.top())

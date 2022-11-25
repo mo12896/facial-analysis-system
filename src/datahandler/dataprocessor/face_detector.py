@@ -95,4 +95,5 @@ class RetinaFaceDetector:
                 5,
             )
         cv2.imshow("Detected Faces", frame_cpy)
+        print(self.bboxes)
         return frame_cpy

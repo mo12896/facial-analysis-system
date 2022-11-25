@@ -11,7 +11,7 @@ class Visualizer:
             cv2.rectangle(
                 self.image,
                 (x, y),
-                (x + w, y + h),
+                (w, h),
                 (0, 0, 255),
                 thickness=5,
             )
