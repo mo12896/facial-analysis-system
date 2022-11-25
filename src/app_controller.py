@@ -24,9 +24,9 @@ def controller(args):
     except yaml.YAMLError as exc:
         print(exc)
 
-    frame_loader = visual_dataloader.VisualDataLoader(setup.DATA_DIR / "test_video.mp4")
-    face_detect = face_detector.OpenCVFaceDetector(
-        face_detector=cv2.CascadeClassifier(configs["FACE_DETECTOR"])
+    frame_loader = visual_dataloader.VideoDataLoader(setup.DATA_DIR / "test_video.mp4")
+    face_detect = face_detector.FaceDetectorFactory.create_face_detector(
+        detector="opencv"
     )
     face_track = face_tracker.DlibTracker(face_detect)
     emotion_detect = emotion_detector.DeepFaceEmotionDetector()
@@ -42,12 +42,12 @@ def controller(args):
         tqdm(frame_loader, desc="Loading frames", total=frame_loader.total_frames)
     ):
         # TODO: Resizing the image!?
-        image_cpy = np.copy(frame)
+        frame_cpy = np.copy(frame)
 
-        if image_cpy is None:
+        if frame_cpy is None:
             break
 
-        _, bboxes = face_track.track_faces(image_cpy, frame_count)
+        _, bboxes = face_track.track_faces(frame_cpy, frame_count)
         frame_count += 1
         # for crop in face_crops:
         #    emotions = emotion_detect.detect_emotions(crop)

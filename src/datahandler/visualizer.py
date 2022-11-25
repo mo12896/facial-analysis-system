@@ -16,3 +16,9 @@ class Visualizer:
                 thickness=5,
             )
         return self.image
+
+    def draw_skeleton(self, poses) -> np.ndarray:
+        raise NotImplementedError
+
+    def draw_dashboard(self, dashboard) -> np.ndarray:
+        raise NotImplementedError

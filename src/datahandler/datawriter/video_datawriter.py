@@ -20,6 +20,7 @@ class VideoDataWriter:
             frame_height, frame_width, _ = frame.shape
             fourcc = cv2.VideoWriter_fourcc(*self.video_codec.name)
             filename = "output" + self.video_codec.value
+
             self.frame_writer = cv2.VideoWriter(
                 str(self.output_path / filename),
                 fourcc,

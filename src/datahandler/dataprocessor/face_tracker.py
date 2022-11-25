@@ -30,6 +30,7 @@ class DlibTracker:
         # TODO: Has to be reinitialized every time a face gets excluded!
         if frame_count == 0:
             face_crops, bboxes = self.face_detector.detect_faces(image)
+            self.face_detector.display_faces(image)
 
             for (x, y, w, h) in bboxes:
                 cv2.rectangle(

@@ -1,2 +1,1 @@
-FACE_DETECTOR: "/home/moritz/anaconda3/envs/emotion/lib/python3.10/site-packages/cv2/data/haarcascade_frontalface_default.xml"
 VIDEO_CODEC: MP4V

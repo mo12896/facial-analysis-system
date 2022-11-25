@@ -6,7 +6,7 @@ import numpy as np
 from .base_dataloader import BaseDataLoader
 
 
-class VisualDataLoader(BaseDataLoader):
+class VideoDataLoader(BaseDataLoader):
     """
     This is a class for loading visual data from a video file frame by frame.
     """
