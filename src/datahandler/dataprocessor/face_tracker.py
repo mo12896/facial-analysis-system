@@ -21,15 +21,15 @@ class DlibTracker:
     def __init__(self, face_detector: FaceDetector):
         self.face_detector = face_detector
 
-        self.trackers: list = []
-
     def track_faces(
         self, image: np.ndarray, frame_count: int
     ) -> Tuple[list, np.ndarray]:
-        # TODO: Has to be reinitialized every time a face gets excluded!
-        if frame_count == 0:
+        # For frame_count >= 0, the detections are very accurate!
+        if not frame_count or not frame_count % 10:
+            self.trackers: list = []
+
             face_crops, bboxes = self.face_detector.detect_faces(image)
-            self.face_detector.display_faces(image)
+            # self.face_detector.display_faces(image)
 
             for (x, y, w, h) in bboxes:
                 cv2.rectangle(
@@ -47,7 +47,6 @@ class DlibTracker:
                 self.trackers.append(tracker)
 
             return (face_crops, np.array(bboxes))
-
         else:
             bboxes = []
 

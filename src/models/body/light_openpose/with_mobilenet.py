@@ -11,8 +11,9 @@
 
 
 import torch
-from conv import conv, conv_dw, conv_dw_no_bn
 from torch import nn
+
+from .conv import conv, conv_dw, conv_dw_no_bn
 
 
 class Cpm(nn.Module):

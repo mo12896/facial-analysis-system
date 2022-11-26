@@ -30,7 +30,7 @@ def controller(args):
         print(exc)
 
     # Construct necessary objects
-    frame_loader = visual_dataloader.VideoDataLoader(setup.DATA_DIR / "Face.webm")
+    frame_loader = visual_dataloader.VideoDataLoader(setup.DATA_DIR / "test_video.mp4")
     face_detect = face_detector.create_face_detector(detector="retinaface")
     face_track = face_tracker.DlibTracker(face_detect)
     emotion_detect = face_emotion_detector.DeepFaceEmotionDetector()
@@ -39,7 +39,7 @@ def controller(args):
         fps=frame_loader.fps,
         video_codec=VideoCodecs[configs["VIDEO_CODEC"]],
     )
-    pose_est = pose_estimator.create_pose_estimator(estimator="light_openpose")
+    # pose_est = pose_estimator.create_pose_estimator(estimator="light_openpose")
 
     frame_count: int = 0
 
