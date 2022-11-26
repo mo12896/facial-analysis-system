@@ -52,29 +52,25 @@ class FaceDetector(ABC):
         return frame_cpy
 
 
-class FaceDetectorFactory:
-    """Factory class to create face detector objects."""
+def create_face_detector(detector: str) -> FaceDetector:
+    """Factory method to create face detector objects.
 
-    @staticmethod
-    def create_face_detector(detector: str) -> FaceDetector:
-        """Creates a face detector object.
+    Args:
+        detector (str): Name of the face detector
 
-        Args:
-            detector (str): Name of the face detector
+    Raises:
+        ValueError: If the given detector is not supported!
 
-        Raises:
-            ValueError: If the given detector is not supported!
-
-        Returns:
-            FaceDetector: Face detector object
-        """
-        if detector == "retinaface":
-            return RetinaFaceDetector()
-        elif detector == "opencv":
-            face_detector = cv2.CascadeClassifier(OPENCV_MODEL)
-            return OpenCVFaceDetector(face_detector)
-        else:
-            raise ValueError("The chosen face detector is not supported!")
+    Returns:
+        FaceDetector: Face detector object
+    """
+    if detector == "retinaface":
+        return RetinaFaceDetector()
+    elif detector == "opencv":
+        face_detector = cv2.CascadeClassifier(OPENCV_MODEL)
+        return OpenCVFaceDetector(face_detector)
+    else:
+        raise ValueError("The chosen face detector is not supported!")
 
 
 class OpenCVFaceDetector(FaceDetector):

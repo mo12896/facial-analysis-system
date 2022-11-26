@@ -7,7 +7,12 @@ from tqdm import tqdm
 
 import utils.constants as setup
 from datahandler.dataloader import visual_dataloader
-from datahandler.dataprocessor import emotion_detector, face_detector, face_tracker
+from datahandler.dataprocessor import (
+    face_detector,
+    face_emotion_detector,
+    face_tracker,
+    pose_estimator,
+)
 from datahandler.datawriter import video_datawriter
 from datahandler.visualizer import Visualizer
 from utils.app_enums import VideoCodecs
@@ -24,17 +29,17 @@ def controller(args):
     except yaml.YAMLError as exc:
         print(exc)
 
+    # Construct necessary objects
     frame_loader = visual_dataloader.VideoDataLoader(setup.DATA_DIR / "Face.webm")
-    face_detect = face_detector.FaceDetectorFactory.create_face_detector(
-        detector="retinaface"
-    )
+    face_detect = face_detector.create_face_detector(detector="retinaface")
     face_track = face_tracker.DlibTracker(face_detect)
-    emotion_detect = emotion_detector.DeepFaceEmotionDetector()
+    emotion_detect = face_emotion_detector.DeepFaceEmotionDetector()
     video_writer = video_datawriter.VideoDataWriter(
         output_path=setup.DATA_DIR,
         fps=frame_loader.fps,
         video_codec=VideoCodecs[configs["VIDEO_CODEC"]],
     )
+    pose_est = pose_estimator.create_pose_estimator(estimator="light_openpose")
 
     frame_count: int = 0
 
