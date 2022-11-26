@@ -31,3 +31,11 @@ class FaceRecognitionModels(Enum):
     DLIB = "Dlib"
     ARCFACE = "ArcFace"
     SFACE = "SFace"
+
+
+class DeepFaceMetrics(Enum):
+    """Enum for the different DeepFace metrics."""
+
+    EUCLIDEAN = "euclidean"
+    COSINE = "cosine"
+    EUCLIDEAN_L2 = "euclidean_l2"

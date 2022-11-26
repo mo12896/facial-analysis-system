@@ -1,6 +1,13 @@
 from dataclasses import dataclass
 from typing import Union
+
 import numpy as np
+from constants import (
+    EKMAN_EMOTIONS,
+    HUME_AI_EMOTIONS,
+    NEUTRAL_EKMAN_EMOTIONS,
+    THREE_EMOTIONS,
+)
 
 
 @dataclass(frozen=True, slots=True)
@@ -26,88 +33,36 @@ class EmotionSet:
         return np.array(self.emotion_list)[indices]
 
 
-class EmotionSetFactory:
+def generate_emotion_set(name: str) -> EmotionSet:
+    """Abstract factory for creating different Emotion Sets.
+
+    Args:
+        name (str): Name of the desired Emotion Set
+
+    Raises:
+        ValueError: Raised if the name does not represent an Emotion Set
+    Returns:
+        EmotionSet: Final Emotion Set
     """
-    Abstract factory for creating different Emotion Sets.
-    """
-
-    @staticmethod
-    def generate(name: str) -> EmotionSet:
-        """Generate a new Emotion Set
-
-        Args:
-            name (str): Name of the desired Emotion Set
-
-        Raises:
-            ValueError: Raised if the name does not represent an Emotion Set
-        Returns:
-            EmotionSet: Final Emotion Set
-        """
-        if name == "three":
-            return EmotionSet(name, 3, ["positive", "negative", "neutral"])
-        elif name == "ekman":
-            return EmotionSet(
-                name,
-                6,
-                ["anger", "surprise", "disgust", "enjoyment", "fear", "sadness"],
-            )
-        elif name == "neutral_ekman":
-            return EmotionSet(
-                name,
-                7,
-                emotion_list=[
-                    "anger",
-                    "surprise",
-                    "disgust",
-                    "enjoyment",
-                    "fear",
-                    "sadness",
-                    "neutral",
-                ],
-            )
-        elif name == "hume_ai":
-            return EmotionSet(
-                name,
-                27,
-                [
-                    "admiration",
-                    "adoration",
-                    "aesthetic appreciation",
-                    "amusement",
-                    "anger",
-                    "anxiety",
-                    "awe",
-                    "awkwardness",
-                    "neutral",
-                    "bordeom",
-                    "calmness",
-                    "confusion",
-                    "contempt",
-                    "craving",
-                    "disappointment",
-                    "disgust",
-                    "admiration",
-                    "adoration",
-                    "empathetic pain",
-                    "entrancement",
-                    "envy",
-                    "excitement",
-                    "fear",
-                    "guilt",
-                    "horror",
-                    "interest",
-                    "joy",
-                    "nostalgia",
-                    "pride",
-                    "relief",
-                    "romance",
-                    "sadness",
-                    "satisfaction",
-                    "secual desire",
-                    "surprise",
-                    "sympathy",
-                    "triumph",
-                ],
-            )
-        else:
-            raise ValueError(f'The chosen emotion set "{name}" does not exist!')
+    if name == "three":
+        return EmotionSet(name, 3, THREE_EMOTIONS)
+    elif name == "ekman":
+        return EmotionSet(
+            name,
+            6,
+            EKMAN_EMOTIONS,
+        )
+    elif name == "neutral_ekman":
+        return EmotionSet(
+            name,
+            7,
+            NEUTRAL_EKMAN_EMOTIONS,
+        )
+    elif name == "hume_ai":
+        return EmotionSet(
+            name,
+            27,
+            HUME_AI_EMOTIONS,
+        )
+    else:
+        raise ValueError(f'The chosen emotion set "{name}" does not exist!')
