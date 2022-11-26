@@ -5,7 +5,7 @@ import cv2
 import numpy as np
 from retinaface import RetinaFace
 
-OPENCV_MODEL = "/home/moritz/anaconda3/envs/emotion/lib/python3.10/site-packages/cv2/data/haarcascade_frontalface_default.xml"
+from utils.constants import OPENCV_MODEL
 
 
 class FaceDetector(ABC):

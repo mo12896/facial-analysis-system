@@ -5,7 +5,7 @@ import numpy as np
 import yaml
 from tqdm import tqdm
 
-import setup_file as setup
+import utils.constants as setup
 from datahandler.dataloader import visual_dataloader
 from datahandler.dataprocessor import emotion_detector, face_detector, face_tracker
 from datahandler.datawriter import video_datawriter
@@ -24,7 +24,7 @@ def controller(args):
     except yaml.YAMLError as exc:
         print(exc)
 
-    frame_loader = visual_dataloader.VideoDataLoader(setup.DATA_DIR / "test_video.mp4")
+    frame_loader = visual_dataloader.VideoDataLoader(setup.DATA_DIR / "Face.webm")
     face_detect = face_detector.FaceDetectorFactory.create_face_detector(
         detector="retinaface"
     )

@@ -1,6 +1,6 @@
 import argparse
 
-import setup_file as setup
+import utils.constants as setup
 
 
 def parse_arguments():
