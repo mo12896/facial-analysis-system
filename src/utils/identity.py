@@ -1,8 +1,7 @@
 from dataclasses import dataclass
-from typing import Tuple
 
 import numpy as np
-from constants import DATABASE_DIR, IDENTITY_DIR
+from constants import IDENTITY_DIR
 from dataclass_csv import DataclassWriter
 
 
@@ -16,11 +15,13 @@ class IdentityState:
     # keypoints: Pose
 
 
-class Identity:
-    """Identity class for the user."""
+class IdentityHandler:
+    """Identity handler for the current users state"""
 
-    def __init__(self, identity_state: IdentityState = IdentityState()):
-        self.identity_state = identity_state
+    def __init__(self, user_id: str):
+        self.user_id = user_id
+        self.filename = IDENTITY_DIR / f"{self.user_id}.csv"
+        self.identity_state: IdentityState = IdentityState()
 
     @property
     def current_state(self) -> IdentityState:
@@ -28,26 +29,17 @@ class Identity:
 
     @current_state.setter
     def current_state(self, identity_state: IdentityState):
-        confidence = self.verify_identity(identity_state.face)
-
-        identity_state.confidence = confidence
-        with open(self.filename, "w") as f:
-            w = DataclassWriter(f, [identity_state], IdentityState)
-            w.write(skip_header=True)
+        try:
+            self.write_state_to_csv()
+        except Exception as exc:
+            print(exc)
 
         self._identity_state = identity_state
 
-    def verify_identity(self, frame: np.ndarray) -> bool | float:
-        user_id, confidence = self.verification_process(frame)
-
-        if not confidence:
-            # TODO: Define verification handling
-            return False
-
-        self.filename = IDENTITY_DIR / f"{user_id}.csv"
-
+    def write_state_to_csv(self) -> None:
         if not self.filename.exists():
             self.filename.touch()
+
             with open(self.filename, "w") as f:
                 w = DataclassWriter(f, [self.identity_state], IdentityState)
                 w.map("frame_count").to("Frame")
@@ -56,9 +48,8 @@ class Identity:
                 w.map("face").to("Face")
                 w.map("emotions").to("Emotions")
                 # w.map("keypoints").to("Keypoints")
-        return confidence
+                return
 
-    # TODO: Define a verficiation logic
-    @staticmethod
-    def verification_process(frame: np.ndarray) -> Tuple[int, float]:
-        pass
+        with open(self.filename, "w") as f:
+            w = DataclassWriter(f, [self.identity_state], IdentityState)
+            w.write(skip_header=True)
