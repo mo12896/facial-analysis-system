@@ -7,12 +7,7 @@ from tqdm import tqdm
 
 import utils.constants as setup
 from datahandler.dataloader import visual_dataloader
-from datahandler.dataprocessor import (
-    face_detector,
-    face_emotion_detector,
-    face_tracker,
-    pose_estimator,
-)
+from datahandler.dataprocessor import face_detector, face_tracker
 from datahandler.datawriter import video_datawriter
 from datahandler.visualizer import Visualizer
 from utils.app_enums import VideoCodecs
@@ -33,7 +28,6 @@ def controller(args):
     frame_loader = visual_dataloader.VideoDataLoader(setup.DATA_DIR / "test_video.mp4")
     face_detect = face_detector.create_face_detector(detector="retinaface")
     face_track = face_tracker.DlibTracker(face_detect)
-    emotion_detect = face_emotion_detector.DeepFaceEmotionDetector()
     video_writer = video_datawriter.VideoDataWriter(
         output_path=setup.DATA_DIR,
         fps=frame_loader.fps,

@@ -14,7 +14,11 @@ MODEL_DIR = root / "models"
 # Asset Files
 LIGHT_OPENPOSE_MODEL = MODEL_DIR / "checkpoint_iter_370000.pth"
 DATABASE = DATABASE_DIR / "database.pkl"
-OPENCV_MODEL = "/home/moritz/anaconda3/envs/emotion/lib/python3.10/site-packages/cv2/data/haarcascade_frontalface_default.xml"
+EMOTION_ENV = Path("/home/moritz/anaconda3/envs/emotion")
+OPENCV_MODEL = (
+    EMOTION_ENV
+    / "/lib/python3.10/site-packages/cv2/data/haarcascade_frontalface_default.xml"
+)
 
 
 # EmotionSets

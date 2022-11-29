@@ -1,6 +1,7 @@
 from typing import Protocol
-from deepface import DeepFace
+
 import numpy as np
+from deepface import DeepFace
 
 
 class EmotionDetector(Protocol):
