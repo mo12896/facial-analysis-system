@@ -5,7 +5,7 @@ root = Path.cwd().parent
 
 CONFIG_DIR = root / "configs"
 DATA_DIR = root / "data"
-LOGS_DIR = root / "logs"
+LOG_DIR = root / "logs"
 DATABASE_DIR = DATA_DIR / "database"
 IDENTITY_DIR = DATA_DIR / "identity"
 MODEL_DIR = root / "models"

@@ -27,7 +27,9 @@ def controller(args):
     # Construct necessary objects
     frame_loader = visual_dataloader.VideoDataLoader(setup.DATA_DIR / "test_video.mp4")
     face_detect = face_detector.create_face_detector(detector="retinaface")
-    face_track = face_tracker.DlibTracker(face_detect)
+    face_track = face_tracker.DlibTracker(
+        face_detector=face_detect, detection_frequency=configs["DETECT_FREQ"]
+    )
     video_writer = video_datawriter.VideoDataWriter(
         output_path=setup.DATA_DIR,
         fps=frame_loader.fps,

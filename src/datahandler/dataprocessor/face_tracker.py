@@ -1,4 +1,5 @@
-from typing import Protocol, Tuple
+from abc import ABC, abstractmethod
+from typing import Tuple
 
 import cv2
 import dlib
@@ -6,26 +7,42 @@ import numpy as np
 
 from .face_detector import FaceDetector
 
+# TODO: Implement BYOL tracker
+# from yolox.tracker.byte_tracker import BYTETracker
 
-class Tracker(Protocol):
+
+class Tracker(ABC):
+    """Base constructor for all trackers, using the Bridge pattern
+    to decouple the tracker from the face detector."""
+
     def __init__(self, face_detector: FaceDetector):
-        ...
+        self.face_detector = face_detector
 
+    @abstractmethod
     def track_faces(
         self, image: np.ndarray, frame_count: int
     ) -> Tuple[np.ndarray, np.ndarray]:
-        ...
+        """Function to track faces in a given frame.
+
+        Args:
+            image (np.ndarray): Current frame
+            frame_count (int): Index of the current frame
+
+        Returns:
+            Tuple[np.ndarray, np.ndarray]: Face crops and bounding boxes
+        """
 
 
-class DlibTracker:
-    def __init__(self, face_detector: FaceDetector):
-        self.face_detector = face_detector
+class DlibTracker(Tracker):
+    def __init__(self, face_detector: FaceDetector, detection_frequency: int = 10):
+        super().__init__(face_detector)
+        self.detection_frequency = detection_frequency
 
     def track_faces(
         self, image: np.ndarray, frame_count: int
     ) -> Tuple[list, np.ndarray]:
-        # For frame_count >= 0, the detections are very accurate!
-        if not frame_count or not frame_count % 10:
+        # For frame_count >= 0, the detections become more accurate!
+        if not frame_count or not frame_count % self.detection_frequency:
             self.trackers: list = []
 
             face_crops, bboxes = self.face_detector.detect_faces(image)
