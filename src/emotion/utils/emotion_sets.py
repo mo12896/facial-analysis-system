@@ -3,7 +3,7 @@ from typing import Union
 
 import numpy as np
 
-from emotion.utils.constants import (
+from .constants import (
     EKMAN_EMOTIONS,
     HUME_AI_EMOTIONS,
     NEUTRAL_EKMAN_EMOTIONS,

@@ -2,7 +2,7 @@ import logging
 
 import pytest
 
-from emotion.utils.logger import setup_logger
+from src.emotion.utils.logger import setup_logger
 
 
 # Test the setup_logger function with pytest

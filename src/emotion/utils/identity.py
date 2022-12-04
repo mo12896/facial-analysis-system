@@ -1,17 +1,17 @@
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 
-import numpy as np
-from constants import IDENTITY_DIR
 from dataclass_csv import DataclassWriter
+
+from .constants import IDENTITY_DIR
 
 
 @dataclass(slots=True)
 class IdentityState:
     frame_count: int = 0
     confidence: float = 0.0
-    bboxes: np.ndarray = np.array([])
-    face: np.ndarray = np.array([])
-    emotions: list = []
+    bboxes: list = field(default_factory=list)
+    face: list = field(default_factory=list)
+    emotions: list = field(default_factory=list)
     # keypoints: Pose
 
 
