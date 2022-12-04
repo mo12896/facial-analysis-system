@@ -5,12 +5,12 @@ import numpy as np
 import yaml
 from tqdm import tqdm
 
-import utils.constants as setup
-from datahandler.dataloader import visual_dataloader
-from datahandler.dataprocessor import face_detector, face_tracker
-from datahandler.datawriter import video_datawriter
-from datahandler.visualizer import Visualizer
-from utils.app_enums import VideoCodecs
+from .datahandler.dataloader import visual_dataloader
+from .datahandler.dataprocessor import face_detector, face_tracker
+from .datahandler.datawriter import video_datawriter
+from .datahandler.visualizer import Visualizer
+from .utils.app_enums import VideoCodecs
+from .utils.constants import DATA_DIR
 
 
 def controller(args):
@@ -25,13 +25,13 @@ def controller(args):
         print(exc)
 
     # Construct necessary objects
-    frame_loader = visual_dataloader.VideoDataLoader(setup.DATA_DIR / "test_video.mp4")
+    frame_loader = visual_dataloader.VideoDataLoader(DATA_DIR / "test_video.mp4")
     face_detect = face_detector.create_face_detector(detector="retinaface")
     face_track = face_tracker.DlibTracker(
         face_detector=face_detect, detection_frequency=configs["DETECT_FREQ"]
     )
     video_writer = video_datawriter.VideoDataWriter(
-        output_path=setup.DATA_DIR,
+        output_path=DATA_DIR,
         fps=frame_loader.fps,
         video_codec=VideoCodecs[configs["VIDEO_CODEC"]],
     )
@@ -45,7 +45,7 @@ def controller(args):
         # TODO: Resizing the image!?
         frame_cpy = np.copy(frame)
 
-        if frame_cpy is None:
+        if not frame_cpy:
             break
 
         _, bboxes = face_track.track_faces(frame_cpy, frame_count)

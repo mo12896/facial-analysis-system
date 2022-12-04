@@ -2,9 +2,11 @@ from abc import ABC, abstractmethod
 
 import torch
 
-from models.body.light_openpose.load_state import load_state
-from models.body.light_openpose.with_mobilenet import PoseEstimationWithMobileNet
-from utils.constants import LIGHT_OPENPOSE_MODEL
+from emotion.models.body.light_openpose.load_state import load_state
+from emotion.models.body.light_openpose.with_mobilenet import (
+    PoseEstimationWithMobileNet,
+)
+from emotion.utils.constants import LIGHT_OPENPOSE_MODEL
 
 
 class PoseEstimator(ABC):

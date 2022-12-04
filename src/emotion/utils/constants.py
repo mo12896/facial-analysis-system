@@ -1,7 +1,7 @@
 from pathlib import Path
 
 # Directories
-root = Path.cwd().parent
+root = Path.cwd()
 
 CONFIG_DIR = root / "configs"
 DATA_DIR = root / "data"

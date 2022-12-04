@@ -5,7 +5,7 @@ import cv2
 import numpy as np
 from retinaface import RetinaFace
 
-from utils.constants import OPENCV_MODEL
+from emotion.utils.constants import OPENCV_MODEL
 
 
 class FaceDetector(ABC):

@@ -2,7 +2,8 @@ from dataclasses import dataclass
 from typing import Union
 
 import numpy as np
-from constants import (
+
+from emotion.utils.constants import (
     EKMAN_EMOTIONS,
     HUME_AI_EMOTIONS,
     NEUTRAL_EKMAN_EMOTIONS,

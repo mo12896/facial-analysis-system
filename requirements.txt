@@ -1,13 +1,12 @@
-dataclass_csv==1.4.0
+dataclass-csv==1.4.0
 deepface==0.0.75
 dlib==19.24.0
 matplotlib==3.6.2
 numpy==1.23.4
-opencv_contrib_python==4.6.0.66
+opencv-contrib-python==4.6.0.66
 pre-commit==2.20.0
 PyYAML==6.0
-retina_face==0.0.12
-retinaface==1.1.1
+retina-face==0.0.12
 setuptools==65.5.0
 torch==1.13.0
 tqdm==4.64.1
