@@ -64,20 +64,20 @@ class DlibTracker(Tracker):
                 self.trackers.append(tracker)
 
             return (face_crops, np.array(bboxes))
-        else:
-            bboxes = []
 
-            for track in self.trackers:
-                track.update(image)
-                pos = track.get_position()
+        bboxes = []
 
-                startX = int(pos.left())
-                startY = int(pos.top())
-                endX = int(pos.right())
-                endY = int(pos.bottom())
+        for track in self.trackers:
+            track.update(image)
+            pos = track.get_position()
 
-                bboxes.append((startX, startY, endX, endY))
+            startX = int(pos.left())
+            startY = int(pos.top())
+            endX = int(pos.right())
+            endY = int(pos.bottom())
 
-            face_crops = [image[y : y + h, x : x + w] for (x, y, w, h) in bboxes]
+            bboxes.append((startX, startY, endX, endY))
 
-            return (face_crops, np.array(bboxes))
+        face_crops = [image[y : y + h, x : x + w] for (x, y, w, h) in bboxes]
+
+        return (face_crops, np.array(bboxes))

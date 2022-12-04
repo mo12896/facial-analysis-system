@@ -7,7 +7,7 @@ CONFIG_DIR = root / "configs"
 DATA_DIR = root / "data"
 LOG_DIR = root / "logs"
 DATABASE_DIR = DATA_DIR / "database"
-IDENTITY_DIR = DATA_DIR / "identity"
+IDENTITY_DIR = DATA_DIR / "identities"
 MODEL_DIR = root / "models"
 
 

@@ -4,8 +4,7 @@ from typing import Tuple
 import cv2
 import numpy as np
 from retinaface import RetinaFace
-
-from emotion.utils.constants import OPENCV_MODEL
+from utils.constants import OPENCV_MODEL
 
 
 class FaceDetector(ABC):
@@ -90,8 +89,7 @@ class OpenCVFaceDetector(FaceDetector):
                 face_crops,
                 self.bboxes,
             )
-        else:
-            raise ValueError("No faces detected")
+        raise ValueError("No faces detected")
 
 
 class RetinaFaceDetector(FaceDetector):
@@ -110,5 +108,4 @@ class RetinaFaceDetector(FaceDetector):
                 face_crops,
                 self.bboxes,
             )
-        else:
-            raise ValueError("No faces detected")
+        raise ValueError("No faces detected")

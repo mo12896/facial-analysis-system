@@ -2,8 +2,7 @@ from pathlib import Path
 
 import cv2
 import numpy as np
-
-from emotion.utils.app_enums import VideoCodecs
+from utils.app_enums import VideoCodecs
 
 
 class VideoDataWriter:

@@ -3,14 +3,13 @@ from typing import Any
 import cv2
 import numpy as np
 import yaml
+from datahandler.dataloader import visual_dataloader
+from datahandler.dataprocessor import face_detector, face_tracker
+from datahandler.datawriter import video_datawriter
+from datahandler.visualizer import Visualizer
 from tqdm import tqdm
-
-from .datahandler.dataloader import visual_dataloader
-from .datahandler.dataprocessor import face_detector, face_tracker
-from .datahandler.datawriter import video_datawriter
-from .datahandler.visualizer import Visualizer
-from .utils.app_enums import VideoCodecs
-from .utils.constants import DATA_DIR
+from utils.app_enums import VideoCodecs
+from utils.constants import DATA_DIR
 
 
 def controller(args):
@@ -45,7 +44,7 @@ def controller(args):
         # TODO: Resizing the image!?
         frame_cpy = np.copy(frame)
 
-        if not frame_cpy:
+        if not frame_cpy.any():
             break
 
         _, bboxes = face_track.track_faces(frame_cpy, frame_count)
