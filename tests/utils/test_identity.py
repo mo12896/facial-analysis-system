@@ -3,6 +3,7 @@ from pathlib import Path
 import pytest
 from dataclass_csv import DataclassReader
 
+from src.emotion.utils.helper_functions import cast_list_of_strings
 from src.emotion.utils.identity import IdentityHandler, IdentityState
 
 IDENTITY_PATH = "/home/moritz/Workspace/masterthesis/data/identities/test.csv"
@@ -66,25 +67,36 @@ class TestIdentityHandler:
             reader.map("Confidence").to("confidence")
             reader.map("Bounding Boxes").to("bboxes")
             reader.map("Emotions").to("emotions")
+            for row in reader:
+                assert row.frame_count == test_identity.frame_count
+                assert row.confidence == test_identity.confidence
+                assert cast_list_of_strings(row.bboxes) == test_identity.bboxes
+                assert cast_list_of_strings(row.emotions) == test_identity.emotions
+        identity.filename.unlink()
+
+    def test_write_state_to_csv_with_existing_file(
+        self,
+        identity: IdentityHandler,
+        test_ids: dict[str, IdentityState] = test_identities,
+    ):
+        """Test write state to csv with existing file"""
+        for test_id in test_ids:
+            identity.current_state = test_ids[test_id]
+
+        with open(identity.filename) as identity_csv:
+            reader = DataclassReader(identity_csv, IdentityState)
+            reader.map("Frame").to("frame_count")
+            reader.map("Confidence").to("confidence")
+            reader.map("Bounding Boxes").to("bboxes")
+            reader.map("Emotions").to("emotions")
             for count, row in enumerate(reader):
-                if count == 0:
-                    continue
-                assert row == test_identity
-        # identity.filename.unlink()
-
-    # def test_write_state_to_csv_with_existing_file(
-    #     self,
-    #     identity: IdentityHandler,
-    #     test_identity: dict[str, IdentityState] = test_identities,
-    # ):
-    #     """Test write state to csv with existing file"""
-    #     identity.current_state = test_identity["id_1"]
-    #     identity.current_state = test_identity["id_2"]
-
-    #     with open(identity.filename) as identity_csv:
-    #         reader = DataclassReader(identity_csv, IdentityState)
-    #         for count, row in enumerate(reader):
-    #             if count == 0:
-    #                 continue
-    #             assert row == test_identity[f"id_{count}"]
-    #     identity.filename.unlink()
+                assert row.frame_count == test_ids[f"id_{count+1}"].frame_count
+                assert row.confidence == test_ids[f"id_{count+1}"].confidence
+                assert (
+                    cast_list_of_strings(row.bboxes) == test_ids[f"id_{count+1}"].bboxes
+                )
+                assert (
+                    cast_list_of_strings(row.emotions)
+                    == test_ids[f"id_{count+1}"].emotions
+                )
+        identity.filename.unlink()

@@ -43,10 +43,9 @@ class IdentityHandler:
                 w.map("confidence").to("Confidence")
                 w.map("bboxes").to("Bounding Boxes")
                 w.map("emotions").to("Emotions")
-                # w.map("keypoints").to("Keypoints")
                 w.write()
                 return
 
-        with open(self.filename, "w") as f:
+        with open(self.filename, "a") as f:
             w = DataclassWriter(f, [self._identity_state], IdentityState)
             w.write(skip_header=True)
