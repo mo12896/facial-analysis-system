@@ -1,3 +1,4 @@
+from pathlib import Path
 from typing import Any
 
 import cv2
@@ -10,8 +11,12 @@ from datahandler.visualizer import Visualizer
 from tqdm import tqdm
 from utils.app_enums import VideoCodecs
 from utils.constants import DATA_DIR
+from utils.logger import setup_logger, with_logging
+
+logger = setup_logger("ctrl_logger")
 
 
+@with_logging(logger)
 def controller(args):
     """Main controller for the application."""
 
@@ -24,7 +29,9 @@ def controller(args):
         print(exc)
 
     # Construct necessary objects
-    frame_loader = visual_dataloader.VideoDataLoader(DATA_DIR / "test_video.mp4")
+    frame_loader = visual_dataloader.VideoDataLoader(
+        Path(configs["VIDEO_PATH"]) / "clip_0_10570_12012.mp4"
+    )
     face_detect = face_detector.create_face_detector(detector="retinaface")
     face_track = face_tracker.DlibTracker(
         face_detector=face_detect, detection_frequency=configs["DETECT_FREQ"]

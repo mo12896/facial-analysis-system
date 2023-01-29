@@ -1,4 +1,6 @@
+import functools
 import logging
+from typing import Any, Callable
 
 from .constants import LOG_DIR
 
@@ -6,7 +8,7 @@ from .constants import LOG_DIR
 def setup_logger(
     name: str,
     level: int = logging.INFO,
-    file_logger: bool = True,
+    file_logger: bool = False,
     stream_logger: bool = True,
 ) -> logging.Logger:
 
@@ -58,3 +60,17 @@ def create_stream_logger(
     # add the handlers to the logger
     logger.addHandler(console_handler)
     return logger
+
+
+def with_logging(logger: logging.Logger):
+    def decorator(func: Callable[..., Any]) -> Callable[..., Any]:
+        @functools.wraps(func)
+        def wrapper(*args: Any, **kwargs: Any) -> Any:
+            logger.info("Calling {func.__name__}")
+            value = func(*args, **kwargs)
+            logger.info("Finished {func.__name__}")
+            return value
+
+        return wrapper
+
+    return decorator

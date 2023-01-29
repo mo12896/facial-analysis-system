@@ -8,9 +8,9 @@ class BaseDataLoader(ABC):
     """
 
     def __init__(self, file_path: Path, frequency: int):
+        if not file_path.exists():
+            raise FileNotFoundError(f"File {file_path} does not exist")
         self.file_path = file_path
-        if not self.file_path.exists():
-            raise FileNotFoundError(f"File {self.file_path} does not exist")
         if frequency not in (0, None):
             self.frequency = frequency
         else:
