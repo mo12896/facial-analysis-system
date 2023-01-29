@@ -1,0 +1,3 @@
+[submodule "external/bytetrack"]
+	path = external/bytetrack
+	url = https://github.com/ifzhang/ByteTrack.git
