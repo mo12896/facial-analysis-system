@@ -3,7 +3,6 @@ from pathlib import Path
 
 # Directories
 root = Path.cwd()
-sys.path.append(f"{root}/external/bytetrack")
 
 CONFIG_DIR = root / "configs"
 DATA_DIR = root / "data"
@@ -11,6 +10,9 @@ LOG_DIR = root / "logs"
 DATABASE_DIR = DATA_DIR / "database"
 IDENTITY_DIR = DATA_DIR / "identities"
 MODEL_DIR = root / "models"
+
+# Paths to external libraries
+sys.path.append(f"{root}/external/bytetrack")
 
 
 # Asset Files
@@ -78,3 +80,22 @@ HUME_AI_EMOTIONS = [
 # Keypoint Definitions
 
 # Stdoutputs & stderrs
+
+DEFAULT_COLOR_PALETTE = [
+    "#e6194b",
+    "#3cb44b",
+    "#ffe119",
+    "#0082c8",
+    "#f58231",
+    "#911eb4",
+    "#46f0f0",
+    "#f032e6",
+    "#d2f53c",
+    "#fabebe",
+    "#008080",
+    "#e6beff",
+    "#aa6e28",
+    "#fffac8",
+    "#800000",
+    "#aaffc3",
+]

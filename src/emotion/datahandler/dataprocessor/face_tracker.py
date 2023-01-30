@@ -2,7 +2,6 @@ from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from typing import Tuple
 
-import cv2
 import dlib
 import numpy as np
 from utils.detections import Detections
@@ -39,6 +38,7 @@ class DlibTracker(Tracker):
     def __init__(self, face_detector: FaceDetector, detection_frequency: int = 10):
         super().__init__(face_detector)
         self.detection_frequency = detection_frequency
+        self.confidence = None
 
     def track_faces(self, image: np.ndarray, frame_count: int) -> Detections:
         # For frame_count >= 0, the detections become more accurate!
@@ -46,16 +46,9 @@ class DlibTracker(Tracker):
             self.trackers: list = []
 
             detections = self.face_detector.detect_faces(image)
-            # self.face_detector.display_faces(image)
+            self.confidence = detections.confidence
 
             for (x, y, w, h) in detections.bboxes:
-                cv2.rectangle(
-                    image,
-                    (x, y),
-                    (w, h),
-                    (255, 0, 0),
-                    thickness=2,
-                )
 
                 tracker = dlib.correlation_tracker()
                 rect = dlib.rectangle(x, y, w, h)
@@ -78,7 +71,11 @@ class DlibTracker(Tracker):
 
             bboxes.append((startX, startY, endX, endY))
 
-        detections = Detections.from_array(np.array(bboxes))
+        detections = Detections(
+            bboxes=np.array(bboxes),
+            confidence=self.confidence,
+            class_id=np.zeros(len(bboxes), dtype=np.int32),
+        )
 
         return detections
 

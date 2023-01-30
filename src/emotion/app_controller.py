@@ -9,10 +9,11 @@ from datahandler.dataprocessor.face_tracker import DlibTracker
 from datahandler.video_handler.video_info import VideoInfo
 from datahandler.video_handler.video_loader import VideoDataLoader
 from datahandler.video_handler.video_writer import VideoDataWriter
-from datahandler.visualizer import Visualizer
 from tqdm import tqdm
 from utils.app_enums import VideoCodecs
+from utils.color import Color
 from utils.constants import DATA_DIR
+from utils.detections import BoxAnnotator
 from utils.logger import setup_logger, with_logging
 
 logger = setup_logger("ctrl_logger", file_logger=True)
@@ -37,7 +38,7 @@ def controller(args):
         face_detector=face_detector, detection_frequency=configs["DETECT_FREQ"]
     )
     video_info = VideoInfo.from_video_path(configs["VIDEO_PATH"])
-
+    box_annotator = BoxAnnotator(color=Color.red())
     # pose_est = pose_estimator.create_pose_estimator(estimator="light_openpose")
 
     frame_count: int = 0
@@ -67,10 +68,11 @@ def controller(args):
             # for crop in face_crops:
             #    emotions = emotion_detect.detect_emotions(crop)
 
-            visualizer = Visualizer(frame)
-            visualizer.draw_bboxes(detections.bboxes)
+            # visualizer = Visualizer(frame)
+            # visualizer.draw_bboxes(detections.bboxes)
 
-            video_writer.write_frame(visualizer.image)
+            frame = box_annotator.annotate(frame, detections)
+            video_writer.write_frame(frame)
 
             # if the `q` key was pressed, break from the loop
             key = cv2.waitKey(1) & 0xFF
