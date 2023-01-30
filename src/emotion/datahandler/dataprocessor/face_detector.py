@@ -1,5 +1,4 @@
 from abc import ABC, abstractmethod
-from typing import Tuple
 
 import cv2
 import numpy as np
@@ -13,6 +12,7 @@ from retinaface import RetinaFace
 # from supervision.video.dataclasses import VideoInfo
 # from supervision.video.sink import VideoSink
 from utils.constants import OPENCV_MODEL
+from utils.detections import Detections
 
 
 class FaceDetector(ABC):
@@ -24,39 +24,17 @@ class FaceDetector(ABC):
             face_detector: Face detector object.
         """
         self.face_detector = face_detector
-        self.bboxes = []
 
     @abstractmethod
-    def detect_faces(self, frame: np.ndarray) -> Tuple[list, np.ndarray]:
+    def detect_faces(self, frame: np.ndarray) -> Detections:
         """Abstract method to detect faces in a given frame.
 
         Args:
             frame (np.ndarray): Current frame
 
         Returns:
-            Tuple[list, np.ndarray]: Tuple of face crops and bounding boxes
+            Detections: Object which holds the bounding boxes, confidences, and class ids
         """
-
-    def display_faces(self, frame: np.ndarray) -> np.ndarray:
-        """Displays the detected faces in a given frame.
-
-        Args:
-            frame (np.ndarray): Current frame
-
-        Returns:
-            np.ndarray: Frame with detected faces
-        """
-        frame_cpy = np.copy(frame)
-        for bbox in self.bboxes:
-            cv2.rectangle(
-                frame_cpy,
-                (bbox[0], bbox[1]),
-                (bbox[2], bbox[3]),
-                (0, 0, 255),
-                thickness=5,
-            )
-        cv2.imshow("Detected Faces", frame_cpy)
-        return frame_cpy
 
 
 def create_face_detector(detector: str) -> FaceDetector:
@@ -86,21 +64,16 @@ class OpenCVFaceDetector(FaceDetector):
     def __init__(self, face_detector: cv2.CascadeClassifier):
         super().__init__(face_detector)
 
-    def detect_faces(self, frame: np.ndarray) -> Tuple[list, np.ndarray]:
+    def detect_faces(self, frame: np.ndarray) -> Detections:
         gray_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
         bboxes = self.face_detector.detectMultiScale(gray_frame)
-        self.bboxes = np.array([(x, y, x + w, y + h) for (x, y, w, h) in bboxes])
+        detections = Detections.from_opencv(bboxes)
 
-        if self.bboxes.any():
-            face_crops = [frame[y:h, x:w] for (x, y, w, h) in self.bboxes]
-            return (
-                face_crops,
-                self.bboxes,
-            )
+        if len(detections) > 0:
+            return detections
         raise ValueError("No faces detected")
 
 
-# TODO: Write own Detections class to hold the relevant data!
 class RetinaFaceDetector(FaceDetector):
     """Face detector using RetinaFace."""
 
@@ -109,14 +82,10 @@ class RetinaFaceDetector(FaceDetector):
             raise ValueError("No GPU detected!")
         super().__init__(face_detector)
 
-    def detect_faces(self, frame: np.ndarray) -> Tuple[list, np.ndarray]:
+    def detect_faces(self, frame: np.ndarray) -> Detections:
         faces = self.face_detector.detect_faces(frame)
-        self.bboxes = np.array([faces[face]["facial_area"] for face in faces])
+        detections = Detections.from_retinaface(faces)
 
-        if self.bboxes.any():
-            face_crops = [frame[y:h, x:w] for (x, y, w, h) in self.bboxes]
-            return (
-                face_crops,
-                self.bboxes,
-            )
+        if len(detections) > 0:
+            return detections
         raise ValueError("No faces detected")
