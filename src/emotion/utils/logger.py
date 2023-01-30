@@ -1,5 +1,6 @@
 import functools
 import logging
+from logging.handlers import TimedRotatingFileHandler
 from typing import Any, Callable
 
 from .constants import LOG_DIR
@@ -32,7 +33,15 @@ def create_file_logger(
     logger: logging.Logger, name: str, level: int = logging.INFO
 ) -> logging.Logger:
     # create a file handler
-    file_handler = logging.FileHandler(LOG_DIR / f"{name}.log")
+    file_handler = TimedRotatingFileHandler(
+        filename=LOG_DIR / f"{name}.log",
+        when="D",
+        interval=1,
+        backupCount=90,
+        encoding="utf-8",
+        delay=False,
+    )
+
     file_handler.setLevel(level)
 
     # create a logging format

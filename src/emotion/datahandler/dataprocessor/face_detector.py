@@ -7,10 +7,8 @@ from retinaface import RetinaFace
 
 # from supervision.draw.color import ColorPalette
 # from supervision.geometry.dataclasses import Point
-# from supervision.tools.detections import BoxAnnotator, Detections
+# from supervision.tools.detections import BoxAnnotator
 # from supervision.tools.line_counter import LineCounter, LineCounterAnnotator
-# from supervision.video.dataclasses import VideoInfo
-# from supervision.video.sink import VideoSink
 from utils.constants import OPENCV_MODEL
 from utils.detections import Detections
 
