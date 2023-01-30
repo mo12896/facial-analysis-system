@@ -13,7 +13,7 @@ from utils.app_enums import VideoCodecs
 from utils.constants import DATA_DIR
 from utils.logger import setup_logger, with_logging
 
-logger = setup_logger("ctrl_logger")
+logger = setup_logger("ctrl_logger", file_logger=True)
 
 
 @with_logging(logger)
@@ -54,7 +54,12 @@ def controller(args):
         if not frame_cpy.any():
             break
 
-        _, bboxes = face_track.track_faces(frame_cpy, frame_count)
+        img_info = {}
+        height, width = frame.shape[:2]
+        img_info["height"] = height
+        img_info["width"] = width
+
+        _, bboxes = face_track.track_faces(frame_cpy, frame_count, img_info)
         frame_count += 1
         # for crop in face_crops:
         #    emotions = emotion_detect.detect_emotions(crop)

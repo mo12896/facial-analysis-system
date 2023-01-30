@@ -1,7 +1,9 @@
+import sys
 from pathlib import Path
 
 # Directories
 root = Path.cwd()
+sys.path.append(f"{root}/external/bytetrack")
 
 CONFIG_DIR = root / "configs"
 DATA_DIR = root / "data"

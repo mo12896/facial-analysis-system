@@ -7,10 +7,10 @@ class BaseDataLoader(ABC):
     This is the abstract base class for loading data from a file.
     """
 
-    def __init__(self, file_path: Path, frequency: int):
-        if not file_path.exists():
-            raise FileNotFoundError(f"File {file_path} does not exist")
-        self.file_path = file_path
+    def __init__(self, video_path: Path, frequency: int):
+        if not video_path.exists():
+            raise FileNotFoundError(f"File {video_path} does not exist")
+        self.video_path = video_path
         if frequency not in (0, None):
             self.frequency = frequency
         else:

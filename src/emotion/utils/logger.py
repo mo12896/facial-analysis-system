@@ -66,9 +66,9 @@ def with_logging(logger: logging.Logger):
     def decorator(func: Callable[..., Any]) -> Callable[..., Any]:
         @functools.wraps(func)
         def wrapper(*args: Any, **kwargs: Any) -> Any:
-            logger.info("Calling {func.__name__}")
+            logger.info(f"Calling {func.__name__}")
             value = func(*args, **kwargs)
-            logger.info("Finished {func.__name__}")
+            logger.info(f"Finished {func.__name__}")
             return value
 
         return wrapper

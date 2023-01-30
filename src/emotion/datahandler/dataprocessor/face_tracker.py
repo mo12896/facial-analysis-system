@@ -1,4 +1,5 @@
 from abc import ABC, abstractmethod
+from dataclasses import dataclass
 from typing import Tuple
 
 import cv2
@@ -7,7 +8,7 @@ import numpy as np
 
 from .face_detector import FaceDetector
 
-# TODO: Implement BYOL tracker
+# from onemetric.cv.utils.iou import box_iou_batch
 # from yolox.tracker.byte_tracker import BYTETracker
 
 
@@ -20,7 +21,7 @@ class Tracker(ABC):
 
     @abstractmethod
     def track_faces(
-        self, image: np.ndarray, frame_count: int
+        self, image: np.ndarray, frame_count: int, img_info: dict
     ) -> Tuple[np.ndarray, np.ndarray]:
         """Function to track faces in a given frame.
 
@@ -39,7 +40,7 @@ class DlibTracker(Tracker):
         self.detection_frequency = detection_frequency
 
     def track_faces(
-        self, image: np.ndarray, frame_count: int
+        self, image: np.ndarray, frame_count: int, img_info: dict
     ) -> Tuple[list, np.ndarray]:
         # For frame_count >= 0, the detections become more accurate!
         if not frame_count or not frame_count % self.detection_frequency:
@@ -81,3 +82,13 @@ class DlibTracker(Tracker):
         face_crops = [image[y : y + h, x : x + w] for (x, y, w, h) in bboxes]
 
         return (face_crops, np.array(bboxes))
+
+
+@dataclass(frozen=True)
+class BYTETrackerArgs:
+    track_thresh: float = 0.25
+    track_buffer: int = 30
+    match_thresh: float = 0.8
+    aspect_ratio_thresh: float = 3.0
+    min_box_area: float = 1.0
+    mot20: bool = False

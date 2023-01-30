@@ -13,7 +13,7 @@ class Visualizer:
                 (x, y),
                 (w, h),
                 (0, 0, 255),
-                thickness=5,
+                thickness=2,
             )
         return self.image
 

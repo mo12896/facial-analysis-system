@@ -3,7 +3,15 @@ from typing import Tuple
 
 import cv2
 import numpy as np
+import tensorflow as tf
 from retinaface import RetinaFace
+
+# from supervision.draw.color import ColorPalette
+# from supervision.geometry.dataclasses import Point
+# from supervision.tools.detections import BoxAnnotator, Detections
+# from supervision.tools.line_counter import LineCounter, LineCounterAnnotator
+# from supervision.video.dataclasses import VideoInfo
+# from supervision.video.sink import VideoSink
 from utils.constants import OPENCV_MODEL
 
 
@@ -92,10 +100,13 @@ class OpenCVFaceDetector(FaceDetector):
         raise ValueError("No faces detected")
 
 
+# TODO: Write own Detections class to hold the relevant data!
 class RetinaFaceDetector(FaceDetector):
     """Face detector using RetinaFace."""
 
     def __init__(self, face_detector=RetinaFace):
+        if len(tf.config.list_physical_devices("GPU")) < 1:
+            raise ValueError("No GPU detected!")
         super().__init__(face_detector)
 
     def detect_faces(self, frame: np.ndarray) -> Tuple[list, np.ndarray]:
