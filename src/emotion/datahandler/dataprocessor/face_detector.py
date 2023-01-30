@@ -5,10 +5,7 @@ import numpy as np
 import tensorflow as tf
 from retinaface import RetinaFace
 
-# from supervision.draw.color import ColorPalette
 # from supervision.geometry.dataclasses import Point
-# from supervision.tools.detections import BoxAnnotator
-# from supervision.tools.line_counter import LineCounter, LineCounterAnnotator
 from utils.constants import OPENCV_MODEL
 from utils.detections import Detections
 
@@ -65,7 +62,11 @@ class OpenCVFaceDetector(FaceDetector):
     def detect_faces(self, frame: np.ndarray) -> Detections:
         gray_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
         bboxes = self.face_detector.detectMultiScale(gray_frame)
-        detections = Detections.from_array(bboxes)
+        detections = Detections(
+            bboxes=np.array(bboxes),
+            confidence=np.ones(len(bboxes), dtype=np.float32),
+            class_id=np.zeros(len(bboxes), dtype=np.int32),
+        )
 
         if len(detections) > 0:
             return detections
