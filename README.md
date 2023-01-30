@@ -34,7 +34,7 @@
   <h2 align="center">Evaluating Team Performance from Visual Data</h2>
 
   <p align="center">
-    An awesome README template to jumpstart your projects!
+    The main repository for my master thesis.
     <br />
     <br />
     <br />
@@ -100,12 +100,7 @@ To get a local copy up and running follow these simple example steps.
 
 ### Prerequisites
 
-This is an example of how to list things you need to use the software and how to install them.
-* npm
-  ```sh
-  npm install npm@latest -g
-  ```
-
+...
 ### Installation
 
 
