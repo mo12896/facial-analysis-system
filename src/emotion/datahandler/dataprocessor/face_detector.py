@@ -67,7 +67,7 @@ class OpenCVFaceDetector(FaceDetector):
     def detect_faces(self, frame: np.ndarray) -> Detections:
         gray_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
         bboxes = self.face_detector.detectMultiScale(gray_frame)
-        detections = Detections.from_opencv(bboxes)
+        detections = Detections.from_array(bboxes)
 
         if len(detections) > 0:
             return detections

@@ -5,6 +5,7 @@ from typing import Tuple
 import cv2
 import dlib
 import numpy as np
+from utils.detections import Detections
 
 from .face_detector import FaceDetector
 
@@ -21,7 +22,7 @@ class Tracker(ABC):
 
     @abstractmethod
     def track_faces(
-        self, image: np.ndarray, frame_count: int, img_info: dict
+        self, image: np.ndarray, frame_count: int
     ) -> Tuple[np.ndarray, np.ndarray]:
         """Function to track faces in a given frame.
 
@@ -39,17 +40,15 @@ class DlibTracker(Tracker):
         super().__init__(face_detector)
         self.detection_frequency = detection_frequency
 
-    def track_faces(
-        self, image: np.ndarray, frame_count: int, img_info: dict
-    ) -> Tuple[list, np.ndarray]:
+    def track_faces(self, image: np.ndarray, frame_count: int) -> Detections:
         # For frame_count >= 0, the detections become more accurate!
         if not frame_count or not frame_count % self.detection_frequency:
             self.trackers: list = []
 
-            face_crops, bboxes = self.face_detector.detect_faces(image)
+            detections = self.face_detector.detect_faces(image)
             # self.face_detector.display_faces(image)
 
-            for (x, y, w, h) in bboxes:
+            for (x, y, w, h) in detections.bboxes:
                 cv2.rectangle(
                     image,
                     (x, y),
@@ -64,7 +63,7 @@ class DlibTracker(Tracker):
                 tracker.start_track(image, rect)
                 self.trackers.append(tracker)
 
-            return (face_crops, np.array(bboxes))
+            return detections
 
         bboxes = []
 
@@ -79,9 +78,9 @@ class DlibTracker(Tracker):
 
             bboxes.append((startX, startY, endX, endY))
 
-        face_crops = [image[y : y + h, x : x + w] for (x, y, w, h) in bboxes]
+        detections = Detections.from_array(np.array(bboxes))
 
-        return (face_crops, np.array(bboxes))
+        return detections
 
 
 @dataclass(frozen=True)

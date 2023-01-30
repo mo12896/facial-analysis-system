@@ -6,7 +6,7 @@ import numpy as np
 import yaml
 from datahandler.dataloader import visual_dataloader
 from datahandler.dataprocessor import face_detector, face_tracker
-from datahandler.datawriter import video_datawriter
+from datahandler.datawriter.video_datawriter import VideoDataWriter, VideoInfo
 from datahandler.visualizer import Visualizer
 from tqdm import tqdm
 from utils.app_enums import VideoCodecs
@@ -24,58 +24,57 @@ def controller(args):
 
     try:
         configs: dict[str, Any] = yaml.safe_load(configs_path.read_text())
-        print("Loaded config file into python dict!")
+        logger.info("Loaded config file into python dict!")
     except yaml.YAMLError as exc:
-        print(exc)
+        logger.info(exc)
 
     # Construct necessary objects
-    frame_loader = visual_dataloader.VideoDataLoader(
-        Path(configs["VIDEO_PATH"]) / "clip_0_10570_12012.mp4"
-    )
+    frame_loader = visual_dataloader.VideoDataLoader(Path(configs["VIDEO_PATH"]))
     face_detect = face_detector.create_face_detector(detector="retinaface")
     face_track = face_tracker.DlibTracker(
         face_detector=face_detect, detection_frequency=configs["DETECT_FREQ"]
     )
-    video_writer = video_datawriter.VideoDataWriter(
-        output_path=DATA_DIR,
-        fps=frame_loader.fps,
-        video_codec=VideoCodecs[configs["VIDEO_CODEC"]],
-    )
+    video_info = VideoInfo.from_video_path(configs["VIDEO_PATH"])
+
     # pose_est = pose_estimator.create_pose_estimator(estimator="light_openpose")
 
     frame_count: int = 0
 
-    for _, frame in enumerate(
-        tqdm(frame_loader, desc="Loading frames", total=frame_loader.total_frames)
-    ):
-        # TODO: Resizing the image!?
-        frame_cpy = np.copy(frame)
+    with VideoDataWriter(
+        output_path=DATA_DIR,
+        logger=logger,
+        video_info=video_info,
+        video_codec=VideoCodecs[configs["VIDEO_CODEC"]],
+    ) as video_writer:
+        for _, frame in enumerate(
+            tqdm(frame_loader, desc="Loading frames", total=frame_loader.total_frames)
+        ):
+            # TODO: Resizing the image!?
+            frame_cpy = np.copy(frame)
 
-        if not frame_cpy.any():
-            break
+            if not frame_cpy.any():
+                break
 
-        img_info = {}
-        height, width = frame.shape[:2]
-        img_info["height"] = height
-        img_info["width"] = width
+            img_info = {}
+            height, width = frame.shape[:2]
+            img_info["height"] = height
+            img_info["width"] = width
 
-        _, bboxes = face_track.track_faces(frame_cpy, frame_count, img_info)
-        frame_count += 1
-        # for crop in face_crops:
-        #    emotions = emotion_detect.detect_emotions(crop)
+            detections = face_track.track_faces(frame_cpy, frame_count)
+            frame_count += 1
+            # for crop in face_crops:
+            #    emotions = emotion_detect.detect_emotions(crop)
 
-        visualizer = Visualizer(frame)
-        visualizer.draw_bboxes(bboxes)
+            visualizer = Visualizer(frame)
+            visualizer.draw_bboxes(detections.bboxes)
 
-        video_writer.write_video(visualizer.image)
+            video_writer.write_frame(visualizer.image)
 
-        # if the `q` key was pressed, break from the loop
-        key = cv2.waitKey(1) & 0xFF
-        if key == ord("q"):
-            break
+            # if the `q` key was pressed, break from the loop
+            key = cv2.waitKey(1) & 0xFF
+            if key == ord("q"):
+                break
 
-    print("Finished processing")
     # Release the video capture object and close all windows
     frame_loader.cap.release()
-    video_writer.frame_writer.release()
     cv2.destroyAllWindows()
