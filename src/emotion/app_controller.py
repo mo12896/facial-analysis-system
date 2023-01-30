@@ -4,9 +4,11 @@ from typing import Any
 import cv2
 import numpy as np
 import yaml
-from datahandler.dataloader import visual_dataloader
-from datahandler.dataprocessor import face_detector, face_tracker
-from datahandler.datawriter.video_datawriter import VideoDataWriter, VideoInfo
+from datahandler.dataprocessor.face_detector import create_face_detector
+from datahandler.dataprocessor.face_tracker import DlibTracker
+from datahandler.video_handler.video_info import VideoInfo
+from datahandler.video_handler.video_loader import VideoDataLoader
+from datahandler.video_handler.video_writer import VideoDataWriter
 from datahandler.visualizer import Visualizer
 from tqdm import tqdm
 from utils.app_enums import VideoCodecs
@@ -29,10 +31,10 @@ def controller(args):
         logger.info(exc)
 
     # Construct necessary objects
-    frame_loader = visual_dataloader.VideoDataLoader(Path(configs["VIDEO_PATH"]))
-    face_detect = face_detector.create_face_detector(detector="retinaface")
-    face_track = face_tracker.DlibTracker(
-        face_detector=face_detect, detection_frequency=configs["DETECT_FREQ"]
+    frame_loader = VideoDataLoader(Path(configs["VIDEO_PATH"]))
+    face_detector = create_face_detector(detector="retinaface")
+    face_tracker = DlibTracker(
+        face_detector=face_detector, detection_frequency=configs["DETECT_FREQ"]
     )
     video_info = VideoInfo.from_video_path(configs["VIDEO_PATH"])
 
@@ -60,7 +62,7 @@ def controller(args):
             img_info["height"] = height
             img_info["width"] = width
 
-            detections = face_track.track_faces(frame_cpy, frame_count)
+            detections = face_tracker.track_faces(frame_cpy, frame_count)
             frame_count += 1
             # for crop in face_crops:
             #    emotions = emotion_detect.detect_emotions(crop)

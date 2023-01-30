@@ -3,17 +3,16 @@ from pathlib import Path
 import cv2
 import numpy as np
 
-from .base_dataloader import BaseDataLoader
 
-
-class VideoDataLoader(BaseDataLoader):
+class VideoDataLoader:
     """
     This is a class for loading visual data from a video file frame by frame.
     """
 
     def __init__(self, video_path: Path, frequency=1):
-        super().__init__(video_path, frequency)
         try:
+            self.video_path = video_path
+            self.frequency = frequency
             self.cap = cv2.VideoCapture(str(self.video_path))
             self.fps = self.cap.get(cv2.CAP_PROP_FPS)
             self.total_frames = self.cap.get(cv2.CAP_PROP_FRAME_COUNT)
