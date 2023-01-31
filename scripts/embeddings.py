@@ -133,8 +133,7 @@ def validate_embeddings(database: Path, images_path: list[Path]):
     embeddings_from_database = read_key_embeddings_from_database(database=database)
     embeddings_from_images = generate_face_embeddings(images_path=images_path)
 
-    result = np.allclose(embeddings_from_database, embeddings_from_images)
-    assert result
+    assert np.allclose(embeddings_from_database, embeddings_from_images)
 
 
 def main():
