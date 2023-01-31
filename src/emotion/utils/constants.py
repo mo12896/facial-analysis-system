@@ -6,8 +6,9 @@ root = Path.cwd()
 
 CONFIG_DIR = root / "configs"
 DATA_DIR = root / "data"
+DATA_DIR_IMAGES = DATA_DIR / "images"
+DATA_DIR_DATABASE = DATA_DIR / "database"
 LOG_DIR = root / "logs"
-DATABASE_DIR = DATA_DIR / "database"
 IDENTITY_DIR = DATA_DIR / "identities"
 MODEL_DIR = root / "models"
 
@@ -17,7 +18,6 @@ sys.path.append(f"{root}/external/bytetrack")
 
 # Asset Files
 LIGHT_OPENPOSE_MODEL = MODEL_DIR / "checkpoint_iter_370000.pth"
-DATABASE = DATABASE_DIR / "database.pkl"
 EMOTION_ENV = Path("/home/moritz/anaconda3/envs/emotion")
 OPENCV_MODEL = (
     EMOTION_ENV
