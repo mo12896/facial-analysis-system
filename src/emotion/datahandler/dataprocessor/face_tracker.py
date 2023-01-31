@@ -49,10 +49,7 @@ def create_tracker(tracker: str, face_detector: FaceDetector, *args: Any) -> Tra
             )
         raise ValueError("Invalid detection frequency!")
     elif tracker == "byte":
-        byte_args = [arg for arg in args if isinstance(arg, BYTETrackerArgs)][0]
-        if byte_args:
-            return ByteTracker(face_detector, byte_args)
-        raise ValueError("Invalid args for BYTE tracker!")
+        return ByteTracker(face_detector)
     else:
         raise ValueError("Invalid tracker name!")
 
@@ -138,6 +135,11 @@ class ByteTracker(Tracker):
             detections=detections, tracks=tracks
         )
         detections.tracker_id = np.array(tracker_id)
+        # filtering out detections without trackers
+        mask = np.array(
+            [tracker_id is not None for tracker_id in detections.tracker_id], dtype=bool
+        )
+        detections.filter(mask=mask, inplace=True)
         return detections
 
     def match_detections_with_tracks(

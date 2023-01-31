@@ -21,7 +21,6 @@ class VideoDataWriter:
         self.fourcc = cv2.VideoWriter_fourcc(*video_codec.name)
         self.filename = "output" + video_codec.value
         self.video_info = video_info
-        # self.writer = None
 
     def __enter__(self):
         """

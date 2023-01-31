@@ -35,7 +35,7 @@ def controller(args):
     video_info = VideoInfo.from_video_path(configs["VIDEO_PATH"])
     video_loader = VideoDataLoader(Path(configs["VIDEO_PATH"]))
     face_detector = create_face_detector(detector="retinaface")
-    face_tracker = create_tracker("byte", face_detector, configs)
+    face_tracker = create_tracker("byte", face_detector)
     box_annotator = BoxAnnotator(color=Color.red())
     # pose_est = pose_estimator.create_pose_estimator(estimator="light_openpose")
 
