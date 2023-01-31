@@ -71,7 +71,7 @@
 <!-- ABOUT THE PROJECT -->
 ## About The Project
 
-This repository is dedicated to my master thesis, which focuses on predicting team performance from visual data. The objective of this research is to extract meaningful features such as emotions, engagement, and synchronization from individual team members using novel AI tools like Face Detection, Tracking, Re-Identification, and Emotion Estimation. The generated features will then be used to calculate the PERMA score of the overall team and to determine if there is a correlation between the PERMA score and the team's performance.
+This repository is dedicated to my master thesis, which focuses on predicting team performance from visual data. The objective of this research is to extract meaningful features such as emotions, engagement, and synchronization from individual team members using novel AI tools for Face Detection, Tracking, Re-Identification, and Emotion Estimation for example. The generated features will then be used to calculate the PERMA score of the overall team and to determine if there is a correlation between the PERMA score and the team's performance.
 
 PERMA is a metric that measures subjective happiness, and it is an essential part of this research. The overall goal is to increase the happiness of individuals and teams by better understanding the factors that contribute to happiness in a team setting.
 

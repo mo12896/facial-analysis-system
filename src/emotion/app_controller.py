@@ -63,11 +63,6 @@ def controller(args):
 
             detections = face_tracker.track_faces(frame_cpy, frame_count)
             frame_count += 1
-            # for crop in face_crops:
-            #    emotions = emotion_detect.detect_emotions(crop)
-
-            # visualizer = Visualizer(frame)
-            # visualizer.draw_bboxes(detections.bboxes)
 
             frame = box_annotator.annotate(frame, detections)
             video_writer.write_frame(frame)

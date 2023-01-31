@@ -1,11 +1,15 @@
 import sqlite3
 from pathlib import Path
 
+import cv2
 import insightface
-import mxnet as mx
 import numpy as np
+from insightface.app import FaceAnalysis
+
+assert insightface.__version__ >= "0.3"
 
 DATA_DIR_DATABASE = Path("/home/moritz/Workspace/masterthesis/data/database")
+DATA_DIR_IMAGES = Path("/home/moritz/Workspace/masterthesis/data/images")
 
 
 def dummy_embeddings():
@@ -16,8 +20,9 @@ def dummy_embeddings():
     return (embedding1, embedding2, embedding3)
 
 
-def get_mean_embedding(images_path: Path) -> np.ndarray:
-    """Returns the mean embeddings of a person.
+# TODO: Make flexible for different embedding models!
+def get_mean_face_embedding(images_path: Path) -> np.ndarray:
+    """Returns the mean embeddings of an identity.
 
     Args:
         images_path (Path): Path to the images of a person.
@@ -25,14 +30,38 @@ def get_mean_embedding(images_path: Path) -> np.ndarray:
     Returns:
         np.ndarray: Mean embedding of the person.
     """
-    model = insightface.app.FaceAnalysis()
+    model = FaceAnalysis()
+    model.prepare(ctx_id=0, det_size=(64, 64))
 
-    images = [mx.image.imread(str(image)) for image in images_path.glob("*.png")]
+    images = [cv2.imread(str(image)) for image in images_path.glob("*.png")]
 
-    features = [model.get(img) for img in images]
-    embedding = np.mean(features, axis=0)
+    # Predict the faces
+    faces = [model.get(img)[0] for img in images]
+    # Fetch the embeddings
+    feats = [face.normed_embedding for face in faces]
+    feats = np.array(feats, dtype=np.float32)
+    # Average the embeddings
+    embedding = np.mean(feats, axis=0)
 
     return embedding
+
+
+def generate_face_embeddings(images_path: list[Path]) -> np.ndarray:
+    """Generates the embeddings for a set of identities.
+
+    Args:
+        images_path (list[Path]): List of paths to the images of a person.
+
+    Returns:
+        list[np.ndarray]: List of embeddings.
+    """
+
+    embeddings = []
+    for image_path in images_path:
+        embedding = get_mean_face_embedding(image_path)
+        embeddings.append(embedding)
+
+    return np.array(embeddings, dtype=np.float32)
 
 
 def write_embeddings_to_database(database: Path, embeddings: tuple[np.ndarray]):
@@ -61,7 +90,7 @@ def write_embeddings_to_database(database: Path, embeddings: tuple[np.ndarray]):
                 )
 
 
-def read_embeddings_from_database(database: Path) -> list[np.ndarray]:
+def read_key_embeddings_from_database(database: Path) -> np.ndarray:
     """Reads the embeddings from a database.
 
     Args:
@@ -74,7 +103,7 @@ def read_embeddings_from_database(database: Path) -> list[np.ndarray]:
         conn.execute("SELECT embedding FROM embeddings")
         embeddings = [np.frombuffer(row["embedding"], dtype=np.float32) for row in conn]
 
-    return embeddings
+    return np.array(embeddings, dtype=np.float32)
 
 
 class SQLite:
@@ -93,15 +122,37 @@ class SQLite:
         self.conn.close()
 
 
+def validate_embeddings(database: Path, images_path: list[Path]):
+    """Validates the embeddings.
+
+    Args:
+        embeddings (list[np.ndarray]): List of embeddings.
+        database (Path): Path to the database.
+        images_path (list[Path]): List of paths to the images of a person.
+    """
+    embeddings_from_database = read_key_embeddings_from_database(database=database)
+    embeddings_from_images = generate_face_embeddings(images_path=images_path)
+
+    result = np.allclose(embeddings_from_database, embeddings_from_images)
+    assert result
+
+
 def main():
-    embeddings = dummy_embeddings()
+    # embeddings = dummy_embeddings()
+    images_path = [item for item in DATA_DIR_IMAGES.iterdir() if item.is_dir()]
+    embeddings = generate_face_embeddings(images_path=images_path)
     database = DATA_DIR_DATABASE / "embeddings.db"
 
-    write_embeddings_to_database(database=database, embeddings=embeddings)
-    embeddings = read_embeddings_from_database(database=database)
+    if database.exists():
+        response = input(f"{database} already exists. Overwrite? [y/n] ")
+        if response == "n":
+            validate_embeddings(database=database, images_path=images_path)
+            exit()
+        database.unlink()
 
-    result = np.allclose(embeddings, dummy_embeddings())
-    print(True if result else False)
+    write_embeddings_to_database(database=database, embeddings=embeddings)
+
+    validate_embeddings(database=database, images_path=images_path)
 
 
 if __name__ == "__main__":

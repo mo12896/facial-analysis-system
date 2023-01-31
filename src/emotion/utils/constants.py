@@ -81,6 +81,7 @@ HUME_AI_EMOTIONS = [
 
 # Stdoutputs & stderrs
 
+# Colors
 DEFAULT_COLOR_PALETTE = [
     "#e6194b",
     "#3cb44b",

@@ -1,3 +1,4 @@
+"""After running this script, you have to place the croppped face into the dedicated folder to generate the identities!"""
 import random
 from pathlib import Path
 
@@ -6,8 +7,27 @@ import numpy as np
 from retinaface import RetinaFace
 from tqdm import tqdm
 
+# Number of frames to sample from the video
+NUM_FRAMES = 5
+# Number of identity folders
+NUM_IMAGE_DIRS = 4
 
-def crop_random_faces(video_path, output_folder, num_frames=10):
+
+def cleanup(folder_path: Path) -> None:
+    """Remove all files and folder in a folder.
+
+    Args:
+        output_folder (_type_): Path to the output folder.
+    """
+    for element in folder_path.glob("*"):
+        if element.is_file():
+            element.unlink()
+        elif element.is_dir():
+            cleanup(element)
+            element.rmdir()
+
+
+def crop_random_faces_from_n_frames(video_path, output_folder, num_frames=10):
     """Crop random faces from a video.
 
     Args:
@@ -15,11 +35,6 @@ def crop_random_faces(video_path, output_folder, num_frames=10):
         output_folder (_type_): Path to the output folder.
         num_frames (int, optional): Number of frames to sample. Defaults to 10.
     """
-    if output_folder.exists():
-        response = input(f"{output_folder} already exists. Overwrite? [y/n] ")
-        if response != "y":
-            print("Script stopped by user.")
-            exit()
 
     cap = cv2.VideoCapture(video_path)
 
@@ -29,9 +44,9 @@ def crop_random_faces(video_path, output_folder, num_frames=10):
 
     frames = random.sample(range(total_frames), num_frames)
 
-    for frame in tqdm(frames):
+    for i in tqdm(frames):
         # Directly jump to the desired frame
-        cap.set(cv2.CAP_PROP_POS_FRAMES, frame)
+        cap.set(cv2.CAP_PROP_POS_FRAMES, i)
         _, frame = cap.read()
 
         faces = detector.detect_faces(frame)
@@ -40,7 +55,7 @@ def crop_random_faces(video_path, output_folder, num_frames=10):
         for j, bbox in enumerate(bboxes):
             face = frame[int(bbox[1]) : int(bbox[3]), int(bbox[0]) : int(bbox[2])]
 
-            filename = f"face_frame_{frame}_bbox_{j}.png"
+            filename = f"face_frame_{i}_bbox_{j}.png"
             path = output_folder / filename
             cv2.imwrite(str(path), face)
 
@@ -51,4 +66,16 @@ if __name__ == "__main__":
     video_path = "/home/moritz/Workspace/masterthesis/data/short_clip.mp4"
     output_folder = Path("/home/moritz/Workspace/masterthesis/data/images")
 
-    crop_random_faces(video_path, output_folder, num_frames=5)
+    if output_folder.exists():
+        response = input(f"{output_folder} already exists. Overwrite? [y/n] ")
+        if response != "y":
+            print("Script stopped by user.")
+            exit()
+        cleanup(output_folder)
+
+    crop_random_faces_from_n_frames(video_path, output_folder, num_frames=NUM_FRAMES)
+
+    for i in range(1, NUM_IMAGE_DIRS + 1):
+        folder_name = f"person_id{i}"
+        folder_path = output_folder / folder_name
+        folder_path.mkdir(parents=True, exist_ok=True)
