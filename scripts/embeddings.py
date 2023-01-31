@@ -31,7 +31,7 @@ def get_mean_face_embedding(images_path: Path) -> np.ndarray:
         np.ndarray: Mean embedding of the person.
     """
     model = FaceAnalysis()
-    model.prepare(ctx_id=0, det_size=(64, 64))
+    model.prepare(ctx_id=0, det_size=(128, 128))
 
     images = [cv2.imread(str(image)) for image in images_path.glob("*.png")]
 

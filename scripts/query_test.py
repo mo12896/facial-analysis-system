@@ -1,10 +1,13 @@
+import functools
 import random
 from pathlib import Path
+from time import perf_counter
 
 import cv2
 import insightface
 import numpy as np
 import pandas as pd
+from embeddings import SQLite
 from insightface.app import FaceAnalysis
 from retinaface import RetinaFace
 from sklearn.metrics.pairwise import cosine_similarity
@@ -15,7 +18,21 @@ assert insightface.__version__ >= "0.3"
 DATA_DIR_DATABASE = Path("/home/moritz/Workspace/masterthesis/data/database")
 
 
-def crop_random_faces_from_single_frame(video_path) -> list:
+def timer(func):
+    @functools.wraps(func)
+    def wrapper(*args, **kwargs):
+        print(f"Entering function {func.__name__}...")
+        start = perf_counter()
+        result = func(*args, **kwargs)
+        end = perf_counter()
+        print(f"{func.__name__} took {end - start:.6f} seconds to execute.")
+        return result
+
+    return wrapper
+
+
+@timer
+def crop_random_faces_from_single_frame(video_path: str) -> list:
     """Crop random faces from a video.
 
     Args:
@@ -30,7 +47,8 @@ def crop_random_faces_from_single_frame(video_path) -> list:
 
     total_frames = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
 
-    i = random.sample(range(total_frames), 1)
+    i = random.sample(range(total_frames), 1)[0]
+    # i = 400
 
     # Directly jump to the desired frame
     cap.set(cv2.CAP_PROP_POS_FRAMES, i)
@@ -49,7 +67,8 @@ def crop_random_faces_from_single_frame(video_path) -> list:
     return faces
 
 
-def get_face_embeddings(images: list) -> np.ndarray:
+@timer
+def get_face_embeddings(images: list) -> pd.DataFrame:
     """Returns the mean embeddings of an identity.
 
     Args:
@@ -59,36 +78,55 @@ def get_face_embeddings(images: list) -> np.ndarray:
         np.ndarray: Mean embedding of the person.
     """
     model = FaceAnalysis()
-    model.prepare(ctx_id=0, det_size=(64, 64))
-
-    images = [cv2.imread(str(image)) for image in images]
+    model.prepare(ctx_id=0, det_size=(128, 128))
 
     # Predict the faces
     faces = [model.get(img)[0] for img in images]
     # Fetch the embeddings
-    embeddings = [face.normed_embedding for face in faces]
+    embeddings = np.array([face.normed_embedding for face in faces], dtype=np.float32)
+    labels = [f"bbox_{i}" for i in range(len(embeddings))]
+    data = {label: embedding for label, embedding in zip(labels, embeddings)}
 
-    return np.array(embeddings, dtype=np.float32)
+    return pd.DataFrame(data).transpose()
 
 
-def read_embeddings_from_database():
-    pass
+@timer
+def read_embeddings_from_database(database: Path) -> pd.DataFrame:
+    with SQLite(str(database)) as conn:
+        conn.execute("SELECT person_id, embedding FROM embeddings")
+        data = {
+            person_id: np.frombuffer(embedding, dtype=np.float32)
+            for person_id, embedding in conn
+        }
+        return pd.DataFrame(data).transpose()
 
 
 # TODO: Make flexible for different distance metrics!
-def match_embeddings(df1: pd.DataFrame, df2: pd.DataFrame):
+@timer
+def match_embeddings(df1: pd.DataFrame, df2: pd.DataFrame) -> list[tuple]:
     # Compute the cosine similarity between all element pairs
-    distance_matrix = cosine_similarity(df1.iloc[:, :-1], df2.iloc[:, :-1])
+    if df1.shape[1] != df2.shape[1]:
+        raise ValueError("Embeddings must have the same dimensionality.")
+    distance_matrix = cosine_similarity(df1, df2)
 
     # Find the index of the minimum value in each row
-    min_index = distance_matrix.argmin(axis=1)
+    min_indices = np.abs(distance_matrix).argmin(axis=1)
 
     # Retrieve the corresponding labels from df1 and df2
-    df1_label = df1.iloc[np.arange(cosine_similarity.shape[0]), -1].tolist()
-    df2_label = df2.iloc[min_index, -1].tolist()
+    df1_label = df1.index.tolist()
+    df2_label = df2.iloc[min_indices].index.tolist()
 
     return list(zip(df1_label, df2_label))
 
 
 if __name__ == "__main__":
     database = DATA_DIR_DATABASE / "embeddings.db"
+    video_path = "/home/moritz/Workspace/masterthesis/data/short_clip.mp4"
+
+    faces = crop_random_faces_from_single_frame(video_path)
+
+    df1 = read_embeddings_from_database(database)
+    df2 = get_face_embeddings(faces)
+    matches = match_embeddings(df1, df2)
+
+    print(matches)
