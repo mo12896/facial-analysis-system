@@ -102,8 +102,6 @@ def read_embeddings_from_database(database: Path) -> pd.DataFrame:
         return pd.DataFrame(data).transpose()
 
 
-# TODO: Make flexible for different distance metrics!
-# TODO: Make this algorithm more robust!
 @timer
 def match_embeddings(df1: pd.DataFrame, df2: pd.DataFrame) -> list[tuple]:
     if df1.shape[1] != df2.shape[1]:
@@ -143,7 +141,7 @@ if __name__ == "__main__":
     database = DATA_DIR_DATABASE / "embeddings.db"
     video_path = "/home/moritz/Workspace/masterthesis/data/short_clip.mp4"
 
-    faces = crop_random_faces_from_single_frame(video_path)
+    faces = crop_random_faces_from_single_frame(video_path, rand=False)
 
     df1 = read_embeddings_from_database(database)
     print(df1.head(4))
