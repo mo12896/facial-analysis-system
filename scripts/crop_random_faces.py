@@ -8,7 +8,7 @@ from retinaface import RetinaFace
 from tqdm import tqdm
 
 # Number of frames to sample from the video
-NUM_FRAMES = 5
+NUM_FRAMES = 20
 # Number of identity folders
 NUM_IMAGE_DIRS = 4
 
