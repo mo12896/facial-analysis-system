@@ -102,6 +102,7 @@ def read_embeddings_from_database(database: Path) -> pd.DataFrame:
         return pd.DataFrame(data).transpose()
 
 
+# TODO: For lower dimensional embeddings use other similarity measures!
 @timer
 def match_embeddings(df1: pd.DataFrame, df2: pd.DataFrame) -> list[tuple]:
     if df1.shape[1] != df2.shape[1]:
@@ -144,9 +145,7 @@ if __name__ == "__main__":
     faces = crop_random_faces_from_single_frame(video_path, rand=False)
 
     df1 = read_embeddings_from_database(database)
-    print(df1.head(4))
     df2 = get_face_embeddings(faces)
-    print(df2.head(4))
 
     matches = match_embeddings(df1, df2)
     print(matches)
