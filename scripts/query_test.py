@@ -34,7 +34,7 @@ def timer(func):
 
 
 @timer
-def crop_random_faces_from_single_frame(video_path: str, rand: bool = True) -> list:
+def crop_random_faces_from_single_frame(video_path: str, rand: bool = True) -> dict:
     """Crop random faces from a video.
 
     Args:
@@ -49,27 +49,27 @@ def crop_random_faces_from_single_frame(video_path: str, rand: bool = True) -> l
 
     total_frames = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
 
-    i = random.sample(range(total_frames), 1)[0] if rand else 500
+    i = random.sample(range(total_frames), 1)[0] if rand else 525
 
     # Directly jump to the desired frame
     cap.set(cv2.CAP_PROP_POS_FRAMES, i)
     _, frame = cap.read()
 
     faces = detector.detect_faces(frame)
-    bboxes = np.array([faces[face]["facial_area"] for face in faces])
 
-    faces = []
-    for bbox in bboxes:
-        face = frame[int(bbox[1]) : int(bbox[3]), int(bbox[0]) : int(bbox[2])]
-        faces.append(face)
+    faces_dict = {}
+    for i, face in enumerate(faces):
+        bbox = np.array(faces[face]["facial_area"])
+        face_bbox = frame[int(bbox[1]) : int(bbox[3]), int(bbox[0]) : int(bbox[2])]
+        faces_dict[f"bbox_{i+1}"] = face_bbox
 
     cap.release()
 
-    return faces
+    return faces_dict
 
 
 @timer
-def get_face_embeddings(images: list) -> pd.DataFrame:
+def get_face_embeddings(images: dict) -> pd.DataFrame:
     """Returns the mean embeddings of an identity.
 
     Args:
@@ -81,12 +81,12 @@ def get_face_embeddings(images: list) -> pd.DataFrame:
     model = FaceAnalysis()
     model.prepare(ctx_id=0, det_size=(128, 128))
 
-    # Predict the faces
-    faces = [model.get(img)[0] for img in images]
-    # Fetch the embeddings
-    embeddings = np.array([face.normed_embedding for face in faces], dtype=np.float32)
-    labels = [f"bbox_{i}" for i in range(len(embeddings))]
-    data = {label: embedding for label, embedding in zip(labels, embeddings)}
+    data = {}
+
+    for key, img in images.items():
+        face = model.get(img)[0]
+        embedding = np.array(face.normed_embedding, dtype=np.float32)
+        data[key] = embedding
 
     return pd.DataFrame(data).transpose()
 
@@ -96,7 +96,7 @@ def read_embeddings_from_database(database: Path) -> pd.DataFrame:
     with SQLite(str(database)) as conn:
         conn.execute("SELECT person_id, embedding FROM embeddings")
         data = {
-            f"person_id{person_id}": np.frombuffer(embedding, dtype=np.float32)
+            person_id: np.frombuffer(embedding, dtype=np.float32)
             for person_id, embedding in conn
         }
         return pd.DataFrame(data).transpose()
@@ -128,10 +128,10 @@ def hungarian_algorithm(cost_matrix):
     return row_ind, col_ind
 
 
-def plot_n_faces(faces: list):
+def plot_n_faces(faces: dict):
     n = len(faces)
     _, axs = plt.subplots(1, n, figsize=(n * 3, 3))
-    for i, face in enumerate(faces):
+    for i, (_, face) in enumerate(faces.items()):
         axs[i].imshow(face)
         axs[i].set_title(f"bbox_{i}")
         axs[i].axis("off")

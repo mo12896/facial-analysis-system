@@ -46,7 +46,7 @@ def get_mean_face_embedding(images_path: Path) -> np.ndarray:
     return embedding
 
 
-def generate_face_embeddings(images_path: list[Path]) -> np.ndarray:
+def generate_face_embeddings(images_path: list[Path]) -> dict:
     """Generates the embeddings for a set of identities.
 
     Args:
@@ -56,15 +56,17 @@ def generate_face_embeddings(images_path: list[Path]) -> np.ndarray:
         list[np.ndarray]: List of embeddings.
     """
 
-    embeddings = []
+    embeddings = {}
     for image_path in images_path:
         embedding = get_mean_face_embedding(image_path)
-        embeddings.append(embedding)
+        embeddings[str(image_path).rsplit("/", 1)[1]] = np.array(
+            embedding, dtype=np.float32
+        )
 
-    return np.array(embeddings, dtype=np.float32)
+    return embeddings
 
 
-def write_embeddings_to_database(database: Path, embeddings: tuple[np.ndarray]):
+def write_embeddings_to_database(database: Path, embeddings: dict) -> None:
     """Writes the embeddings to a database.
 
     Args:
@@ -75,12 +77,10 @@ def write_embeddings_to_database(database: Path, embeddings: tuple[np.ndarray]):
 
         # Create the table to store the embeddings
         conn.execute(
-            "CREATE TABLE IF NOT EXISTS embeddings (person_id INTEGER PRIMARY KEY, embedding BLOB)"
+            "CREATE TABLE IF NOT EXISTS embeddings (person_id TEXT PRIMARY KEY, embedding BLOB)"
         )
         # Insert the embeddings into the database
-        for person_id, embedding in zip(
-            list(range(1, len(embeddings) + 1)), embeddings
-        ):
+        for person_id, embedding in embeddings.items():
             query = "SELECT * FROM embeddings WHERE person_id=?"
             result = conn.execute(query, (person_id,)).fetchone()
             if result is None:
@@ -133,13 +133,14 @@ def validate_embeddings(database: Path, images_path: list[Path]):
     embeddings_from_database = read_key_embeddings_from_database(database=database)
     embeddings_from_images = generate_face_embeddings(images_path=images_path)
 
-    assert np.allclose(embeddings_from_database, embeddings_from_images)
+    assert np.allclose(
+        embeddings_from_database, np.array(list(embeddings_from_images.values()))
+    )
 
 
 def main():
     # embeddings = dummy_embeddings()
     images_path = [item for item in DATA_DIR_IMAGES.iterdir() if item.is_dir()]
-    embeddings = generate_face_embeddings(images_path=images_path)
     database = DATA_DIR_DATABASE / "embeddings.db"
 
     if database.exists():
@@ -149,9 +150,18 @@ def main():
             exit()
         database.unlink()
 
+    embeddings = generate_face_embeddings(images_path=images_path)
     write_embeddings_to_database(database=database, embeddings=embeddings)
 
     validate_embeddings(database=database, images_path=images_path)
+
+    with SQLite(str(database)) as conn:
+        conn.execute("SELECT person_id, embedding FROM embeddings")
+        data = {
+            person_id: np.frombuffer(embedding, dtype=np.float32)
+            for person_id, embedding in conn
+        }
+        print(data)
 
 
 if __name__ == "__main__":
