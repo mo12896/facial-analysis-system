@@ -1,5 +1,3 @@
-from pathlib import Path
-
 import numpy as np
 import pandas as pd
 import scipy.optimize
@@ -15,7 +13,7 @@ class ReIdentification:
 
     def __init__(
         self,
-        embeddings_path: Path,
+        embeddings_path: str,
         embedder: FaceEmbedder,
     ):
         """Constructor for the Filter class.
@@ -42,7 +40,7 @@ class ReIdentification:
 
         key_embeddings = self.read_anchor_embeddings_from_database(self.embeddings_path)
         # For testing purposes:
-        # key_embeddings.drop("person_id4", axis=0, inplace=True)
+        key_embeddings.drop("person_id4", axis=0, inplace=True)
 
         matches = self.match_embeddings(key_embeddings, embeddings)
 
@@ -59,7 +57,7 @@ class ReIdentification:
 
         return detections
 
-    def read_anchor_embeddings_from_database(self, database: Path) -> pd.DataFrame:
+    def read_anchor_embeddings_from_database(self, database: str) -> pd.DataFrame:
         """Reads the ancor embeddings from the database.
 
         Args:
@@ -68,7 +66,7 @@ class ReIdentification:
         Returns:
             pd.DataFrame: Pandas DataFrame with the embeddings and their labels.
         """
-        with SQLite(str(database)) as conn:
+        with SQLite(database) as conn:
             conn.execute("SELECT person_id, embedding FROM embeddings")
             data = {
                 person_id: np.frombuffer(embedding, dtype=np.float32)

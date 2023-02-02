@@ -1,8 +1,12 @@
 VIDEO_CODEC: MP4V
 DETECT_FREQ: 10
-VIDEO_PATH: "/home/moritz/Workspace/masterthesis/data/short_clip.mp4"
+VIDEO: "short_clip.mp4"
 DETECTION_FREQUENCY: 10
-TRACKER: byte
+EMBEDDER:
+  type: "insightface"
+  ctx_id: 0
+  det_size: 128
+TRACKER:
+  type: "byte"
 DETECTOR: retinaface
-EMBEDDER: insightface
-EMBEDDINGS_PATH: "/home/moritz/Workspace/masterthesis/data/database/embeddings.db"
+ANCHOR_EMBDDINGS: "database/embeddings.db"

@@ -1,9 +1,11 @@
 import argparse
+from typing import Any
 
-import utils.constants as setup
+import yaml
+from utils.constants import CONFIG_DIR
 
 
-def parse_arguments():
+def parse_arguments() -> dict:
     """Parse command line arguments.
 
     Returns:
@@ -15,7 +17,7 @@ def parse_arguments():
         "-c",
         "--config",
         dest="config",
-        default=setup.CONFIG_DIR / "config.yaml",
+        default=CONFIG_DIR / "config.yaml",
         help="Path to config file (default: config.yaml).",
     )
     parser.add_argument(
@@ -25,4 +27,13 @@ def parse_arguments():
         action="store_true",
         help="Enable debug mode.",
     )
-    return parser.parse_args()
+
+    args = parser.parse_args()
+
+    try:
+        configs: dict[str, Any] = yaml.safe_load(args.config.read_text())
+        print("Loaded config file into python dict!")
+    except yaml.YAMLError as exc:
+        print(exc)
+
+    return configs

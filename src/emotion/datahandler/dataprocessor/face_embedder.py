@@ -50,8 +50,8 @@ class InsightFaceEmbedder(FaceEmbedder):
         self.model = FaceAnalysis()
 
         ctx_id = parameters.get("ctx_id", 0)
-        det_size = parameters.get("det_size", (128, 128))
-        self.model.prepare(ctx_id=ctx_id, det_size=det_size)
+        det_size = parameters.get("det_size", 128)
+        self.model.prepare(ctx_id=ctx_id, det_size=(det_size, det_size))
 
     def get_face_embeddings(
         self, detections: Detections, image: np.ndarray
