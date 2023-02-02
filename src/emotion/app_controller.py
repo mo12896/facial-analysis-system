@@ -5,7 +5,7 @@ import cv2
 import yaml
 from datahandler.dataprocessor.face_detector import create_face_detector
 from datahandler.dataprocessor.face_embedder import create_face_embedder
-from datahandler.dataprocessor.face_filter import Filter
+from datahandler.dataprocessor.face_filter import ReIdentification
 from datahandler.dataprocessor.face_tracker import create_tracker
 from datahandler.video_handler.video_info import VideoInfo
 from datahandler.video_handler.video_loader import VideoDataLoader
@@ -46,7 +46,7 @@ def controller(args):
     face_tracker = create_tracker(tracker_params)
     embed_params = {"type": "insightface", "ctx_id": 0, "det_size": (128, 128)}
     face_embedder = create_face_embedder(embed_params)
-    face_filter = Filter(Path(embeddings_path), face_embedder)
+    face_reid = ReIdentification(Path(embeddings_path), face_embedder)
     box_annotator = BoxAnnotator(color=Color.red())
     # pose_est = pose_estimator.create_pose_estimator(estimator="light_openpose")
 
@@ -72,7 +72,7 @@ def controller(args):
 
                 detections = face_detector.detect_faces(frame)
 
-                detections = face_filter.filter(detections, frame)
+                detections = face_reid.filter(detections, frame)
 
                 detections = face_tracker.track_faces(detections, frame)
 

@@ -101,18 +101,40 @@ def read_embeddings_from_database(database: Path) -> pd.DataFrame:
         return pd.DataFrame(data).transpose()
 
 
-# TODO: For lower dimensional embeddings use other similarity measures!
+# TODO: What is 3 dets = 3 embeds, but one of the dets is not in embeds, because the person is gone?
 @timer
 def match_embeddings(df1: pd.DataFrame, df2: pd.DataFrame) -> list[tuple]:
     if df1.shape[1] != df2.shape[1]:
         raise ValueError("Embeddings must have the same dimensionality.")
 
     # Compute the cosine similarity between all element pairs
-    distance_matrix = cosine_similarity(df1, df2)
-    print(distance_matrix)
+    dist_matrix = cosine_similarity(df1, df2)
+    # Normalize the matrix
+    dist_matrix = (dist_matrix + 1) / 2
+    # Invert the matrix
+    dist_matrix = 1 - dist_matrix
+
+    # if not dist_matrix.shape[0] == dist_matrix.shape[1]:
+    #     num_dummies = max(dist_matrix.shape) - min(dist_matrix.shape)
+    #     dummy_cost = np.max(dist_matrix) + 1
+    #     if dist_matrix.shape[0] < dist_matrix.shape[1]:
+    #         dist_matrix = np.pad(
+    #             dist_matrix,
+    #             ((0, num_dummies), (0, 0)),
+    #             mode="constant",
+    #             constant_values=dummy_cost,
+    #         )
+    #     else:
+    #         dist_matrix = np.pad(
+    #             dist_matrix,
+    #             ((0, 0), (0, num_dummies)),
+    #             mode="constant",
+    #             constant_values=dummy_cost,
+    #         )
+    print(dist_matrix)
 
     # Use the hungarian algorithm for bipartite matching
-    _, col_ind = hungarian_algorithm(distance_matrix * -1)
+    _, col_ind = hungarian_algorithm(dist_matrix)
     # print([(row, col) for row, col in zip(row_ind, col_ind)])
 
     # Retrieve the corresponding labels from df1 and df2
@@ -145,6 +167,7 @@ if __name__ == "__main__":
 
     df1 = read_embeddings_from_database(database)
     df2 = get_face_embeddings(faces)
+    df1.drop("person_id4", axis=0, inplace=True)
 
     matches = match_embeddings(df1, df2)
     print(matches)

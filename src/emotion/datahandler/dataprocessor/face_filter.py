@@ -10,8 +10,8 @@ from utils.utils import SQLite
 from .face_embedder import FaceEmbedder
 
 
-class Filter:
-    """Filter class for filtering the detections."""
+class ReIdentification:
+    """Filter class for Re-Identification"""
 
     def __init__(
         self,
@@ -28,16 +28,34 @@ class Filter:
         self.embedder = embedder
 
     def filter(self, detections: Detections, image: np.ndarray) -> Detections:
+        """Match the detected faces with the anchor embeddings and remove non-matching faces.
+
+        Args:
+            detections (Detections): Detections from the face detector.
+            image (np.ndarray): The current image frame.
+
+        Returns:
+            Detections: Filtered Detection object.
+        """
 
         embeddings = self.embedder.get_face_embeddings(detections, image)
 
         key_embeddings = self.read_anchor_embeddings_from_database(self.embeddings_path)
+        # For testing purposes:
+        # key_embeddings.drop("person_id4", axis=0, inplace=True)
 
         matches = self.match_embeddings(key_embeddings, embeddings)
 
         for match in matches:
             idx = np.where(detections.class_id == match[1])
             detections.class_id[idx] = match[0]
+
+        # Remove all faces without a corresponding anchor embedding
+        drop_indices = np.where(np.char.startswith(detections.class_id, "face"))
+
+        detections.bboxes = np.delete(detections.bboxes, drop_indices, axis=0)
+        detections.confidence = np.delete(detections.confidence, drop_indices)
+        detections.class_id = np.delete(detections.class_id, drop_indices)
 
         return detections
 
@@ -75,10 +93,14 @@ class Filter:
             raise ValueError("Embeddings must have the same dimensionality.")
 
         # Compute the cosine similarity between all element pairs
-        distance_matrix = cosine_similarity(df1, df2)
+        dist_matrix = cosine_similarity(df1, df2)
+        # Normalize the matrix
+        dist_matrix = (dist_matrix + 1) / 2
+        # Invert the matrix
+        dist_matrix = 1 - dist_matrix
 
         # Use the hungarian algorithm for bipartite matching
-        _, col_ind = self.hungarian_algorithm(distance_matrix * -1)
+        _, col_ind = self.hungarian_algorithm(dist_matrix)
 
         # Retrieve the corresponding labels from df1 and df2
         df1_label = df1.index.tolist()
