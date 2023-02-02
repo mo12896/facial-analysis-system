@@ -1,6 +1,5 @@
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
-from typing import Any
 
 import dlib
 import numpy as np
@@ -8,18 +7,16 @@ from onemetric.cv.utils.iou import box_iou_batch
 from utils.detections import Detections
 from yolox.tracker.byte_tracker import BYTETracker, STrack
 
-from .face_detector import FaceDetector
-
 
 class Tracker(ABC):
-    """Base constructor for all trackers, using the Bridge pattern
-    to decouple the tracker from the face detector."""
-
-    def __init__(self, face_detector: FaceDetector):
-        self.face_detector = face_detector
+    """Abstract class for face trackers."""
 
     @abstractmethod
-    def track_faces(self, image: np.ndarray) -> Detections:
+    def __init__(self, parameters: dict = {}):
+        """Constructor for the Tracker class."""
+
+    @abstractmethod
+    def track_faces(self, detections: Detections, image: np.ndarray) -> Detections:
         """Function to track faces in a given frame.
 
         Args:
@@ -31,7 +28,7 @@ class Tracker(ABC):
         """
 
 
-def create_tracker(tracker: str, face_detector: FaceDetector, *args: Any) -> Tracker:
+def create_tracker(paramaters: dict = {}):
     """Factory method to create a tracker.
 
     Args:
@@ -41,33 +38,28 @@ def create_tracker(tracker: str, face_detector: FaceDetector, *args: Any) -> Tra
     Returns:
         Tracker: Tracker object
     """
-    if tracker == "dlib":
-        det_freq = [arg["DETECT_FREQ"] for arg in args if isinstance(arg, dict)][0]
-        if det_freq:
-            return DlibTracker(
-                face_detector=face_detector, detection_frequency=det_freq
-            )
-        raise ValueError("Invalid detection frequency!")
-    elif tracker == "byte":
-        return ByteTracker(face_detector)
+    if paramaters["type"] == "dlib":
+        return DlibTracker(paramaters)
+    elif paramaters["type"] == "byte":
+        return ByteTracker(paramaters)
     else:
         raise ValueError("Invalid tracker name!")
 
 
+# TODO: Not correct!
 class DlibTracker(Tracker):
     """Dlib tracker implementation."""
 
-    def __init__(self, face_detector: FaceDetector, detection_frequency: int = 10):
-        super().__init__(face_detector)
-        self.detection_frequency = detection_frequency
+    def __init__(self, parameters: dict = {}):
+        self.detection_frequency = parameters.get("detection_frequency", 10)
         self.confidence = None
+        self.first_run = True
 
-    def track_faces(self, image: np.ndarray, frame_count: int) -> Detections:
+    def track_faces(self, detections: Detections, image: np.ndarray) -> Detections:
         # For frame_count >= 0, the detections become more accurate!
-        if not frame_count or not frame_count % self.detection_frequency:
+        if self.first_run:
             self.trackers: list = []
 
-            detections = self.face_detector.detect_faces(image)
             self.confidence = detections.confidence
 
             for (x, y, w, h) in detections.bboxes:
@@ -77,6 +69,8 @@ class DlibTracker(Tracker):
 
                 tracker.start_track(image, rect)
                 self.trackers.append(tracker)
+
+            self.first_run = False
 
             return detections
 
@@ -117,14 +111,20 @@ class BYTETrackerArgs:
 class ByteTracker(Tracker):
     """Wrapper for the BYTETracker from YOLOX."""
 
-    def __init__(
-        self, face_detector: FaceDetector, args: BYTETrackerArgs = BYTETrackerArgs()
-    ):
-        super().__init__(face_detector)
+    def __init__(self, parameters: dict = {}):
+        args = parameters.get("args", BYTETrackerArgs)
         self.tracker = BYTETracker(args)
 
-    def track_faces(self, image: np.ndarray, frame_count: int) -> Detections:
-        detections = self.face_detector.detect_faces(image)
+    def track_faces(self, detections: Detections, image: np.ndarray) -> Detections:
+        """Track faces in a given frame.
+
+        Args:
+            detections (Detections): Detections to track
+            image (np.ndarray): The current frame
+
+        Returns:
+            Detections: Detections with tracker ids
+        """
         tracks = self.tracker.update(
             output_results=self.detections2boxes(detections=detections),
             img_info=image.shape,
@@ -144,7 +144,16 @@ class ByteTracker(Tracker):
 
     def match_detections_with_tracks(
         self, detections: Detections, tracks: list[STrack]
-    ):
+    ) -> list:
+        """Match tracks interface with detections interface.
+
+        Args:
+            detections (Detections): Detections object
+            tracks (list[STrack]): List of tracks to match
+
+        Returns:
+            list: List of track ids
+        """
         if not np.any(detections.bboxes) or len(tracks) == 0:
             return np.empty((0,))
 
@@ -162,8 +171,10 @@ class ByteTracker(Tracker):
 
     @staticmethod
     def detections2boxes(detections: Detections) -> np.ndarray:
+        """Get detections in the format of BYTETracker."""
         return np.hstack((detections.bboxes, detections.confidence[:, np.newaxis]))
 
     @staticmethod
     def tracks2boxes(tracks: list[STrack]) -> np.ndarray:
+        """Get tracks in the format of BYTETracker."""
         return np.array([track.tlbr for track in tracks], dtype=float)

@@ -1,3 +1,8 @@
 VIDEO_CODEC: MP4V
 DETECT_FREQ: 10
 VIDEO_PATH: "/home/moritz/Workspace/masterthesis/data/short_clip.mp4"
+DETECTION_FREQUENCY: 10
+TRACKER: byte
+DETECTOR: retinaface
+EMBEDDER: insightface
+EMBEDDINGS_PATH: "/home/moritz/Workspace/masterthesis/data/database/embeddings.db"

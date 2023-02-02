@@ -52,14 +52,20 @@ class Detections:
     @classmethod
     def from_retinaface(cls, retinaface_output: dict):
         """Create Detections object from RetinaFace output"""
-        bboxes = np.array(
-            [retinaface_output[face]["facial_area"] for face in retinaface_output]
+
+        bboxes = []
+        confidence = []
+        class_id = []
+
+        for face in retinaface_output:
+            bboxes.append(retinaface_output[face]["facial_area"])
+            confidence.append(retinaface_output[face]["score"])
+            class_id.append(face)
+
+        # Note that setting the dtype for class_id is important to keep the final output strings!
+        return cls(
+            np.array(bboxes), np.array(confidence), np.array(class_id, dtype="U10")
         )
-        confidence = np.array(
-            [retinaface_output[face]["score"] for face in retinaface_output]
-        )
-        class_id = np.zeros(len(bboxes), dtype=np.int32)
-        return cls(bboxes, confidence, class_id)
 
     def filter(self, mask: np.ndarray, inplace: bool = False):
         """Filter detections by mask

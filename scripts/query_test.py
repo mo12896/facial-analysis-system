@@ -82,7 +82,6 @@ def get_face_embeddings(images: dict) -> pd.DataFrame:
     model.prepare(ctx_id=0, det_size=(128, 128))
 
     data = {}
-
     for key, img in images.items():
         face = model.get(img)[0]
         embedding = np.array(face.normed_embedding, dtype=np.float32)
@@ -133,7 +132,7 @@ def plot_n_faces(faces: dict):
     _, axs = plt.subplots(1, n, figsize=(n * 3, 3))
     for i, (_, face) in enumerate(faces.items()):
         axs[i].imshow(face)
-        axs[i].set_title(f"bbox_{i}")
+        axs[i].set_title(f"bbox_{i+1}")
         axs[i].axis("off")
     plt.show()
 
@@ -142,7 +141,7 @@ if __name__ == "__main__":
     database = DATA_DIR_DATABASE / "embeddings.db"
     video_path = "/home/moritz/Workspace/masterthesis/data/short_clip.mp4"
 
-    faces = crop_random_faces_from_single_frame(video_path, rand=False)
+    faces = crop_random_faces_from_single_frame(video_path)
 
     df1 = read_embeddings_from_database(database)
     df2 = get_face_embeddings(faces)
