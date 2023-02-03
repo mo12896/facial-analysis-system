@@ -1,6 +1,5 @@
 from pathlib import Path
 
-import cv2
 from datahandler.dataprocessor.face_detector import create_face_detector
 from datahandler.dataprocessor.face_embedder import create_face_embedder
 from datahandler.dataprocessor.face_filter import ReIdentification
@@ -66,6 +65,7 @@ class Runner:
 
                     detections = self.face_reid.filter(detections, frame)
 
+                    # No must have!
                     detections = self.face_tracker.track_faces(detections, frame)
 
                     frame_count += 1
@@ -76,10 +76,6 @@ class Runner:
 
                     curr_detections = detections
 
-                    # if the `q` key was pressed, break from the loop
-                    # key = cv2.waitKey(1) & 0xFF
-                    # if key == ord("q"):
-                    #     break
                 else:
                     frame = self.box_annotator.annotate(frame, curr_detections)
 
@@ -89,4 +85,3 @@ class Runner:
 
         # Release the video capture object and close all windows
         self.video_loader.cap.release()
-        cv2.destroyAllWindows()

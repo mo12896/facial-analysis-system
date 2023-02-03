@@ -67,6 +67,42 @@ class Detections:
             np.array(bboxes), np.array(confidence), np.array(class_id, dtype="U10")
         )
 
+    @classmethod
+    def from_mediapipe(cls, mediapipe_output: dict, image_size):
+        """Create Detections object from MediaPipe output"""
+
+        bboxes = []
+        confidence = []
+        class_id = []
+        image_height, image_width = image_size
+        lines = str(mediapipe_output).strip().split(",")
+
+        # Bulky parser, because mediapipe...
+        for line in lines:
+            parts = line.strip().split("\n")
+            label_id = int(parts[0].split(":")[1].strip())
+            score = float(parts[1].split(":")[1].strip())
+            xmin = float(parts[5].split(":")[1].strip())
+            ymin = float(parts[6].split(":")[1].strip())
+            width = float(parts[7].split(":")[1].strip())
+            height = float(parts[8].strip().split(":")[1].strip())
+
+            xmin = int(xmin * image_width)
+            ymin = int(ymin * image_height)
+            width = int(width * image_width)
+            height = int(height * image_height)
+
+            bbox = np.array([xmin, ymin, xmin + width, ymin + height])
+
+            bboxes.append(bbox)
+            confidence.append(score)
+            class_id.append(label_id)
+
+        # Note that setting the dtype for class_id is important to keep the final output strings!
+        return cls(
+            np.array(bboxes), np.array(confidence), np.array(class_id, dtype="U10")
+        )
+
     def filter(self, mask: np.ndarray, inplace: bool = False):
         """Filter detections by mask
 

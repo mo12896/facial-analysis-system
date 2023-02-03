@@ -5,6 +5,7 @@ import dlib
 import numpy as np
 from onemetric.cv.utils.iou import box_iou_batch
 from utils.detections import Detections
+from utils.utils import timer
 from yolox.tracker.byte_tracker import BYTETracker, STrack
 
 
@@ -55,6 +56,7 @@ class DlibTracker(Tracker):
         self.confidence = None
         self.first_run = True
 
+    @timer
     def track_faces(self, detections: Detections, image: np.ndarray) -> Detections:
         # For frame_count >= 0, the detections become more accurate!
         if self.first_run:
@@ -115,6 +117,7 @@ class ByteTracker(Tracker):
         args = parameters.get("args", BYTETrackerArgs)
         self.tracker = BYTETracker(args)
 
+    @timer
     def track_faces(self, detections: Detections, image: np.ndarray) -> Detections:
         """Track faces in a given frame.
 

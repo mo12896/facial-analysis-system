@@ -3,7 +3,7 @@ import pandas as pd
 import scipy.optimize
 from sklearn.metrics.pairwise import cosine_similarity
 from utils.detections import Detections
-from utils.utils import SQLite
+from utils.utils import SQLite, timer
 
 from .face_embedder import FaceEmbedder
 
@@ -25,6 +25,7 @@ class ReIdentification:
         self.embeddings_path = embeddings_path
         self.embedder = embedder
 
+    @timer
     def filter(self, detections: Detections, image: np.ndarray) -> Detections:
         """Match the detected faces with the anchor embeddings and remove non-matching faces.
 

@@ -1,5 +1,5 @@
 # Custom Files
-*/logs
+*logs/
 *data/
 .idea/
 *experiments/

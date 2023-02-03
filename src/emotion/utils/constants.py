@@ -11,6 +11,7 @@ DATA_DIR_DATABASE = DATA_DIR / "database"
 LOG_DIR = root / "logs"
 IDENTITY_DIR = DATA_DIR / "identities"
 MODEL_DIR = root / "models"
+IMAGE_PATH = DATA_DIR / "test_image.png"
 
 # Paths to external libraries
 sys.path.append(f"{root}/external/bytetrack")

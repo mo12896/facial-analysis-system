@@ -4,6 +4,7 @@ import numpy as np
 import pandas as pd
 from insightface.app import FaceAnalysis
 from utils.detections import Detections
+from utils.utils import timer
 
 
 class FaceEmbedder(ABC):
@@ -53,6 +54,7 @@ class InsightFaceEmbedder(FaceEmbedder):
         det_size = parameters.get("det_size", 128)
         self.model.prepare(ctx_id=ctx_id, det_size=(det_size, det_size))
 
+    @timer
     def get_face_embeddings(
         self, detections: Detections, image: np.ndarray
     ) -> pd.DataFrame:
