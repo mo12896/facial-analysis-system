@@ -1,15 +1,26 @@
+# import os
 import sqlite3
+
+# import sys
 from pathlib import Path
 
-import cv2
 import insightface
 import numpy as np
-from insightface.app import FaceAnalysis
+
+from src.emotion.datahandler.dataprocessor.face_embedder import (
+    FaceEmbedder,
+    create_face_embedder,
+)
+from src.emotion.utils.constants import DATA_DIR_DATABASE, DATA_DIR_IMAGES
+from src.emotion.utils.utils import SQLite
+
+# parent_folder = os.path.abspath(
+#     os.path.join(os.path.dirname(os.path.abspath(__file__)), os.pardir)
+# )
+# sys.path.append(parent_folder)
+
 
 assert insightface.__version__ >= "0.3"
-
-DATA_DIR_DATABASE = Path("/home/moritz/Workspace/masterthesis/data/database")
-DATA_DIR_IMAGES = Path("/home/moritz/Workspace/masterthesis/data/images")
 
 
 def dummy_embeddings():
@@ -20,33 +31,7 @@ def dummy_embeddings():
     return (embedding1, embedding2, embedding3)
 
 
-# TODO: Make flexible for different embedding models!
-def get_mean_face_embedding(images_path: Path) -> np.ndarray:
-    """Returns the mean embeddings of an identity.
-
-    Args:
-        images_path (Path): Path to the images of a person.
-
-    Returns:
-        np.ndarray: Mean embedding of the person.
-    """
-    model = FaceAnalysis()
-    model.prepare(ctx_id=0, det_size=(128, 128))
-
-    images = [cv2.imread(str(image)) for image in images_path.glob("*.png")]
-
-    # Predict the faces
-    faces = [model.get(img)[0] for img in images]
-    # Fetch the embeddings
-    feats = [face.normed_embedding for face in faces]
-    feats = np.array(feats, dtype=np.float32)
-    # Average the embeddings
-    embedding = np.mean(feats, axis=0)
-
-    return embedding
-
-
-def generate_face_embeddings(images_path: list[Path]) -> dict:
+def generate_face_embeddings(images_path: list[Path], embedder: FaceEmbedder) -> dict:
     """Generates the embeddings for a set of identities.
 
     Args:
@@ -58,7 +43,8 @@ def generate_face_embeddings(images_path: list[Path]) -> dict:
 
     embeddings = {}
     for image_path in images_path:
-        embedding = get_mean_face_embedding(image_path)
+        embedding = embedder.get_anchor_face_embedding(image_path)
+        # Take the folder names as id for the anchor embeddings
         embeddings[str(image_path).rsplit("/", 1)[1]] = np.array(
             embedding, dtype=np.float32
         )
@@ -106,23 +92,9 @@ def read_key_embeddings_from_database(database: Path) -> np.ndarray:
     return np.array(embeddings, dtype=np.float32)
 
 
-class SQLite:
-    """Context manager for SQLite database connections."""
-
-    def __init__(self, file="sqlite.db"):
-        self.file = file
-
-    def __enter__(self):
-        self.conn = sqlite3.connect(self.file)
-        self.conn.row_factory = sqlite3.Row
-        return self.conn.cursor()
-
-    def __exit__(self, type, value, traceback):
-        self.conn.commit()
-        self.conn.close()
-
-
-def validate_embeddings(database: Path, images_path: list[Path]):
+def validate_embeddings(
+    database: Path, images_path: list[Path], embedder: FaceEmbedder
+):
     """Validates the embeddings.
 
     Args:
@@ -131,7 +103,9 @@ def validate_embeddings(database: Path, images_path: list[Path]):
         images_path (list[Path]): List of paths to the images of a person.
     """
     embeddings_from_database = read_key_embeddings_from_database(database=database)
-    embeddings_from_images = generate_face_embeddings(images_path=images_path)
+    embeddings_from_images = generate_face_embeddings(
+        images_path=images_path, embedder=embedder
+    )
 
     assert np.allclose(
         embeddings_from_database, np.array(list(embeddings_from_images.values()))
@@ -142,18 +116,24 @@ def main():
     # embeddings = dummy_embeddings()
     images_path = [item for item in DATA_DIR_IMAGES.iterdir() if item.is_dir()]
     database = DATA_DIR_DATABASE / "embeddings.db"
+    # Set embedder here!
+    embedder = create_face_embedder(
+        {"type": "insightface", "ctx_id": 0, "det_size": 128}
+    )
 
     if database.exists():
         response = input(f"{database} already exists. Overwrite? [y/n] ")
         if response == "n":
-            validate_embeddings(database=database, images_path=images_path)
+            validate_embeddings(
+                database=database, images_path=images_path, embedder=embedder
+            )
             exit()
         database.unlink()
 
-    embeddings = generate_face_embeddings(images_path=images_path)
+    embeddings = generate_face_embeddings(images_path=images_path, embedder=embedder)
     write_embeddings_to_database(database=database, embeddings=embeddings)
 
-    validate_embeddings(database=database, images_path=images_path)
+    validate_embeddings(database=database, images_path=images_path, embedder=embedder)
 
     with SQLite(str(database)) as conn:
         conn.execute("SELECT person_id, embedding FROM embeddings")

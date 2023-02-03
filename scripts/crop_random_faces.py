@@ -1,11 +1,22 @@
 """After running this script, you have to place the croppped face into the dedicated folder to generate the identities!"""
+# import os
 import random
+
+# import sys
 from pathlib import Path
 
 import cv2
 import numpy as np
 from retinaface import RetinaFace
 from tqdm import tqdm
+
+from src.emotion.utils.constants import DATA_DIR_IMAGES, VIDEO_PATH
+
+# parent_folder = os.path.abspath(
+#     os.path.join(os.path.dirname(os.path.abspath(__file__)), os.pardir)
+# )
+# sys.path.append(parent_folder)
+
 
 # Number of frames to sample from the video
 NUM_FRAMES = 20
@@ -63,8 +74,8 @@ def crop_random_faces_from_n_frames(video_path, output_folder, num_frames=10):
 
 
 if __name__ == "__main__":
-    video_path = "/home/moritz/Workspace/masterthesis/data/short_clip.mp4"
-    output_folder = Path("/home/moritz/Workspace/masterthesis/data/images")
+    video_path = VIDEO_PATH
+    output_folder = DATA_DIR_IMAGES
 
     if output_folder.exists():
         response = input(f"{output_folder} already exists. Overwrite? [y/n] ")

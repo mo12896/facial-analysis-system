@@ -1,5 +1,5 @@
-from app_controller import Runner
-from app_gui import parse_arguments
+from src.emotion.app_controller import Runner
+from src.emotion.app_gui import parse_arguments
 
 
 def main() -> None:

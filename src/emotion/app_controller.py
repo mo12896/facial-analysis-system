@@ -1,18 +1,19 @@
 from pathlib import Path
 
-from datahandler.dataprocessor.face_detector import create_face_detector
-from datahandler.dataprocessor.face_embedder import create_face_embedder
-from datahandler.dataprocessor.face_filter import ReIdentification
-from datahandler.dataprocessor.face_tracker import create_tracker
-from datahandler.video_handler.video_info import VideoInfo
-from datahandler.video_handler.video_loader import VideoDataLoader
-from datahandler.video_handler.video_writer import VideoDataWriter
 from tqdm import tqdm
-from utils.annotator import BoxAnnotator
-from utils.app_enums import VideoCodecs
-from utils.color import Color
-from utils.constants import DATA_DIR
-from utils.logger import setup_logger, with_logging
+
+from src.emotion.datahandler.dataprocessor.face_detector import create_face_detector
+from src.emotion.datahandler.dataprocessor.face_embedder import create_face_embedder
+from src.emotion.datahandler.dataprocessor.face_filter import ReIdentification
+from src.emotion.datahandler.dataprocessor.face_tracker import create_tracker
+from src.emotion.datahandler.video_handler.video_info import VideoInfo
+from src.emotion.datahandler.video_handler.video_loader import VideoDataLoader
+from src.emotion.datahandler.video_handler.video_writer import VideoDataWriter
+from src.emotion.utils.annotator import BoxAnnotator
+from src.emotion.utils.app_enums import VideoCodecs
+from src.emotion.utils.color import Color
+from src.emotion.utils.constants import DATA_DIR
+from src.emotion.utils.logger import setup_logger, with_logging
 
 logger = setup_logger("runner_logger", file_logger=True)
 

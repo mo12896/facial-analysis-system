@@ -1,38 +1,27 @@
+# import os
+# import sys
 from pathlib import Path
 
-import cv2
 import matplotlib.pyplot as plt
 import numpy as np
-from insightface.app import FaceAnalysis
 from sklearn.decomposition import PCA
 from sklearn.manifold import TSNE
 
-DATA_DIR_IMAGES = Path("/home/moritz/Workspace/masterthesis/data/images")
+from src.emotion.datahandler.dataprocessor.face_embedder import (
+    FaceEmbedder,
+    create_face_embedder,
+)
+from src.emotion.utils.constants import DATA_DIR_IMAGES
+
+# parent_folder = os.path.abspath(
+#     os.path.join(os.path.dirname(os.path.abspath(__file__)), os.pardir)
+# )
+# sys.path.append(parent_folder)
 
 
-def get_face_embeddings(images_path: Path) -> list:
-    """Returns the mean embeddings of an identity.
-
-    Args:
-        images_path (Path): Path to the images of a person.
-
-    Returns:
-        np.ndarray: Mean embedding of the person.
-    """
-    model = FaceAnalysis()
-    model.prepare(ctx_id=0, det_size=(128, 128))
-
-    images = [cv2.imread(str(image)) for image in images_path.glob("*.png")]
-
-    # Predict the faces
-    faces = [model.get(img)[0] for img in images]
-    # Fetch the embeddings
-    embeddings = [face.normed_embedding for face in faces]
-
-    return embeddings
-
-
-def generate_face_embeddings(images_path: list[Path]) -> np.ndarray:
+def generate_face_embeddings(
+    image_folders: list[Path], embedder: FaceEmbedder
+) -> np.ndarray:
     """Generates the embeddings for a set of identities.
 
     Args:
@@ -43,8 +32,8 @@ def generate_face_embeddings(images_path: list[Path]) -> np.ndarray:
     """
 
     final_embeddings = []
-    for image_path in images_path:
-        embeddings = get_face_embeddings(image_path)
+    for image_folder in image_folders:
+        embeddings = embedder.get_face_embeddings_from_folder(image_folder)
         final_embeddings += embeddings
 
     return np.array(final_embeddings, dtype=np.float32)
@@ -56,8 +45,12 @@ if __name__ == "__main__":
     t_sne = 2
     n_pca = 3
 
+    embedder = create_face_embedder(
+        {"type": "insightface", "ctx_id": 0, "det_size": 128}
+    )
+
     # Load the high-dimensional embeddings into a numpy array
-    X_embedded = generate_face_embeddings(images_path)
+    X_embedded = generate_face_embeddings(images_path, embedder=embedder)
 
     if t_sne == 2:
         tsne = TSNE(n_components=2)

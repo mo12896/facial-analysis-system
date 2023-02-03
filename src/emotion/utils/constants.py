@@ -11,13 +11,15 @@ DATA_DIR_DATABASE = DATA_DIR / "database"
 LOG_DIR = root / "logs"
 IDENTITY_DIR = DATA_DIR / "identities"
 MODEL_DIR = root / "models"
-IMAGE_PATH = DATA_DIR / "test_image.png"
+
 
 # Paths to external libraries
 sys.path.append(f"{root}/external/bytetrack")
 
 
 # Asset Files
+IMAGE_PATH = DATA_DIR / "test_image.png"
+VIDEO_PATH = DATA_DIR / "short_clip.mp4"
 LIGHT_OPENPOSE_MODEL = MODEL_DIR / "checkpoint_iter_370000.pth"
 EMOTION_ENV = Path("/home/moritz/anaconda3/envs/emotion")
 OPENCV_MODEL = (

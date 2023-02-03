@@ -2,7 +2,8 @@ import argparse
 from typing import Any
 
 import yaml
-from utils.constants import CONFIG_DIR
+
+from src.emotion.utils.constants import CONFIG_DIR
 
 
 def parse_arguments() -> dict:

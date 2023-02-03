@@ -1,7 +1,8 @@
-import functools
+# import os
 import random
+
+# import sys
 from pathlib import Path
-from time import perf_counter
 
 import cv2
 import insightface
@@ -9,28 +10,19 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 import scipy.optimize
-from embeddings import SQLite
 from insightface.app import FaceAnalysis
 from retinaface import RetinaFace
 from sklearn.metrics.pairwise import cosine_similarity
 
+from src.emotion.utils.constants import DATA_DIR_DATABASE
+from src.emotion.utils.utils import SQLite, timer
+
+# parent_folder = os.path.abspath(
+#     os.path.join(os.path.dirname(os.path.abspath(__file__)), os.pardir)
+# )
+# sys.path.append(parent_folder)
+
 assert insightface.__version__ >= "0.3"
-
-
-DATA_DIR_DATABASE = Path("/home/moritz/Workspace/masterthesis/data/database")
-
-
-def timer(func):
-    @functools.wraps(func)
-    def wrapper(*args, **kwargs):
-        print(f"Entering function {func.__name__}...")
-        start = perf_counter()
-        result = func(*args, **kwargs)
-        end = perf_counter()
-        print(f"{func.__name__} took {end - start:.6f} seconds to execute.")
-        return result
-
-    return wrapper
 
 
 @timer

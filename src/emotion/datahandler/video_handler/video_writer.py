@@ -3,9 +3,9 @@ from pathlib import Path
 
 import cv2
 import numpy as np
-from utils.app_enums import VideoCodecs
 
-from .video_info import VideoInfo
+from src.emotion.datahandler.video_handler.video_info import VideoInfo
+from src.emotion.utils.app_enums import VideoCodecs
 
 
 class VideoDataWriter:

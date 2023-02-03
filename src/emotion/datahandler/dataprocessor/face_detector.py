@@ -12,11 +12,12 @@ import mediapipe as mp
 import numpy as np
 import tensorflow as tf
 from retinaface import RetinaFace
-from utils.annotator import BoxAnnotator
-from utils.color import Color
-from utils.constants import OPENCV_MODEL
-from utils.detections import Detections
-from utils.utils import timer
+
+from src.emotion.utils.annotator import BoxAnnotator
+from src.emotion.utils.color import Color
+from src.emotion.utils.constants import OPENCV_MODEL
+from src.emotion.utils.detections import Detections
+from src.emotion.utils.utils import timer
 
 mp_face_detection = mp.solutions.face_detection
 

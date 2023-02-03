@@ -1,11 +1,17 @@
+import functools
 from abc import ABC, abstractmethod
+from pathlib import Path
 
+import cv2
+
+# Run from seperate env, because dlib and cuda are no friends
 import face_recognition
 import numpy as np
 import pandas as pd
 from insightface.app import FaceAnalysis
-from utils.detections import Detections
-from utils.utils import timer
+
+from src.emotion.utils.detections import Detections
+from src.emotion.utils.utils import timer
 
 
 class FaceEmbedder(ABC):
@@ -16,7 +22,9 @@ class FaceEmbedder(ABC):
         self.parameters = parameters
 
     @abstractmethod
-    def get_face_embeddings(detections: Detections, image: np.ndarray) -> pd.DataFrame:
+    def get_face_embeddings(
+        self, detections: Detections, image: np.ndarray
+    ) -> pd.DataFrame:
         """Retrieve the face embeddings for a set of detections.
 
         Args:
@@ -26,6 +34,38 @@ class FaceEmbedder(ABC):
         Returns:
             pd.DataFrame: A Dataframe storing the embeddings for each detection.
         """
+
+    @abstractmethod
+    def get_face_embeddings_from_folder(self, image_folder: Path) -> list:
+        """Returns the embeddings of an identity.
+
+        Args:
+            images_path (Path): Path to the images of a person.
+
+        Returns:
+            np.ndarray: Embeddings of the person.
+        """
+
+    @timer
+    def get_anchor_face_embedding(self, image_folder: Path) -> np.ndarray:
+        """Returns the mean embedding of an identity.
+
+        Args:
+            images_path (Path): Path to the images of a person.
+
+        Returns:
+            np.ndarray: Mean embedding of the person.
+        """
+
+        @functools.wraps(self.get_face_embeddings_from_folder)
+        def wrapper(image_folder: Path) -> np.ndarray:
+            result = self.get_face_embeddings_from_folder(image_folder)
+
+            embedding = np.mean(np.array(result, dtype=np.float32), axis=0)
+
+            return embedding
+
+        return wrapper(image_folder)
 
 
 def create_face_embedder(parameters: dict) -> FaceEmbedder:
@@ -40,6 +80,8 @@ def create_face_embedder(parameters: dict) -> FaceEmbedder:
 
     if parameters["type"] == "insightface":
         return InsightFaceEmbedder(parameters)
+    elif parameters["type"] == "face_rec":
+        return FaceRecognitionEmbedder(parameters)
     else:
         raise ValueError("Unknown face embedder type.")
 
@@ -72,12 +114,24 @@ class InsightFaceEmbedder(FaceEmbedder):
 
         return pd.DataFrame(data).transpose()
 
+    @timer
+    def get_face_embeddings_from_folder(self, image_folder: Path) -> list:
+        embeddings = []
+
+        for image in image_folder.glob("*.png"):
+            img = cv2.imread(str(image))
+            face = self.model.get(img)[0]
+            embeddings.append(face.normed_embedding)
+
+        return embeddings
+
 
 # TODO: Test with new embeddings!
 class FaceRecognitionEmbedder(FaceEmbedder):
     def __init__(self, parameters: dict = {}):
         super().__init__(parameters)
 
+    @timer
     def get_face_embeddings(
         self, detections: Detections, image: np.ndarray
     ) -> pd.DataFrame:
@@ -90,3 +144,14 @@ class FaceRecognitionEmbedder(FaceEmbedder):
             data[key] = embedding
 
         return pd.DataFrame(data)
+
+    @timer
+    def get_face_embeddings_from_folder(self, images_path: Path) -> list:
+        embeddings = []
+
+        for image in images_path.glob("*.png"):
+            img = cv2.imread(str(image))
+            embedding = face_recognition.face_encodings(img)[0]
+            embeddings.append(embedding)
+
+        return embeddings
