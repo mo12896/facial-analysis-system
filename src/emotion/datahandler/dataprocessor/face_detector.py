@@ -126,6 +126,7 @@ class MediaPipeFaceDetector(FaceDetector):
 
 
 if __name__ == "__main__":
+    # Uncomment the sys path for testing!
     face_detector = create_face_detector("retinaface")
     image = cv2.imread("/home/moritz/Workspace/masterthesis/data/test_image.png")
     detections = face_detector.detect_faces(image)

@@ -1,5 +1,6 @@
 from abc import ABC, abstractmethod
 
+import face_recognition
 import numpy as np
 import pandas as pd
 from insightface.app import FaceAnalysis
@@ -43,6 +44,7 @@ def create_face_embedder(parameters: dict) -> FaceEmbedder:
         raise ValueError("Unknown face embedder type.")
 
 
+# TODO: Try different models from their model zoo!
 class InsightFaceEmbedder(FaceEmbedder):
     """Wrapper around the insightface model for face embedding extraction."""
 
@@ -69,3 +71,22 @@ class InsightFaceEmbedder(FaceEmbedder):
             data[key] = embedding
 
         return pd.DataFrame(data).transpose()
+
+
+# TODO: Test with new embeddings!
+class FaceRecognitionEmbedder(FaceEmbedder):
+    def __init__(self, parameters: dict = {}):
+        super().__init__(parameters)
+
+    def get_face_embeddings(
+        self, detections: Detections, image: np.ndarray
+    ) -> pd.DataFrame:
+
+        data = {}
+
+        for key, bbox in zip(detections.class_id, detections.bboxes):
+            image = image[int(bbox[1]) : int(bbox[3]), int(bbox[0]) : int(bbox[2])]
+            embedding = face_recognition.face_encodings(image)[0]
+            data[key] = embedding
+
+        return pd.DataFrame(data)
