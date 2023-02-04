@@ -19,6 +19,7 @@ moviepy==1.0.3
 onemetric==0.1.2
 onnx_simplifier==0.3.5
 onnxruntime==1.12.0
+onnxruntime-gpu==1.13.1
 onnxsim==0.4.13
 opencv_python_headless==4.7.0.68
 pandas==1.5.1

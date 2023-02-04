@@ -98,8 +98,8 @@ If you have any questions or ideas, please don't hesitate to get in touch. I am 
 To get a local copy up and running follow these simple example steps.
 
 ### Prerequisites
+If you have a NVIDIA Graphics Card on your machine, make sure that you also have [onnxruntime-gpu][ONNXGPU-url] installed in you virtual environment, to make use of the full power of CUDA enabled GPU acceleration during inference!
 
-...
 ### Installation
 
 
@@ -111,12 +111,16 @@ To get a local copy up and running follow these simple example steps.
     ```sh
     cd emotion-recognition
     conda create -n emorec python=3.8
+    conda activate emorec
     ```
 3. Install required packages
    ```sh
    pip3 install -p -r requirements.txt
    ```
-
+4. Setup the directory structure
+   ```
+   mkdir data data/images data/database data/identities
+   ```
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
@@ -179,3 +183,4 @@ Use this space to list resources you find helpful and would like to give credit 
 [Next.js]: https://img.shields.io/badge/next.js-000000?style=for-the-badge&logo=nextdotjs&logoColor=white
 [Next-url]: https://nextjs.org/
 [Python-url]: https://www.python.org/
+[ONNXGPU-url]: https://pypi.org/project/onnxruntime-gpu/

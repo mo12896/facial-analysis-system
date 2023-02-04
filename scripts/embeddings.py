@@ -1,11 +1,16 @@
-# import os
+import os
 import sqlite3
-
-# import sys
+import sys
 from pathlib import Path
 
 import insightface
 import numpy as np
+
+parent_folder = os.path.abspath(
+    os.path.join(os.path.dirname(os.path.abspath(__file__)), os.pardir)
+)
+sys.path.append(parent_folder)
+
 
 from src.emotion.datahandler.dataprocessor.face_embedder import (
     FaceEmbedder,
@@ -13,12 +18,6 @@ from src.emotion.datahandler.dataprocessor.face_embedder import (
 )
 from src.emotion.utils.constants import DATA_DIR_DATABASE, DATA_DIR_IMAGES
 from src.emotion.utils.utils import SQLite
-
-# parent_folder = os.path.abspath(
-#     os.path.join(os.path.dirname(os.path.abspath(__file__)), os.pardir)
-# )
-# sys.path.append(parent_folder)
-
 
 assert insightface.__version__ >= "0.3"
 
@@ -117,6 +116,7 @@ def main():
     images_path = [item for item in DATA_DIR_IMAGES.iterdir() if item.is_dir()]
     database = DATA_DIR_DATABASE / "embeddings.db"
     # Set embedder here!
+    # embedder = create_face_embedder({"type": "facerecog"})
     embedder = create_face_embedder(
         {"type": "insightface", "ctx_id": 0, "det_size": 128}
     )

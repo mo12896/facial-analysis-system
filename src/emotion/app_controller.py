@@ -22,7 +22,7 @@ class Runner:
     def __init__(self, args):
         self.args = args
 
-        self.detection_frequency = self.args.get("DETECTION_FREQUENCY", 10)
+        self.detection_frequency = self.args.get("DETECTION_FREQUENCY", 5)
         self.video_path = str(DATA_DIR / self.args.get("VIDEO", "short_clip.mp4"))
         self.video_codec = self.args.get("VIDEO_CODEC", "MP4V")
         self.detector = self.args.get("DETECTOR", "retinaface")

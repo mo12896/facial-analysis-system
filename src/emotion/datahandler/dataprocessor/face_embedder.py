@@ -4,8 +4,8 @@ from pathlib import Path
 
 import cv2
 
-# Run from seperate env, because dlib and cuda are no friends
-import face_recognition
+# Run f-r from seperate env, because dlib and cuda are no friends
+# import face_recognition
 import numpy as np
 import pandas as pd
 from insightface.app import FaceAnalysis
@@ -80,8 +80,8 @@ def create_face_embedder(parameters: dict) -> FaceEmbedder:
 
     if parameters["type"] == "insightface":
         return InsightFaceEmbedder(parameters)
-    elif parameters["type"] == "face_rec":
-        return FaceRecognitionEmbedder(parameters)
+    elif parameters["type"] == "facerecog":
+        raise ValueError("Currently not supported.")
     else:
         raise ValueError("Unknown face embedder type.")
 
@@ -126,32 +126,44 @@ class InsightFaceEmbedder(FaceEmbedder):
         return embeddings
 
 
-# TODO: Test with new embeddings!
-class FaceRecognitionEmbedder(FaceEmbedder):
-    def __init__(self, parameters: dict = {}):
-        super().__init__(parameters)
+# TODO: Only 128D embeddings, thus worse differentiation between identities.
+# Not relevant for now!
+# class FaceRecognitionEmbedder(FaceEmbedder):
+#     def __init__(self, parameters: dict = {}):
+#         super().__init__(parameters)
 
-    @timer
-    def get_face_embeddings(
-        self, detections: Detections, image: np.ndarray
-    ) -> pd.DataFrame:
+#     @timer
+#     def get_face_embeddings(
+#         self, detections: Detections, image: np.ndarray
+#     ) -> pd.DataFrame:
 
-        data = {}
+#         data = {}
 
-        for key, bbox in zip(detections.class_id, detections.bboxes):
-            image = image[int(bbox[1]) : int(bbox[3]), int(bbox[0]) : int(bbox[2])]
-            embedding = face_recognition.face_encodings(image)[0]
-            data[key] = embedding
+#         for key, bbox in zip(detections.class_id, detections.bboxes):
+#             image = image[int(bbox[1]) : int(bbox[3]), int(bbox[0]) : int(bbox[2])]
+#             height, width, _ = image.shape
+#             bbox = [(0, height, width, 0)]
+#             embedding = face_recognition.face_encodings(
+#                 face_image=image, num_jitters=1, known_face_locations=bbox
+#             )[0]
+#             data[key] = embedding
 
-        return pd.DataFrame(data)
+#         return pd.DataFrame(data).transpose()
 
-    @timer
-    def get_face_embeddings_from_folder(self, images_path: Path) -> list:
-        embeddings = []
+#     @timer
+#     def get_face_embeddings_from_folder(self, images_path: Path) -> list:
+#         embeddings = []
 
-        for image in images_path.glob("*.png"):
-            img = cv2.imread(str(image))
-            embedding = face_recognition.face_encodings(img)[0]
-            embeddings.append(embedding)
+#         for image in images_path.glob("*.png"):
+#             img = cv2.imread(str(image))
+#             height, width, _ = img.shape
+#             bbox = [(0, height, width, 0)]
+#             embedding = face_recognition.face_encodings(
+#                 face_image=img, num_jitters=1, known_face_locations=bbox
+#             )[0]
+#             embeddings.append(embedding)
 
-        return embeddings
+#         return embeddings
+
+if __name__ == "__main__":
+    print("This is a module.")

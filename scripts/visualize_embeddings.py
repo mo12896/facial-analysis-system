@@ -1,5 +1,5 @@
-# import os
-# import sys
+import os
+import sys
 from pathlib import Path
 
 import matplotlib.pyplot as plt
@@ -7,16 +7,16 @@ import numpy as np
 from sklearn.decomposition import PCA
 from sklearn.manifold import TSNE
 
+parent_folder = os.path.abspath(
+    os.path.join(os.path.dirname(os.path.abspath(__file__)), os.pardir)
+)
+sys.path.append(parent_folder)
+
 from src.emotion.datahandler.dataprocessor.face_embedder import (
     FaceEmbedder,
     create_face_embedder,
 )
 from src.emotion.utils.constants import DATA_DIR_IMAGES
-
-# parent_folder = os.path.abspath(
-#     os.path.join(os.path.dirname(os.path.abspath(__file__)), os.pardir)
-# )
-# sys.path.append(parent_folder)
 
 
 def generate_face_embeddings(
@@ -45,6 +45,7 @@ if __name__ == "__main__":
     t_sne = 2
     n_pca = 3
 
+    # embedder = create_face_embedder({"type": "facerecog"})
     embedder = create_face_embedder(
         {"type": "insightface", "ctx_id": 0, "det_size": 128}
     )
