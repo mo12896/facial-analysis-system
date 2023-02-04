@@ -98,7 +98,8 @@ If you have any questions or ideas, please don't hesitate to get in touch. I am 
 To get a local copy up and running follow these simple example steps.
 
 ### Prerequisites
-If you have a NVIDIA Graphics Card on your machine, make sure that you also have [onnxruntime-gpu][ONNXGPU-url] installed in you virtual environment, to make use of the full power of CUDA enabled GPU acceleration during inference!
+
+Ensure that [onnxruntime-gpu][ONNXGPU-url]  is installed in your virtual environment if you want to harness the full power of CUDA GPU acceleration during inference. Note that this is only possible if your machine is equipped with a NVIDIA Graphics Card.
 
 ### Installation
 

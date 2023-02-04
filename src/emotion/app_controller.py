@@ -23,7 +23,8 @@ class Runner:
         self.args = args
 
         self.detection_frequency = self.args.get("DETECTION_FREQUENCY", 5)
-        self.video_path = str(DATA_DIR / self.args.get("VIDEO", "short_clip.mp4"))
+        self.video_path = str(DATA_DIR / self.args.get("VIDEO", "short_clip_debug.mp4"))
+        # self.video_path = str(self.args.get("VIDEO"))
         self.video_codec = self.args.get("VIDEO_CODEC", "MP4V")
         self.detector = self.args.get("DETECTOR", "retinaface")
         self.embeddings_path = str(

@@ -48,6 +48,7 @@ class ReIdentification:
             idx = np.where(detections.class_id == match[1])
             detections.class_id[idx] = match[0]
 
+        # TODO: Should be part of the Detection class!!!
         # Remove all faces without a corresponding anchor embedding
         drop_indices = np.where(np.char.startswith(detections.class_id, "face"))
 
@@ -74,7 +75,9 @@ class ReIdentification:
             }
             return pd.DataFrame(data).transpose()
 
-    def match_embeddings(self, df1: pd.DataFrame, df2: pd.DataFrame) -> list[tuple]:
+    def match_embeddings(
+        self, df1: pd.DataFrame, df2: pd.DataFrame, threshold: float = 0.4
+    ) -> list[tuple]:
         """Bipartite matching of two DataFrames using the Hungarian algorithm.
 
         Args:
@@ -98,11 +101,17 @@ class ReIdentification:
         dist_matrix = 1 - dist_matrix
 
         # Use the hungarian algorithm for bipartite matching
-        _, col_ind = self.hungarian_algorithm(dist_matrix)
+        row_ind, col_ind = self.hungarian_algorithm(dist_matrix)
+
+        val_rows_cols = [
+            (row_idx, col_idx)
+            for row_idx, col_idx in zip(row_ind, col_ind)
+            if dist_matrix[row_idx, col_idx] < threshold
+        ]
 
         # Retrieve the corresponding labels from df1 and df2
-        df1_label = df1.index.tolist()
-        df2_label = df2.iloc[col_ind].index.tolist()
+        df1_label = df1.iloc[[x for x, _ in val_rows_cols]].index.tolist()
+        df2_label = df2.iloc[[y for _, y in val_rows_cols]].index.tolist()
 
         return list(zip(df1_label, df2_label))
 

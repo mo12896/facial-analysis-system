@@ -108,8 +108,10 @@ class InsightFaceEmbedder(FaceEmbedder):
 
         for key, bbox in zip(detections.class_id, detections.bboxes):
             img = image[int(bbox[1]) : int(bbox[3]), int(bbox[0]) : int(bbox[2])]
-            face = self.model.get(img)[0]
-            embedding = np.array(face.normed_embedding, dtype=np.float32)
+            face = self.model.get(img)
+            if len(face) == 0:
+                continue
+            embedding = np.array(face[0].normed_embedding, dtype=np.float32)
             data[key] = embedding
 
         return pd.DataFrame(data).transpose()
@@ -120,14 +122,16 @@ class InsightFaceEmbedder(FaceEmbedder):
 
         for image in image_folder.glob("*.png"):
             img = cv2.imread(str(image))
-            face = self.model.get(img)[0]
-            embeddings.append(face.normed_embedding)
+            face = self.model.get(img)
+            if len(face) == 0:
+                continue
+            embeddings.append(face[0].normed_embedding)
 
         return embeddings
 
 
-# TODO: Only 128D embeddings, thus worse differentiation between identities.
-# Not relevant for now!
+# Only 128D embeddings, thus worse differentiation between identities.
+# Thus, not relevant for now!
 # class FaceRecognitionEmbedder(FaceEmbedder):
 #     def __init__(self, parameters: dict = {}):
 #         super().__init__(parameters)
@@ -145,8 +149,10 @@ class InsightFaceEmbedder(FaceEmbedder):
 #             bbox = [(0, height, width, 0)]
 #             embedding = face_recognition.face_encodings(
 #                 face_image=image, num_jitters=1, known_face_locations=bbox
-#             )[0]
-#             data[key] = embedding
+#             )
+#             if len(embedding) == 0:
+#                 continue
+#             data[key] = embedding[0]
 
 #         return pd.DataFrame(data).transpose()
 
@@ -160,8 +166,10 @@ class InsightFaceEmbedder(FaceEmbedder):
 #             bbox = [(0, height, width, 0)]
 #             embedding = face_recognition.face_encodings(
 #                 face_image=img, num_jitters=1, known_face_locations=bbox
-#             )[0]
-#             embeddings.append(embedding)
+#             )
+#             if len(embedding) == 0:
+#                 continue
+#             embeddings.append(embedding[0])
 
 #         return embeddings
 
