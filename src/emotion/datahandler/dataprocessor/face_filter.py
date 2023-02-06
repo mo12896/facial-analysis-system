@@ -40,7 +40,7 @@ class ReIdentification:
 
         key_embeddings = self.read_anchor_embeddings_from_database(self.embeddings_path)
         # For testing purposes:
-        key_embeddings.drop("person_id4", axis=0, inplace=True)
+        # key_embeddings.drop("person_id4", axis=0, inplace=True)
 
         matches = self.match_embeddings(key_embeddings, embeddings)
 
@@ -48,13 +48,9 @@ class ReIdentification:
             idx = np.where(detections.class_id == match[1])
             detections.class_id[idx] = match[0]
 
-        # TODO: Should be part of the Detection class!!!
         # Remove all faces without a corresponding anchor embedding
-        drop_indices = np.where(np.char.startswith(detections.class_id, "face"))
-
-        detections.bboxes = np.delete(detections.bboxes, drop_indices, axis=0)
-        detections.confidence = np.delete(detections.confidence, drop_indices)
-        detections.class_id = np.delete(detections.class_id, drop_indices)
+        keep_indices = np.char.startswith(detections.class_id, "person")
+        detections = detections.filter(keep_indices)
 
         return detections
 

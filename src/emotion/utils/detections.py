@@ -23,6 +23,8 @@ class Detections:
             (isinstance(self.bboxes, np.ndarray) and self.bboxes.shape == (n, 4)),
             (isinstance(self.confidence, np.ndarray) and self.confidence.shape == (n,)),
             (isinstance(self.class_id, np.ndarray) and self.class_id.shape == (n,)),
+            self.emotion is None
+            or (isinstance(self.emotion, np.ndarray) and self.emotion.shape == (n,)),
             self.tracker_id is None
             or (
                 isinstance(self.tracker_id, np.ndarray)
@@ -59,7 +61,6 @@ class Detections:
         bboxes = []
         confidence = []
         class_id = []
-        emotions = []
 
         for face in retinaface_output:
             bboxes.append(retinaface_output[face]["facial_area"])
@@ -71,7 +72,6 @@ class Detections:
             np.array(bboxes),
             np.array(confidence),
             np.array(class_id, dtype="U10"),
-            np.array(emotions),
         )
 
     @classmethod
@@ -122,6 +122,7 @@ class Detections:
             self.bboxes = self.bboxes[mask]
             self.confidence = self.confidence[mask]
             self.class_id = self.class_id[mask]
+            self.emotion = self.emotion[mask] if self.emotion is not None else None
             self.tracker_id = (
                 self.tracker_id[mask] if self.tracker_id is not None else None
             )
@@ -131,6 +132,7 @@ class Detections:
                 bboxes=self.bboxes[mask],
                 confidence=self.confidence[mask],
                 class_id=self.class_id[mask],
+                emotion=self.emotion[mask] if self.emotion is not None else None,
                 tracker_id=self.tracker_id[mask]
                 if self.tracker_id is not None
                 else None,

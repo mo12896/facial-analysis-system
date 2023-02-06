@@ -2,14 +2,11 @@ from abc import ABC, abstractmethod
 
 import cv2
 import numpy as np
-from deepface import DeepFace
 from deepface.extendedmodels import Emotion
 from rmn import RMN
 
 from src.emotion.utils.detections import Detections
 from src.emotion.utils.utils import timer
-
-emo_label = ["angry", "disgust", "fear", "happy", "sad", "surprise", "neutral"]
 
 
 class EmotionDetector(ABC):
@@ -60,8 +57,16 @@ def create_emotion_detector(parameters: dict = {}) -> EmotionDetector:
 class DeepFaceEmotionDetector(EmotionDetector):
     def __init__(self, parameters: dict = {}) -> None:
         super().__init__(parameters)
-        self.emotion_detector = DeepFace
-        self.model = Emotion.loadModel()
+        self.emotion_detector = Emotion.loadModel()
+        self.emo_label = [
+            "angry",
+            "disgust",
+            "fear",
+            "happy",
+            "sad",
+            "surprise",
+            "neutral",
+        ]
 
     @timer
     def detect_emotions(self, detections: Detections, image: np.ndarray) -> Detections:
@@ -74,13 +79,15 @@ class DeepFaceEmotionDetector(EmotionDetector):
             img_gray = cv2.resize(img_gray, (48, 48))
             img_gray = np.expand_dims(img_gray, axis=0)
 
-            emotion_predictions = self.model.predict(img_gray, verbose=0)[0, :]
+            emotion_predictions = self.emotion_detector.predict(img_gray, verbose=0)[
+                0, :
+            ]
 
             sum_of_predictions = emotion_predictions.sum()
 
             emotions_dict = {}
 
-            for i, emotion_label in enumerate(emo_label):
+            for i, emotion_label in enumerate(self.emo_label):
                 emotion_prediction = 100 * emotion_predictions[i] / sum_of_predictions
                 emotions_dict[emotion_label] = emotion_prediction
 

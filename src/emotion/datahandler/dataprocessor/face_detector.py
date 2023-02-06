@@ -89,6 +89,7 @@ class OpenCVFaceDetector(FaceDetector):
         raise ValueError("No faces detected")
 
 
+# TODO: Safe landmarks!
 class RetinaFaceDetector(FaceDetector):
     """Face detector using RetinaFace."""
 

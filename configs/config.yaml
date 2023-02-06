@@ -1,7 +1,6 @@
 VIDEO_CODEC: MP4V
-DETECT_FREQ: 5
 VIDEO: "short_clip_debug.mp4"
-DETECTION_FREQUENCY: 5
+DETECTION_FREQUENCY: 10
 EMBEDDER:
   type: insightface
   ctx_id: 0

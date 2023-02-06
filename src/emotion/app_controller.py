@@ -16,6 +16,7 @@ from src.emotion.utils.annotator import BoxAnnotator
 from src.emotion.utils.app_enums import VideoCodecs
 from src.emotion.utils.color import Color
 from src.emotion.utils.constants import DATA_DIR
+from src.emotion.utils.identity import IdentityHandler
 from src.emotion.utils.logger import setup_logger, with_logging
 
 logger = setup_logger("runner_logger", file_logger=True)
@@ -46,6 +47,7 @@ class Runner:
         self.face_emotion_detector = create_emotion_detector(self.emotion_detector)
         self.face_reid = ReIdentification(self.embeddings_path, self.face_embedder)
         self.box_annotator = BoxAnnotator(color=Color.red())
+        self.identity_handler = IdentityHandler()
 
     @with_logging(logger)
     def run(self):
@@ -82,6 +84,9 @@ class Runner:
                     frame_count += 1
 
                     frame = self.box_annotator.annotate(frame, detections)
+
+                    self.identity_handler.set_current_state(detections, frame_count)
+                    self.identity_handler.write_states_to_csv()
 
                     video_writer.write_frame(frame)
 
