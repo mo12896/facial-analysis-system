@@ -4,6 +4,9 @@
 .idea/
 *experiments/
 .vscode/
+deploy.prototxt.txt
+pretrained_ckpt
+res10_300x300_ssd_iter_140000.caffemodel
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

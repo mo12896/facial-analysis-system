@@ -9,11 +9,13 @@ class Detections:
         bboxes: np.ndarray,
         confidence: np.ndarray,
         class_id: np.ndarray,
+        emotion: Optional[np.ndarray] = None,
         tracker_id: Optional[np.ndarray] = None,
     ):
         self.bboxes = bboxes
         self.confidence = confidence
         self.class_id = class_id
+        self.emotion = emotion
         self.tracker_id = tracker_id
 
         n = len(self.bboxes)
@@ -46,6 +48,7 @@ class Detections:
                 self.bboxes[i],
                 self.confidence[i],
                 self.class_id[i],
+                self.emotion[i] if self.emotion is not None else None,
                 self.tracker_id[i] if self.tracker_id is not None else None,
             )
 
@@ -56,6 +59,7 @@ class Detections:
         bboxes = []
         confidence = []
         class_id = []
+        emotions = []
 
         for face in retinaface_output:
             bboxes.append(retinaface_output[face]["facial_area"])
@@ -64,7 +68,10 @@ class Detections:
 
         # Note that setting the dtype for class_id is important to keep the final output strings!
         return cls(
-            np.array(bboxes), np.array(confidence), np.array(class_id, dtype="U10")
+            np.array(bboxes),
+            np.array(confidence),
+            np.array(class_id, dtype="U10"),
+            np.array(emotions),
         )
 
     @classmethod

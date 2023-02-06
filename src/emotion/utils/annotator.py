@@ -42,7 +42,7 @@ class BoxAnnotator:
             np.ndarray: Annotated frame
         """
         frame = frame.copy()
-        for i, (bbox, confidence, class_id, _) in enumerate(detections):
+        for i, (bbox, _, class_id, emotion, _) in enumerate(detections):
             if isinstance(self.color, ColorPalette):
                 color = self.color.by_idx(class_id)
             else:
@@ -57,9 +57,9 @@ class BoxAnnotator:
             )
 
             if labels is not None:
-                text = f"Class '{labels[i]}': {confidence:.4f}"
+                text = f"{labels[i]}: {max(emotion, key=emotion.get) if emotion else 'unknown'}"
             else:
-                text = f"Class '{class_id}': {confidence:.4f}"
+                text = f"{class_id}: {max(emotion, key=emotion.get) if emotion else 'unknown'}"
 
             text_size = cv2.getTextSize(
                 text, cv2.FONT_HERSHEY_SIMPLEX, self.text_scale, self.text_thickness

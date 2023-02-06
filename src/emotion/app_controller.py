@@ -4,6 +4,9 @@ from tqdm import tqdm
 
 from src.emotion.datahandler.dataprocessor.face_detector import create_face_detector
 from src.emotion.datahandler.dataprocessor.face_embedder import create_face_embedder
+from src.emotion.datahandler.dataprocessor.face_emotion_detector import (
+    create_emotion_detector,
+)
 from src.emotion.datahandler.dataprocessor.face_filter import ReIdentification
 from src.emotion.datahandler.dataprocessor.face_tracker import create_tracker
 from src.emotion.datahandler.video_handler.video_info import VideoInfo
@@ -31,6 +34,7 @@ class Runner:
             DATA_DIR / self.args.get("ANCHOR_EMBDDINGS", "database/embeddings.db")
         )
         self.tracker_params = self.args.get("TRACKER", "byte")
+        self.emotion_detector = self.args.get("EMOTION_DETECTOR", "deepface")
         self.embed_params = self.args.get("EMBEDDER", "insightface")
 
         # Instaniate necessary objects
@@ -39,6 +43,7 @@ class Runner:
         self.face_detector = create_face_detector(self.detector)
         self.face_tracker = create_tracker(self.tracker_params)
         self.face_embedder = create_face_embedder(self.embed_params)
+        self.face_emotion_detector = create_emotion_detector(self.emotion_detector)
         self.face_reid = ReIdentification(self.embeddings_path, self.face_embedder)
         self.box_annotator = BoxAnnotator(color=Color.red())
 
@@ -66,6 +71,10 @@ class Runner:
                     detections = self.face_detector.detect_faces(frame)
 
                     detections = self.face_reid.filter(detections, frame)
+
+                    detections = self.face_emotion_detector.detect_emotions(
+                        detections, frame
+                    )
 
                     # No must have!
                     detections = self.face_tracker.track_faces(detections, frame)

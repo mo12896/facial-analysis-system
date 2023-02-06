@@ -3,10 +3,12 @@ DETECT_FREQ: 5
 VIDEO: "short_clip_debug.mp4"
 DETECTION_FREQUENCY: 5
 EMBEDDER:
-  type: "insightface"
+  type: insightface
   ctx_id: 0
   det_size: 128
 TRACKER:
-  type: "byte"
+  type: byte
+EMOTION_DETECTOR:
+  type: rmn
 DETECTOR: retinaface
 ANCHOR_EMBDDINGS: "database/embeddings.db"
