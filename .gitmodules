@@ -1,3 +1,6 @@
 [submodule "external/bytetrack"]
 	path = external/bytetrack
 	url = https://github.com/ifzhang/ByteTrack.git
+[submodule "external/pytorch-openpose"]
+	path = external/pytorch-openpose
+	url = https://github.com/Hzzone/pytorch-openpose.git
