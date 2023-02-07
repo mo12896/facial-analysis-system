@@ -10,11 +10,12 @@ DATA_DIR_IMAGES = DATA_DIR / "images"
 DATA_DIR_DATABASE = DATA_DIR / "database"
 LOG_DIR = root / "logs"
 IDENTITY_DIR = DATA_DIR / "identities"
-MODEL_DIR = root / "models"
+MODEL_DIR = root / "model"
 
 
 # Paths to external libraries
 sys.path.append(f"{root}/external/bytetrack")
+sys.path.append(f"{root}/external/pytorch-openpose")
 
 
 # Asset Files

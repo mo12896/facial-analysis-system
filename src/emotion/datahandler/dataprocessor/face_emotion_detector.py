@@ -16,7 +16,6 @@ class EmotionDetector(ABC):
 
         Args:
             parameters (dict, optional): Dictionary containing the parameters for the
-            emotion detector. Defaults to {}.
         """
         self.parameters = parameters
 

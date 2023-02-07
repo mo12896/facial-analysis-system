@@ -2,17 +2,26 @@ from abc import ABC, abstractmethod
 
 import cv2
 import numpy as np
+from src.body import Body
+from src.hand import Hand
 
+from src import util
+from src.emotion.utils.constants import MODEL_DIR
 from src.emotion.utils.detections import Detections
 
 
 class PoseEstimator(ABC):
+    @abstractmethod
     def __init__(self, parameters: dict = {}) -> None:
-        """Constructor for the PoseEstimator class."""
+        """Constructer for the PoseEstimator class.
+
+        Args:
+            parameters (dict, optional): Dictionary containing the parameters for the pose.
+        """
         self.parameters = parameters
 
     @abstractmethod
-    def detect_keypoints(self, image: np.ndarray) -> Detections:
+    def estimate_pose(self, detections: Detections, image: np.ndarray) -> Detections:
         """Detect keypoints for a set of detections.
 
         Args:
@@ -23,6 +32,56 @@ class PoseEstimator(ABC):
         """
 
 
+def create_pose_estimator(parameters: dict = {}) -> PoseEstimator:
+    """Factory method for creating a pose estimator.
+
+    Args:
+        parameters (dict, optional): Dictionary containing the parameters for the
+        pose estimator. Defaults to {}.
+
+    Raises:
+        ValueError: Raised if the pose estimator is not supported.
+
+    Returns:
+        PoseEstimator: Pose estimator object.
+    """
+    if parameters["type"] == "openpose":
+        return OpenPoseEstimator(parameters)
+    elif parameters["type"] == "pytorch":
+        return PyTorchOpenPoseEstimator(parameters)
+    else:
+        raise ValueError(f"Pose estimator {parameters['type']} is not supported")
+
+
+def PyTorchOpenPoseEstimator(PoseEstimator):
+    def __init__(self, parameters: dict = {}) -> None:
+        super().__init__(parameters)
+        # Load OpenPose models
+        body_pose = MODEL_DIR / "body_pose_model.pth"
+        hand_pose = MODEL_DIR / "hand_pose_model.pth"
+        self.body_pose_estimator = Body(body_pose)
+        self.hand_pose_estimator = Hand(hand_pose)
+        self.hands = True
+        self.body = True
+
+    def estimate_pose(self, detections: Detections, image: np.ndarray) -> Detections:
+        if self.body:
+            candidate, subset = self.body_estimation(image)
+        if self.hands:
+            hands_list = util.handDetect(candidate, subset, image)
+            all_hand_peaks = []
+            for x, y, w, is_left in hands_list:
+                peaks = self.hand_estimation(image[y : y + w, x : x + w, :])
+                peaks[:, 0] = np.where(peaks[:, 0] == 0, peaks[:, 0], peaks[:, 0] + x)
+                peaks[:, 1] = np.where(peaks[:, 1] == 0, peaks[:, 1], peaks[:, 1] + y)
+                all_hand_peaks.append(peaks)
+
+            # TODO: Write parser for this!
+            # detections = detections.match_keypoints(all_keypoints)
+
+        return detections
+
+
 def OpenPoseEstimator(PoseEstimator):
     def __init__(self, parameters: dict = {}) -> None:
         super().__init__(parameters)
@@ -31,7 +90,7 @@ def OpenPoseEstimator(PoseEstimator):
         weights_file = "path/to/pose/coco/pose_iter_440000.caffemodel"
         self.pose_estimator = cv2.dnn.readNetFromCaffe(proto_file, weights_file)
 
-    def detect_keypoints(self, image: np.ndarray, detections: Detections) -> Detections:
+    def estimate_pose(self, detections: Detections, image: np.ndarray) -> Detections:
 
         # Create a 4D blob from the image
         blob = cv2.dnn.blobFromImage(
@@ -56,8 +115,8 @@ def OpenPoseEstimator(PoseEstimator):
             person_keypoints = self.extract_keypoints(person_heatmap, image)
             all_keypoints.append(person_keypoints)
 
-        # TODO: Implement
-        detections = detections.match_keypoints(all_keypoints)
+        # TODO: Write the parser!
+        # detections = detections.match_keypoints(all_keypoints)
 
         return detections
 
@@ -87,24 +146,6 @@ def OpenPoseEstimator(PoseEstimator):
 #     PoseEstimationWithMobileNet,
 # )
 # from emotion.utils.constants import LIGHT_OPENPOSE_MODEL
-
-
-# class PoseEstimator(ABC):
-#     def __init__(self, model_path: str, cpu: str) -> None:
-#         self.model_path = model_path
-#         self.cpu = cpu
-
-#     @abstractmethod
-#     def construct_model(self) -> None:
-#         pass
-
-
-# def create_pose_estimator(estimator: str) -> PoseEstimator:
-#     """Factory method to create pose estimator objects."""
-#     if estimator == "light_openpose":
-#         return LightOpenPoseEstimator()
-#     else:
-#         raise NotImplementedError
 
 
 # class LightOpenPoseEstimator(PoseEstimator):

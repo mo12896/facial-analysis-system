@@ -9,13 +9,14 @@ from src.emotion.datahandler.dataprocessor.face_emotion_detector import (
 )
 from src.emotion.datahandler.dataprocessor.face_filter import ReIdentification
 from src.emotion.datahandler.dataprocessor.face_tracker import create_tracker
+from src.emotion.datahandler.dataprocessor.pose_estimator import create_pose_estimator
 from src.emotion.datahandler.video_handler.video_info import VideoInfo
 from src.emotion.datahandler.video_handler.video_loader import VideoDataLoader
 from src.emotion.datahandler.video_handler.video_writer import VideoDataWriter
 from src.emotion.utils.annotator import BoxAnnotator
 from src.emotion.utils.app_enums import VideoCodecs
 from src.emotion.utils.color import Color
-from src.emotion.utils.constants import DATA_DIR
+from src.emotion.utils.constants import DATA_DIR, IDENTITY_DIR
 from src.emotion.utils.identity import IdentityHandler
 from src.emotion.utils.logger import setup_logger, with_logging
 
@@ -37,6 +38,7 @@ class Runner:
         self.tracker_params = self.args.get("TRACKER", "byte")
         self.emotion_detector = self.args.get("EMOTION_DETECTOR", "deepface")
         self.embed_params = self.args.get("EMBEDDER", "insightface")
+        self.pose_params = self.args.get("POSE_ESTIMATOR", "pytorch")
 
         # Instaniate necessary objects
         self.video_info = VideoInfo.from_video_path(self.video_path)
@@ -46,11 +48,15 @@ class Runner:
         self.face_embedder = create_face_embedder(self.embed_params)
         self.face_emotion_detector = create_emotion_detector(self.emotion_detector)
         self.face_reid = ReIdentification(self.embeddings_path, self.face_embedder)
+        self.pose_estimator = create_pose_estimator(self.pose_params)
         self.box_annotator = BoxAnnotator(color=Color.red())
         self.identities_handler = IdentityHandler()
 
     @with_logging(logger)
     def run(self):
+
+        self.on_init()
+
         frame_count: int = 0
         curr_detections = None
 
@@ -81,6 +87,9 @@ class Runner:
                     # No must have!
                     # detections = self.face_tracker.track_faces(detections, frame)
 
+                    # TODO: Not fully implemented yet!
+                    detections = self.pose_estimator.estimate_pose(detections, frame)
+
                     frame_count += 1
 
                     frame = self.box_annotator.annotate(frame, detections)
@@ -101,3 +110,10 @@ class Runner:
 
         # Release the video capture object and close all windows
         self.video_loader.cap.release()
+
+    @staticmethod
+    def on_init():
+        """A bunch of method which are called when the app is initialized."""
+        identities = IDENTITY_DIR / "identities.csv"
+        if identities.exists():
+            identities.unlink()
