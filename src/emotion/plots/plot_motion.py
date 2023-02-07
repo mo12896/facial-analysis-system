@@ -103,6 +103,7 @@ def plot_point_derivatives():
         ax.set_ylabel("PDF")
 
     plt.show()
+    fig.savefig(IDENTITY_DIR / "point_derivatives.png")
 
 
 def plot_2d_point_derivatives():
@@ -153,6 +154,7 @@ def plot_2d_point_derivatives():
         ax.set_title(f"Center point derivatives for {person_id}")
 
     plt.show()
+    fig.savefig(IDENTITY_DIR / "point_2d_derivatives.png")
 
 
 def plot_2d_point_contour_derivatives():
@@ -191,6 +193,7 @@ def plot_2d_point_contour_derivatives():
         plt.title(f"2D Gaussian KDE for {person_id}")
 
     plt.show()
+    fig.savefig(IDENTITY_DIR / "point_2d_contour_derivatives.png")
 
 
 def plot_3d_point_derivatives():
@@ -232,6 +235,7 @@ def plot_3d_point_derivatives():
         ax.view_init(30, 35)
 
     plt.show()
+    fig.savefig(IDENTITY_DIR / "point_3d_derivatives.png")
 
 
 def plot_point_positions():
@@ -268,11 +272,12 @@ def plot_point_positions():
         ax.set_title(f"Center point for {person_id} over different frames")
 
     plt.show()
+    fig.savefig(IDENTITY_DIR / "point_motions.png")
 
 
 if __name__ == "__main__":
     plot_point_derivatives()
-    # plot_2d_point_contour_derivatives()
-    # plot_2d_point_derivatives()
-    # plot_3d_point_derivatives()
-    # plot_point_positions()
+    plot_2d_point_contour_derivatives()
+    plot_2d_point_derivatives()
+    plot_3d_point_derivatives()
+    plot_point_positions()

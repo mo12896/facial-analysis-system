@@ -1,4 +1,4 @@
-from typing import Optional, Union
+from typing import List, Optional, Union
 
 import cv2
 import numpy as np
@@ -29,7 +29,7 @@ class BoxAnnotator:
         self,
         frame: np.ndarray,
         detections: Detections,
-        labels: Optional[list[str]] = None,
+        labels: Optional[List[str]] = None,
     ) -> np.ndarray:
         """Annotate frame with detections
 

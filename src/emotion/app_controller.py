@@ -79,7 +79,7 @@ class Runner:
                     )
 
                     # No must have!
-                    detections = self.face_tracker.track_faces(detections, frame)
+                    # detections = self.face_tracker.track_faces(detections, frame)
 
                     frame_count += 1
 
