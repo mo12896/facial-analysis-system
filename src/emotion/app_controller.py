@@ -47,7 +47,7 @@ class Runner:
         self.face_emotion_detector = create_emotion_detector(self.emotion_detector)
         self.face_reid = ReIdentification(self.embeddings_path, self.face_embedder)
         self.box_annotator = BoxAnnotator(color=Color.red())
-        self.identity_handler = IdentityHandler()
+        self.identities_handler = IdentityHandler()
 
     @with_logging(logger)
     def run(self):
@@ -85,8 +85,8 @@ class Runner:
 
                     frame = self.box_annotator.annotate(frame, detections)
 
-                    self.identity_handler.set_current_state(detections, frame_count)
-                    self.identity_handler.write_states_to_csv()
+                    self.identities_handler.set_current_state(detections, frame_count)
+                    self.identities_handler.write_states_to_csv()
 
                     video_writer.write_frame(frame)
 
