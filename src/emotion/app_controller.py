@@ -113,7 +113,7 @@ class Runner:
 
     @staticmethod
     def on_init():
-        """A bunch of method which are called when the app is initialized."""
+        """A bunch of methods which are called when the app is initialized."""
         identities = IDENTITY_DIR / "identities.csv"
         if identities.exists():
             identities.unlink()

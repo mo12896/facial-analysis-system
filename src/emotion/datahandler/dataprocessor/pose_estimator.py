@@ -11,6 +11,8 @@ from src.emotion.utils.detections import Detections
 
 
 class PoseEstimator(ABC):
+    """Abstract class for pose estimation."""
+
     @abstractmethod
     def __init__(self, parameters: dict = {}) -> None:
         """Constructer for the PoseEstimator class.
@@ -53,7 +55,7 @@ def create_pose_estimator(parameters: dict = {}) -> PoseEstimator:
         raise ValueError(f"Pose estimator {parameters['type']} is not supported")
 
 
-def PyTorchOpenPoseEstimator(PoseEstimator):
+class PyTorchOpenPoseEstimator(PoseEstimator):
     def __init__(self, parameters: dict = {}) -> None:
         super().__init__(parameters)
         # Load OpenPose models
@@ -65,13 +67,14 @@ def PyTorchOpenPoseEstimator(PoseEstimator):
         self.body = True
 
     def estimate_pose(self, detections: Detections, image: np.ndarray) -> Detections:
+        # TODO: Check outputs!
         if self.body:
-            candidate, subset = self.body_estimation(image)
+            candidate, subset = self.body_pose_estimator(image)
         if self.hands:
             hands_list = util.handDetect(candidate, subset, image)
             all_hand_peaks = []
             for x, y, w, is_left in hands_list:
-                peaks = self.hand_estimation(image[y : y + w, x : x + w, :])
+                peaks = self.hand_pose_estimator(image[y : y + w, x : x + w, :])
                 peaks[:, 0] = np.where(peaks[:, 0] == 0, peaks[:, 0], peaks[:, 0] + x)
                 peaks[:, 1] = np.where(peaks[:, 1] == 0, peaks[:, 1], peaks[:, 1] + y)
                 all_hand_peaks.append(peaks)
@@ -82,7 +85,7 @@ def PyTorchOpenPoseEstimator(PoseEstimator):
         return detections
 
 
-def OpenPoseEstimator(PoseEstimator):
+class OpenPoseEstimator(PoseEstimator):
     def __init__(self, parameters: dict = {}) -> None:
         super().__init__(parameters)
         # Load OpenPose model

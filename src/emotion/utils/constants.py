@@ -17,6 +17,8 @@ MODEL_DIR = root / "model"
 # Paths to external libraries
 sys.path.append(f"{root}/external/bytetrack")
 sys.path.append(f"{root}/external/openpose")
+# Run once to generate the symlink to PytorchOpenPose work
+# TODO: This is not clean, so change in the future!
 # os.symlink(
 #     f"{root}/external/pytorch_openpose",
 #     "pytop",
