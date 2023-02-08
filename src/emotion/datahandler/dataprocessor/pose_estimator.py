@@ -2,10 +2,10 @@ from abc import ABC, abstractmethod
 
 import cv2
 import numpy as np
-from src.body import Body
-from src.hand import Hand
 
-from src import util
+from pytop.pyt_openpose import util
+from pytop.pyt_openpose.body import Body
+from pytop.pyt_openpose.hand import Hand
 from src.emotion.utils.constants import MODEL_DIR
 from src.emotion.utils.detections import Detections
 

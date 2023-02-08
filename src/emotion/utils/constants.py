@@ -1,3 +1,4 @@
+# import os
 import sys
 from pathlib import Path
 
@@ -15,9 +16,12 @@ MODEL_DIR = root / "model"
 
 # Paths to external libraries
 sys.path.append(f"{root}/external/bytetrack")
-sys.path.append(f"{root}/external/pytorch-openpose")
 sys.path.append(f"{root}/external/openpose")
-
+# os.symlink(
+#     f"{root}/external/pytorch_openpose",
+#     "pytop",
+#     target_is_directory=True,
+# )
 
 # Asset Files
 IMAGE_PATH = DATA_DIR / "test_image.png"
