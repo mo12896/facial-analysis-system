@@ -16,6 +16,7 @@ MODEL_DIR = root / "model"
 # Paths to external libraries
 sys.path.append(f"{root}/external/bytetrack")
 sys.path.append(f"{root}/external/pytorch-openpose")
+sys.path.append(f"{root}/external/openpose")
 
 
 # Asset Files

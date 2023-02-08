@@ -4,3 +4,6 @@
 [submodule "external/pytorch-openpose"]
 	path = external/pytorch-openpose
 	url = https://github.com/Hzzone/pytorch-openpose.git
+[submodule "external/openpose"]
+	path = external/openpose
+	url = https://github.com/CMU-Perceptual-Computing-Lab/openpose.git
