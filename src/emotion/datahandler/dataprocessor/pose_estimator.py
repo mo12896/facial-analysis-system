@@ -7,17 +7,6 @@ import matplotlib.pyplot as plt
 import numpy as np
 import torch
 
-# grandparent_folder = os.path.abspath(
-#     os.path.join(
-#         os.path.dirname(os.path.abspath(__file__)),
-#         os.pardir,
-#         os.pardir,
-#         os.pardir,
-#         os.pardir,
-#     )
-# )
-# sys.path.append(grandparent_folder)
-
 from external.light_openpose.models.with_mobilenet import PoseEstimationWithMobileNet
 from external.light_openpose.modules.keypoints import extract_keypoints, group_keypoints
 from external.light_openpose.modules.load_state import load_state
@@ -33,6 +22,17 @@ from src.emotion.utils.constants import DATA_DIR, MODEL_DIR
 from src.emotion.utils.detections import Detections
 from src.emotion.utils.keypoint_annotator import KeyPointAnnotator
 from src.emotion.utils.utils import timer
+
+# grandparent_folder = os.path.abspath(
+#     os.path.join(
+#         os.path.dirname(os.path.abspath(__file__)),
+#         os.pardir,
+#         os.pardir,
+#         os.pardir,
+#         os.pardir,
+#     )
+# )
+# sys.path.append(grandparent_folder)
 
 
 class PoseEstimator(ABC):
@@ -72,9 +72,9 @@ def create_pose_estimator(parameters: dict = {}) -> PoseEstimator:
     Returns:
         PoseEstimator: Pose estimator object.
     """
-    if parameters["type"] == "lopenpose":
+    if parameters["type"] == "l_openpose":
         return LightOpenPoseEstimator(parameters)
-    elif parameters["type"] == "pytorch":
+    elif parameters["type"] == "py_openpose":
         return PyTorchOpenPoseEstimator(parameters)
     elif parameters["type"] == "openpose":
         return OpenPoseEstimator(parameters)
@@ -98,6 +98,7 @@ class PyTorchOpenPoseEstimator(PoseEstimator):
     def estimate_poses(self, image: np.ndarray, detections: Detections) -> Detections:
         if self.body:
             candidate, subset = self.body_pose_estimator(image)
+
         # TODO; Write parser for this!
         # if self.hands:
         #     hands_list = util.handDetect(candidate, subset, image)
@@ -108,7 +109,20 @@ class PyTorchOpenPoseEstimator(PoseEstimator):
         #         peaks[:, 1] = np.where(peaks[:, 1] == 0, peaks[:, 1], peaks[:, 1] + y)
         #         all_hand_peaks.append(peaks)
 
-        detections = detections.poses_from_pytorch_openpose(candidate, subset)
+        group_keypoints = []
+
+        for n in range(len(subset)):
+            person_keypoints = np.zeros((18, 2), dtype=np.float32)
+            for i in range(18):
+                index = int(subset[n][i])
+                if index == -1:
+                    person_keypoints[i] = np.array([-1, -1])
+                    continue
+                x, y = candidate[index][0:2]
+                person_keypoints[i] = np.array([x, y])
+            group_keypoints.append(person_keypoints)
+
+        detections = detections.match_poses(group_keypoints)
 
         return detections
 
@@ -173,9 +187,13 @@ class LightOpenPoseEstimator(PoseEstimator):
                         all_keypoints[int(pose_entries[n][kpt_id]), 1]
                     )
             pose = Pose(pose_keypoints, pose_entries[n][18])
-            current_poses.append(pose)  #
+            current_poses.append(pose)
 
-        detections = detections.poses_from_light_openpose(current_poses)
+        final_keypoints = []
+        for pose in current_poses:
+            final_keypoints.append(pose.keypoints)
+
+        detections = detections.match_poses(final_keypoints)
 
         return detections
 
@@ -296,7 +314,7 @@ class OpenPoseEstimator(PoseEstimator):
 if __name__ == "__main__":
 
     # Create a pose estimator
-    pose_estimator = create_pose_estimator({"type": "lopenpose"})
+    pose_estimator = create_pose_estimator({"type": "py_openpose"})
     image = cv2.imread(str(DATA_DIR / "test_image.png"))
 
     face_detector = create_face_detector("retinaface")
@@ -305,7 +323,7 @@ if __name__ == "__main__":
     detections = pose_estimator.estimate_poses(image, detections)
 
     keypoints_annotator = KeyPointAnnotator(color=Color.red())
-    image = keypoints_annotator.annotate_pytorch_openpose(image, detections)
+    image = keypoints_annotator.annotate(image, detections)
 
     plt.imshow(image)
     plt.show()

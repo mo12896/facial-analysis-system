@@ -88,7 +88,7 @@ HUME_AI_EMOTIONS = [
 ]
 
 # Keypoint Definitions
-pyt_limbSeq = [
+limb_seq = [
     [2, 3],
     [2, 6],
     [3, 4],
@@ -110,7 +110,7 @@ pyt_limbSeq = [
     [6, 18],
 ]
 
-pyt_colors = [
+pose_colors = [
     [255, 0, 0],
     [255, 85, 0],
     [255, 170, 0],

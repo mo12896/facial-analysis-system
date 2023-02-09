@@ -11,5 +11,5 @@ EMOTION_DETECTOR:
   type: rmn
 DETECTOR: retinaface
 POSE_ESTIMATOR:
-  type: lopenpose
+  type: l_openpose
 ANCHOR_EMBDDINGS: "database/embeddings.db"

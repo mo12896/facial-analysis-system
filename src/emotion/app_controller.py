@@ -30,7 +30,6 @@ class Runner:
 
         self.detection_frequency = self.args.get("DETECTION_FREQUENCY", 5)
         self.video_path = str(DATA_DIR / self.args.get("VIDEO", "short_clip_debug.mp4"))
-        # self.video_path = str(self.args.get("VIDEO"))
         self.video_codec = self.args.get("VIDEO_CODEC", "MP4V")
         self.detector = self.args.get("DETECTOR", "retinaface")
         self.embeddings_path = str(
@@ -39,7 +38,7 @@ class Runner:
         self.tracker_params = self.args.get("TRACKER", "byte")
         self.emotion_detector = self.args.get("EMOTION_DETECTOR", "deepface")
         self.embed_params = self.args.get("EMBEDDER", "insightface")
-        self.pose_params = self.args.get("POSE_ESTIMATOR", "pytorch")
+        self.pose_params = self.args.get("POSE_ESTIMATOR", "l_openpose")
 
         # Instaniate necessary objects
         self.video_info = VideoInfo.from_video_path(self.video_path)
@@ -68,6 +67,7 @@ class Runner:
             video_info=self.video_info,
             video_codec=VideoCodecs[self.video_codec],
         ) as video_writer:
+
             for _, frame in enumerate(
                 tqdm(
                     self.video_loader,
@@ -86,18 +86,15 @@ class Runner:
                         detections, frame
                     )
 
-                    # No must have!
+                    # No must have, since appearance-based tracking!
                     detections = self.face_tracker.track_faces(detections, frame)
 
-                    # TODO: Not fully implemented yet!
                     detections = self.pose_estimator.estimate_poses(frame, detections)
 
                     frame_count += 1
 
                     frame = self.box_annotator.annotate(frame, detections)
-                    frame = self.keypoints_annotator.annotate_pytorch_openpose(
-                        frame, detections
-                    )
+                    frame = self.keypoints_annotator.annotate(frame, detections)
 
                     self.identities_handler.set_current_state(detections, frame_count)
                     self.identities_handler.write_states_to_csv()
@@ -108,15 +105,13 @@ class Runner:
 
                 else:
                     frame = self.box_annotator.annotate(frame, curr_detections)
-                    frame = self.keypoints_annotator.annotate_pytorch_openpose(
-                        frame, curr_detections
-                    )
+                    frame = self.keypoints_annotator.annotate(frame, curr_detections)
 
                     video_writer.write_frame(frame)
 
                     frame_count += 1
 
-        # Release the video capture object and close all windows
+        # Release the video capture object
         self.video_loader.cap.release()
 
     @staticmethod
