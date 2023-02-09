@@ -10,7 +10,8 @@ import cv2
 import matplotlib.pyplot as plt
 import mediapipe as mp
 import numpy as np
-import tensorflow as tf
+
+# import tensorflow as tf
 from retinaface import RetinaFace
 
 from src.emotion.utils.annotator import BoxAnnotator
@@ -94,8 +95,8 @@ class RetinaFaceDetector(FaceDetector):
     """Face detector using RetinaFace."""
 
     def __init__(self, face_detector=RetinaFace):
-        if len(tf.config.list_physical_devices("GPU")) < 1:
-            raise ValueError("No GPU detected!")
+        # if len(tf.config.list_physical_devices("GPU")) < 1:
+        #     raise ValueError("No GPU detected!")
         super().__init__(face_detector)
 
     @timer

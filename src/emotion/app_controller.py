@@ -18,6 +18,7 @@ from src.emotion.utils.app_enums import VideoCodecs
 from src.emotion.utils.color import Color
 from src.emotion.utils.constants import DATA_DIR, IDENTITY_DIR
 from src.emotion.utils.identity import IdentityHandler
+from src.emotion.utils.keypoint_annotator import KeyPointAnnotator
 from src.emotion.utils.logger import setup_logger, with_logging
 
 logger = setup_logger("runner_logger", file_logger=True)
@@ -50,6 +51,7 @@ class Runner:
         self.face_reid = ReIdentification(self.embeddings_path, self.face_embedder)
         self.pose_estimator = create_pose_estimator(self.pose_params)
         self.box_annotator = BoxAnnotator(color=Color.red())
+        self.keypoints_annotator = KeyPointAnnotator(color=Color.red())
         self.identities_handler = IdentityHandler()
 
     @with_logging(logger)
@@ -85,14 +87,17 @@ class Runner:
                     )
 
                     # No must have!
-                    # detections = self.face_tracker.track_faces(detections, frame)
+                    detections = self.face_tracker.track_faces(detections, frame)
 
                     # TODO: Not fully implemented yet!
-                    detections = self.pose_estimator.estimate_pose(detections, frame)
+                    detections = self.pose_estimator.estimate_poses(frame, detections)
 
                     frame_count += 1
 
                     frame = self.box_annotator.annotate(frame, detections)
+                    frame = self.keypoints_annotator.annotate_pytorch_openpose(
+                        frame, detections
+                    )
 
                     self.identities_handler.set_current_state(detections, frame_count)
                     self.identities_handler.write_states_to_csv()
@@ -103,6 +108,9 @@ class Runner:
 
                 else:
                     frame = self.box_annotator.annotate(frame, curr_detections)
+                    frame = self.keypoints_annotator.annotate_pytorch_openpose(
+                        frame, curr_detections
+                    )
 
                     video_writer.write_frame(frame)
 

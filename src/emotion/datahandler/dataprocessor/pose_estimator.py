@@ -1,13 +1,31 @@
+# import os
+# import sys
 from abc import ABC, abstractmethod
 
 import cv2
+import matplotlib.pyplot as plt
 import numpy as np
 
-from pytop.pyt_openpose import util
+# from pytop.pyt_openpose import util
 from pytop.pyt_openpose.body import Body
 from pytop.pyt_openpose.hand import Hand
+from src.emotion.datahandler.dataprocessor.face_detector import create_face_detector
+from src.emotion.utils.color import Color
 from src.emotion.utils.constants import MODEL_DIR
 from src.emotion.utils.detections import Detections
+from src.emotion.utils.keypoint_annotator import KeyPointAnnotator
+from src.emotion.utils.utils import timer
+
+# grandparent_folder = os.path.abspath(
+#     os.path.join(
+#         os.path.dirname(os.path.abspath(__file__)),
+#         os.pardir,
+#         os.pardir,
+#         os.pardir,
+#         os.pardir,
+#     )
+# )
+# sys.path.append(grandparent_folder)
 
 
 class PoseEstimator(ABC):
@@ -23,7 +41,7 @@ class PoseEstimator(ABC):
         self.parameters = parameters
 
     @abstractmethod
-    def estimate_pose(self, detections: Detections, image: np.ndarray) -> Detections:
+    def estimate_poses(self, image: np.ndarray, detections: Detections) -> Detections:
         """Detect keypoints for a set of detections.
 
         Args:
@@ -66,21 +84,26 @@ class PyTorchOpenPoseEstimator(PoseEstimator):
         self.hands = True
         self.body = True
 
-    def estimate_pose(self, detections: Detections, image: np.ndarray) -> Detections:
+    @timer
+    def estimate_poses(self, image: np.ndarray, detections: Detections) -> Detections:
+        # result = []
         # TODO: Check outputs!
         if self.body:
             candidate, subset = self.body_pose_estimator(image)
-        if self.hands:
-            hands_list = util.handDetect(candidate, subset, image)
-            all_hand_peaks = []
-            for x, y, w, is_left in hands_list:
-                peaks = self.hand_pose_estimator(image[y : y + w, x : x + w, :])
-                peaks[:, 0] = np.where(peaks[:, 0] == 0, peaks[:, 0], peaks[:, 0] + x)
-                peaks[:, 1] = np.where(peaks[:, 1] == 0, peaks[:, 1], peaks[:, 1] + y)
-                all_hand_peaks.append(peaks)
+            # result.append(candidate)
+            # result.append(subset)
+        # if self.hands:
+        #     hands_list = util.handDetect(candidate, subset, image)
+        #     all_hand_peaks = []
+        #     for x, y, w, is_left in hands_list:
+        #         peaks = self.hand_pose_estimator(image[y : y + w, x : x + w, :])
+        #         peaks[:, 0] = np.where(peaks[:, 0] == 0, peaks[:, 0], peaks[:, 0] + x)
+        #         peaks[:, 1] = np.where(peaks[:, 1] == 0, peaks[:, 1], peaks[:, 1] + y)
+        #         all_hand_peaks.append(peaks)
+        #     result.append(all_hand_peaks)
 
-            # TODO: Write parser for this!
-            # detections = detections.match_keypoints(all_keypoints)
+        # TODO: Write parser for this!
+        detections = detections.poses_from_pytorch_openpose(candidate, subset)
 
         return detections
 
@@ -93,7 +116,8 @@ class OpenPoseEstimator(PoseEstimator):
         weights_file = "path/to/pose/coco/pose_iter_440000.caffemodel"
         self.pose_estimator = cv2.dnn.readNetFromCaffe(proto_file, weights_file)
 
-    def estimate_pose(self, detections: Detections, image: np.ndarray) -> Detections:
+    @timer
+    def estimate_poses(self, image: np.ndarray):
 
         # Create a 4D blob from the image
         blob = cv2.dnn.blobFromImage(
@@ -121,7 +145,7 @@ class OpenPoseEstimator(PoseEstimator):
         # TODO: Write the parser!
         # detections = detections.match_keypoints(all_keypoints)
 
-        return detections
+        return all_keypoints
 
     @staticmethod
     def extract_keypoints(heatmap: np.ndarray, img: np.ndarray) -> list[tuple[int]]:
@@ -163,3 +187,23 @@ class OpenPoseEstimator(PoseEstimator):
 #         if not self.cpu:
 #             self.net = self.net.cuda()
 #         return self.net
+
+
+if __name__ == "__main__":
+
+    # Create a pose estimator
+    pose_estimator = create_pose_estimator({"type": "pytorch"})
+    image = cv2.imread("/home/moritz/Workspace/masterthesis/data/test_image.png")
+
+    face_detector = create_face_detector("retinaface")
+    detections = face_detector.detect_faces(image)
+
+    detections = pose_estimator.estimate_poses(image, detections)
+
+    keypoints_annotator = KeyPointAnnotator(color=Color.red())
+    image = keypoints_annotator.annotate_pytorch_openpose(image, detections)
+
+    # canvas = util.draw_bodypose(image, result[0], result[1])
+    # plt.imshow(image[:, :, [2, 1, 0]])
+    plt.imshow(image)
+    plt.show()

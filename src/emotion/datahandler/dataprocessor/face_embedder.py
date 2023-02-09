@@ -131,7 +131,7 @@ class InsightFaceEmbedder(FaceEmbedder):
 
 
 # Only 128D embeddings, thus worse differentiation between identities.
-# Thus, not relevant for now!
+# Therefore, not relevant for now!
 # class FaceRecognitionEmbedder(FaceEmbedder):
 #     def __init__(self, parameters: dict = {}):
 #         super().__init__(parameters)

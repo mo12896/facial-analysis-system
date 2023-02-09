@@ -1,10 +1,11 @@
+import math
 from typing import Union
 
 import cv2
 import numpy as np
 
 from .color import Color, ColorPalette
-from .constants import PAIRS
+from .constants import PAIRS, pyt_colors, pyt_limbSeq
 from .detections import Detections
 
 
@@ -21,7 +22,7 @@ class KeyPointAnnotator:
         self.thickness: int = thickness
         self.radius: int = radius
 
-    def annotate(
+    def annotate_openpose(
         self,
         image: np.ndarray,
         detections: Detections,
@@ -59,5 +60,46 @@ class KeyPointAnnotator:
                     self.color.as_bgr(),
                     self.thickness,
                 )
+
+        return image
+
+    def annotate_pytorch_openpose(
+        self,
+        image: np.ndarray,
+        detections: Detections,
+    ) -> np.ndarray:
+        stickwidth = 4
+
+        for i in range(18):
+            for n in range(len(detections.body_pose_keypoints)):
+                index = detections.body_pose_keypoints[n][i]
+                if -1 in index:
+                    continue
+                x, y = index[0], index[1]
+                print(f"Keypoint {i} of person {n} at ({x}, {y})")
+                cv2.circle(image, (int(x), int(y)), 4, pyt_colors[i], thickness=-1)
+
+        for i in range(17):
+            for n in range(len(detections.body_pose_keypoints)):
+                index = detections.body_pose_keypoints[n][np.array(pyt_limbSeq[i]) - 1]
+                if -1 in index:
+                    continue
+                cur_canvas = image.copy()
+                Y = index.astype(int)[:, 0]
+                X = index.astype(int)[:, 1]
+                mX = np.mean(X)
+                mY = np.mean(Y)
+                length = ((X[0] - X[1]) ** 2 + (Y[0] - Y[1]) ** 2) ** 0.5
+                angle = math.degrees(math.atan2(X[0] - X[1], Y[0] - Y[1]))
+                polygon = cv2.ellipse2Poly(
+                    (int(mY), int(mX)),
+                    (int(length / 2), stickwidth),
+                    int(angle),
+                    0,
+                    360,
+                    1,
+                )
+                cv2.fillConvexPoly(cur_canvas, polygon, pyt_colors[i])
+                image = cv2.addWeighted(image, 0.4, cur_canvas, 0.6, 0)
 
         return image

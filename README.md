@@ -30,7 +30,7 @@
   <a href="https://github.com/othneildrew/Best-README-Template">
   </a>
 
-  <h2 align="center">Visual Tracking System for evaluating Team Performance </h2>
+  <h2 align="center">Visual Tracking System for Group PERMA estimation </h2>
 
   <p align="center">
     The main repository for my master thesis.
