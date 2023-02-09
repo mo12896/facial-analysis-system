@@ -76,7 +76,6 @@ class KeyPointAnnotator:
                 if -1 in index:
                     continue
                 x, y = index[0], index[1]
-                print(f"Keypoint {i} of person {n} at ({x}, {y})")
                 cv2.circle(image, (int(x), int(y)), 4, pyt_colors[i], thickness=-1)
 
         for i in range(17):

@@ -84,14 +84,12 @@ class PyTorchOpenPoseEstimator(PoseEstimator):
         self.hands = True
         self.body = True
 
+    # Unfortunately, pretty slow (~1.5sec per frame)
     @timer
     def estimate_poses(self, image: np.ndarray, detections: Detections) -> Detections:
-        # result = []
-        # TODO: Check outputs!
         if self.body:
             candidate, subset = self.body_pose_estimator(image)
-            # result.append(candidate)
-            # result.append(subset)
+        # TODO; Write parser for this!
         # if self.hands:
         #     hands_list = util.handDetect(candidate, subset, image)
         #     all_hand_peaks = []
@@ -100,12 +98,24 @@ class PyTorchOpenPoseEstimator(PoseEstimator):
         #         peaks[:, 0] = np.where(peaks[:, 0] == 0, peaks[:, 0], peaks[:, 0] + x)
         #         peaks[:, 1] = np.where(peaks[:, 1] == 0, peaks[:, 1], peaks[:, 1] + y)
         #         all_hand_peaks.append(peaks)
-        #     result.append(all_hand_peaks)
 
-        # TODO: Write parser for this!
         detections = detections.poses_from_pytorch_openpose(candidate, subset)
 
         return detections
+
+
+# class LightOpenPoseEstimator(PoseEstimator):
+#     def __init__(self, model_path=LIGHT_OPENPOSE_MODEL, cpu=False) -> None:
+#         super().__init__(model_path, cpu)
+
+#     def construct_model(self) -> PoseEstimationWithMobileNet:
+#         self.net = PoseEstimationWithMobileNet()
+#         checkpoint = torch.load(self.model_path, map_location="cpu")
+#         load_state(self.net, checkpoint)
+#         self.net.eval()
+#         if not self.cpu:
+#             self.net = self.net.cuda()
+#         return self.net
 
 
 class OpenPoseEstimator(PoseEstimator):
@@ -173,20 +183,6 @@ class OpenPoseEstimator(PoseEstimator):
 #     PoseEstimationWithMobileNet,
 # )
 # from emotion.utils.constants import LIGHT_OPENPOSE_MODEL
-
-
-# class LightOpenPoseEstimator(PoseEstimator):
-#     def __init__(self, model_path=LIGHT_OPENPOSE_MODEL, cpu=False) -> None:
-#         super().__init__(model_path, cpu)
-
-#     def construct_model(self) -> PoseEstimationWithMobileNet:
-#         self.net = PoseEstimationWithMobileNet()
-#         checkpoint = torch.load(self.model_path, map_location="cpu")
-#         load_state(self.net, checkpoint)
-#         self.net.eval()
-#         if not self.cpu:
-#             self.net = self.net.cuda()
-#         return self.net
 
 
 if __name__ == "__main__":

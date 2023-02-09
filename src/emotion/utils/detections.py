@@ -164,20 +164,21 @@ class Detections:
                 person_keypoints[i] = np.array([x, y])
             group_keypoints.append(person_keypoints)
 
+        # print(group_keypoints)
         body_pose_keypoints = np.zeros(
             (len(self.bbox_centerpoints), 18, 2), dtype=np.float32
         )
 
         # Match nose keypoint to bbox centerpoint
-        for person in range(len(group_keypoints)):
+        for bbox_center in range(len(self.bbox_centerpoints)):
             smallest_distance = 100000
-            for j in range(len(self.bbox_centerpoints)):
+            for person in range(len(group_keypoints)):
                 distance = np.linalg.norm(
-                    self.bbox_centerpoints[j] - group_keypoints[person][0]
+                    self.bbox_centerpoints[bbox_center] - group_keypoints[person][0]
                 )
                 if distance < smallest_distance:
                     smallest_distance = distance
-                    body_pose_keypoints[j] = group_keypoints[person]
+                    body_pose_keypoints[bbox_center] = group_keypoints[person]
 
         return Detections(
             bboxes=self.bboxes,
