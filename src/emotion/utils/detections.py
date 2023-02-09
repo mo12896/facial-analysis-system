@@ -190,6 +190,32 @@ class Detections:
             tracker_id=self.tracker_id,
         )
 
+    def poses_from_light_openpose(self, openpose_output):
+        body_pose_keypoints = np.zeros(
+            (len(self.bbox_centerpoints), 18, 2), dtype=np.float32
+        )
+
+        for bbox_center in range(len(self.bbox_centerpoints)):
+            smallest_distance = 100000
+            for person in range(len(openpose_output)):
+                distance = np.linalg.norm(
+                    self.bbox_centerpoints[bbox_center]
+                    - openpose_output[person].keypoints[0]
+                )
+                if distance < smallest_distance:
+                    smallest_distance = distance
+                    body_pose_keypoints[bbox_center] = openpose_output[person].keypoints
+
+        return Detections(
+            bboxes=self.bboxes,
+            confidence=self.confidence,
+            class_id=self.class_id,
+            bbox_centerpoints=self.bbox_centerpoints,
+            body_pose_keypoints=body_pose_keypoints,
+            emotion=self.emotion,
+            tracker_id=self.tracker_id,
+        )
+
     @classmethod
     def compute_bbox_center_points(cls, bboxes: np.ndarray):
         """Compute center points of bounding boxes
