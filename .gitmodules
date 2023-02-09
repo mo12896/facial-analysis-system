@@ -7,3 +7,6 @@
 [submodule "external/openpose"]
 	path = external/openpose
 	url = https://github.com/CMU-Perceptual-Computing-Lab/openpose.git
+[submodule "external/light_openpose"]
+	path = external/light_openpose
+	url = https://github.com/Daniil-Osokin/lightweight-human-pose-estimation.pytorch.git

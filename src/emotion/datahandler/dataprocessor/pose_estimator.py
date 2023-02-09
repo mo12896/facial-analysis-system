@@ -6,16 +6,6 @@ import cv2
 import matplotlib.pyplot as plt
 import numpy as np
 
-# from pytop.pyt_openpose import util
-from pytop.pyt_openpose.body import Body
-from pytop.pyt_openpose.hand import Hand
-from src.emotion.datahandler.dataprocessor.face_detector import create_face_detector
-from src.emotion.utils.color import Color
-from src.emotion.utils.constants import MODEL_DIR
-from src.emotion.utils.detections import Detections
-from src.emotion.utils.keypoint_annotator import KeyPointAnnotator
-from src.emotion.utils.utils import timer
-
 # grandparent_folder = os.path.abspath(
 #     os.path.join(
 #         os.path.dirname(os.path.abspath(__file__)),
@@ -26,6 +16,15 @@ from src.emotion.utils.utils import timer
 #     )
 # )
 # sys.path.append(grandparent_folder)
+
+from pytop.pyt_openpose.body import Body
+from pytop.pyt_openpose.hand import Hand
+from src.emotion.datahandler.dataprocessor.face_detector import create_face_detector
+from src.emotion.utils.color import Color
+from src.emotion.utils.constants import MODEL_DIR
+from src.emotion.utils.detections import Detections
+from src.emotion.utils.keypoint_annotator import KeyPointAnnotator
+from src.emotion.utils.utils import timer
 
 
 class PoseEstimator(ABC):
@@ -84,7 +83,7 @@ class PyTorchOpenPoseEstimator(PoseEstimator):
         self.hands = True
         self.body = True
 
-    # Unfortunately, pretty slow (~1.5sec per frame)
+    # Unfortunately, pretty slow (~1.5sec per frame) -> 5x video length
     @timer
     def estimate_poses(self, image: np.ndarray, detections: Detections) -> Detections:
         if self.body:
