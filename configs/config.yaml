@@ -11,5 +11,5 @@ EMOTION_DETECTOR:
   type: rmn
 DETECTOR: retinaface
 POSE_ESTIMATOR:
-  type: pytorch
+  type: lopenpose
 ANCHOR_EMBDDINGS: "database/embeddings.db"

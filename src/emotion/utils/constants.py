@@ -14,9 +14,8 @@ IDENTITY_DIR = DATA_DIR / "identities"
 MODEL_DIR = root / "model"
 
 
-# Paths to external libraries
+# Paths to external, installed libraries
 sys.path.append(f"{root}/external/bytetrack")
-sys.path.append(f"{root}/external/openpose")
 # Run once to generate the symlink to PytorchOpenPose work
 # TODO: This is not clean, so change in the future!
 # os.symlink(
