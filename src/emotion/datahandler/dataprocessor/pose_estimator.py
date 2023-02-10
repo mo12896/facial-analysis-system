@@ -189,9 +189,7 @@ class LightOpenPoseEstimator(PoseEstimator):
             pose = Pose(pose_keypoints, pose_entries[n][18])
             current_poses.append(pose)
 
-        final_keypoints = []
-        for pose in current_poses:
-            final_keypoints.append(pose.keypoints)
+        final_keypoints = [pose.keypoints for pose in current_poses]
 
         detections = detections.match_poses(final_keypoints)
 

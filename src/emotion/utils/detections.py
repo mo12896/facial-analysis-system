@@ -1,4 +1,4 @@
-from typing import Optional
+from typing import Dict, List, Optional
 
 import numpy as np
 
@@ -64,18 +64,39 @@ class Detections:
                 self.tracker_id[i] if self.tracker_id is not None else None,
             )
 
+    # Legacy implementation from retinface package (15x slower than insightface)
+    # @classmethod
+    # def from_retinaface(cls, retinaface_output: dict):
+    #     """Create Detections object from RetinaFace output"""
+
+    #     bboxes = []
+    #     confidence = []
+    #     class_id = []
+
+    #     for face in retinaface_output:
+    #         bboxes.append(retinaface_output[face]["facial_area"])
+    #         confidence.append(retinaface_output[face]["score"])
+    #         class_id.append(face)
+
+    #     # Note that setting the dtype for class_id is important to keep the final output strings!
+    #     return cls(
+    #         np.array(bboxes),
+    #         np.array(confidence),
+    #         np.array(class_id, dtype="U10"),
+    #     )
+
     @classmethod
-    def from_retinaface(cls, retinaface_output: dict):
+    def from_retinaface(cls, retinaface_output: List[Dict]):
         """Create Detections object from RetinaFace output"""
 
         bboxes = []
         confidence = []
         class_id = []
 
-        for face in retinaface_output:
-            bboxes.append(retinaface_output[face]["facial_area"])
-            confidence.append(retinaface_output[face]["score"])
-            class_id.append(face)
+        for i in range(len(retinaface_output)):
+            bboxes.append(retinaface_output[i]["bbox"])
+            confidence.append(retinaface_output[i]["det_score"])
+            class_id.append(f"face_{i}")
 
         # Note that setting the dtype for class_id is important to keep the final output strings!
         return cls(

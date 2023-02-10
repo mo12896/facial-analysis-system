@@ -3,16 +3,23 @@
 from abc import ABC, abstractmethod
 
 # grandparent_folder = os.path.abspath(
-#     os.path.join(os.path.dirname(os.path.abspath(__file__)), os.pardir, os.pardir)
+#     os.path.join(
+#         os.path.dirname(os.path.abspath(__file__)),
+#         os.pardir,
+#         os.pardir,
+#         os.pardir,
+#         os.pardir,
+#     )
 # )
 # sys.path.append(grandparent_folder)
+
 import cv2
 import matplotlib.pyplot as plt
 import mediapipe as mp
 import numpy as np
+from insightface.app import FaceAnalysis
 
-# import tensorflow as tf
-from retinaface import RetinaFace
+# from retinaface import RetinaFace
 
 from src.emotion.utils.annotator import BoxAnnotator
 from src.emotion.utils.color import Color
@@ -25,13 +32,13 @@ mp_face_detection = mp.solutions.face_detection
 
 class FaceDetector(ABC):
     @abstractmethod
-    def __init__(self, face_detector):
+    def __init__(self, parameters: dict = {}):
         """Base constructor for all face detectors.
 
         Args:
             face_detector: Face detector object.
         """
-        self.face_detector = face_detector
+        self.parameters = parameters
 
     @abstractmethod
     def detect_faces(self, frame: np.ndarray) -> Detections:
@@ -45,7 +52,7 @@ class FaceDetector(ABC):
         """
 
 
-def create_face_detector(detector: str) -> FaceDetector:
+def create_face_detector(parameters: dict) -> FaceDetector:
     """Factory method to create face detector objects.
 
     Args:
@@ -57,13 +64,12 @@ def create_face_detector(detector: str) -> FaceDetector:
     Returns:
         FaceDetector: Face detector object
     """
-    if detector == "retinaface":
-        return RetinaFaceDetector()
-    elif detector == "opencv":
-        face_detector = cv2.CascadeClassifier(str(OPENCV_MODEL))
-        return OpenCVFaceDetector(face_detector)
-    elif detector == "mediapipe":
-        return MediaPipeFaceDetector()
+    if parameters["type"] == "retinaface":
+        return RetinaFaceDetector(parameters)
+    elif parameters["type"] == "opencv":
+        return OpenCVFaceDetector(parameters)
+    elif parameters["type"] == "mediapipe":
+        return MediaPipeFaceDetector(parameters)
     else:
         raise ValueError("The chosen face detector is not supported!")
 
@@ -71,8 +77,9 @@ def create_face_detector(detector: str) -> FaceDetector:
 class OpenCVFaceDetector(FaceDetector):
     """Face detector using OpenCV's Haar Cascade Classifier."""
 
-    def __init__(self, face_detector: cv2.CascadeClassifier):
-        super().__init__(face_detector)
+    def __init__(self, parameters: dict = {}):
+        super().__init__(parameters)
+        self.face_detector = cv2.CascadeClassifier(str(OPENCV_MODEL))
 
     @timer
     def detect_faces(self, frame: np.ndarray) -> Detections:
@@ -90,18 +97,36 @@ class OpenCVFaceDetector(FaceDetector):
         raise ValueError("No faces detected")
 
 
-# TODO: Safe landmarks!
-class RetinaFaceDetector(FaceDetector):
-    """Face detector using RetinaFace."""
+# Legacy implementation from retinface package (15x slower than insightface)
+# class RetinaFaceDetector(FaceDetector):
+#     """Face detector using RetinaFace."""
 
-    def __init__(self, face_detector=RetinaFace):
-        # if len(tf.config.list_physical_devices("GPU")) < 1:
-        #     raise ValueError("No GPU detected!")
-        super().__init__(face_detector)
+#     def __init__(self, parameters: dict = {}):
+#         super().__init__(parameters)
+#         self.face_detector = RetinaFace
+
+#     @timer
+#     def detect_faces(self, frame: np.ndarray) -> Detections:
+#         faces = self.face_detector.detect_faces(frame)
+#         detections = Detections.from_retinaface(faces)
+
+#         if len(detections.bboxes) > 0:
+#             return detections
+#         raise ValueError("No faces detected")
+
+
+class RetinaFaceDetector(FaceDetector):
+    """Face detector using RetinaFac from Insightface."""
+
+    def __init__(self, parameters: dict = {}):
+        super().__init__(parameters)
+        self.face_detector = FaceAnalysis(allowed_modules=["detection"])
+        self.face_detector.prepare(ctx_id=0, det_size=(640, 640))
 
     @timer
     def detect_faces(self, frame: np.ndarray) -> Detections:
-        faces = self.face_detector.detect_faces(frame)
+
+        faces = self.face_detector.get(frame)
         detections = Detections.from_retinaface(faces)
 
         if len(detections.bboxes) > 0:
@@ -110,11 +135,12 @@ class RetinaFaceDetector(FaceDetector):
 
 
 class MediaPipeFaceDetector(FaceDetector):
-    def __init__(self, face_detector=mp_face_detection.FaceDetection):
-        super().__init__(face_detector)
+    def __init__(self, parameters: dict = {}):
+        super().__init__(parameters)
+        self.face_detector = mp_face_detection.FaceDetection
 
     @timer
-    def detect_faces(self, frame: np.ndarray):
+    def detect_faces(self, frame: np.ndarray) -> Detections:
         face_detection = self.face_detector(
             model_selection=0, min_detection_confidence=0.5
         )
@@ -130,7 +156,7 @@ class MediaPipeFaceDetector(FaceDetector):
 
 if __name__ == "__main__":
     # Uncomment the sys path for testing!
-    face_detector = create_face_detector("retinaface")
+    face_detector = create_face_detector({"type": "retinaface"})
     image = cv2.imread("/home/moritz/Workspace/masterthesis/data/test_image.png")
     detections = face_detector.detect_faces(image)
     box_annotator = BoxAnnotator(color=Color.red())

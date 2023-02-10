@@ -1,6 +1,8 @@
 VIDEO_CODEC: MP4V
 VIDEO: "short_clip_debug.mp4"
 DETECTION_FREQUENCY: 10
+DETECTOR:
+  type: retinaface
 EMBEDDER:
   type: insightface
   ctx_id: 0
@@ -9,7 +11,6 @@ TRACKER:
   type: byte
 EMOTION_DETECTOR:
   type: rmn
-DETECTOR: retinaface
 POSE_ESTIMATOR:
   type: l_openpose
 ANCHOR_EMBDDINGS: "database/embeddings.db"
