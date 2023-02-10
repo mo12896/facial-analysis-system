@@ -14,7 +14,7 @@ class HeadPoseAnnotator:
 
         self.parameters = parameters
 
-    def annotate_head_pose(self, image_cpy, detections: Detections):
+    def annotate(self, image_cpy, detections: Detections):
 
         pts_res = detections.facial_landmarks
         poses = detections.head_pose_keypoints

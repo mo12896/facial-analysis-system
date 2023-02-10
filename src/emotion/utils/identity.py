@@ -59,7 +59,7 @@ class IdentityHandler:
         """
         self._identities_states = []
 
-        for bbox, conf, class_id, _, _, emotion, _ in detections:
+        for bbox, conf, class_id, _, _, _, _, emotion, _ in detections:
             if emotion is None:
                 emotion = {}
 

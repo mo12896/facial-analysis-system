@@ -9,6 +9,13 @@ import torch
 import torchvision.transforms as transforms
 from synergy3DMM import SynergyNet
 
+from external.synergy.utils.ddfa import Normalize, ToTensor
+from external.synergy.utils.inference import crop_img, predict_pose, predict_sparseVert
+from src.emotion.datahandler.dataprocessor.face_detector import create_face_detector
+from src.emotion.utils.detections import Detections
+from src.emotion.utils.head_annotator import HeadPoseAnnotator
+from src.emotion.utils.utils import timer
+
 # grandparent_folder = os.path.abspath(
 #     os.path.join(
 #         os.path.dirname(os.path.abspath(__file__)),
@@ -19,13 +26,6 @@ from synergy3DMM import SynergyNet
 #     )
 # )
 # sys.path.append(grandparent_folder)
-
-from external.synergy.utils.ddfa import Normalize, ToTensor
-from external.synergy.utils.inference import crop_img, predict_pose, predict_sparseVert
-from src.emotion.datahandler.dataprocessor.face_detector import create_face_detector
-from src.emotion.utils.detections import Detections
-from src.emotion.utils.head_annotator import HeadPoseAnnotator
-from src.emotion.utils.utils import timer
 
 
 class HeadPoseDetector(ABC):
@@ -114,7 +114,6 @@ class SynergyHeadPoseDetector(HeadPoseDetector):
             # inferences
             lmks = predict_sparseVert(param, roi_box, transform=True)
             angles, translation = predict_pose(param, roi_box)
-            print(angles)
 
             pts_res.append(lmks)
             poses.append([angles, translation, lmks])
@@ -134,7 +133,7 @@ if __name__ == "__main__":
     detections = head_pose_detector.detect_head_pose(image, detections)
 
     annotator = HeadPoseAnnotator()
-    img = annotator.annotate_head_pose(image, detections)
+    img = annotator.annotate(image, detections)
 
     plt.imshow(img)
     plt.show()

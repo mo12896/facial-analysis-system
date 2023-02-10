@@ -13,4 +13,6 @@ EMOTION_DETECTOR:
   type: rmn
 POSE_ESTIMATOR:
   type: l_openpose
+HEAD_POSE_ESTIMATOR:
+  type: synergy
 ANCHOR_EMBDDINGS: "database/embeddings.db"

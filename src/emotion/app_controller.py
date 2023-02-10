@@ -9,6 +9,9 @@ from src.emotion.datahandler.dataprocessor.face_emotion_detector import (
 )
 from src.emotion.datahandler.dataprocessor.face_filter import ReIdentification
 from src.emotion.datahandler.dataprocessor.face_tracker import create_tracker
+from src.emotion.datahandler.dataprocessor.head_pose_estimator import (
+    create_head_pose_detector,
+)
 from src.emotion.datahandler.dataprocessor.pose_estimator import create_pose_estimator
 from src.emotion.datahandler.video_handler.video_info import VideoInfo
 from src.emotion.datahandler.video_handler.video_loader import VideoDataLoader
@@ -17,6 +20,7 @@ from src.emotion.utils.annotator import BoxAnnotator
 from src.emotion.utils.app_enums import VideoCodecs
 from src.emotion.utils.color import Color
 from src.emotion.utils.constants import DATA_DIR, IDENTITY_DIR
+from src.emotion.utils.head_annotator import HeadPoseAnnotator
 from src.emotion.utils.identity import IdentityHandler
 from src.emotion.utils.keypoint_annotator import KeyPointAnnotator
 from src.emotion.utils.logger import setup_logger, with_logging
@@ -39,6 +43,7 @@ class Runner:
         self.emotion_detector = self.args.get("EMOTION_DETECTOR", "deepface")
         self.embed_params = self.args.get("EMBEDDER", "insightface")
         self.pose_params = self.args.get("POSE_ESTIMATOR", "l_openpose")
+        self.head_pose_params = self.args.get("HEAD_POSE_ESTIMATOR", "synergy")
 
         # Instaniate necessary objects
         self.video_info = VideoInfo.from_video_path(self.video_path)
@@ -52,6 +57,8 @@ class Runner:
         self.box_annotator = BoxAnnotator(color=Color.red())
         self.keypoints_annotator = KeyPointAnnotator(color=Color.red())
         self.identities_handler = IdentityHandler()
+        self.head_pose_estimator = create_head_pose_detector(self.head_pose_params)
+        self.head_pose_annotator = HeadPoseAnnotator()
 
     @with_logging(logger)
     def run(self):
@@ -90,11 +97,15 @@ class Runner:
                     detections = self.face_tracker.track_faces(detections, frame)
 
                     detections = self.pose_estimator.estimate_poses(frame, detections)
+                    detections = self.head_pose_estimator.detect_head_pose(
+                        frame, detections
+                    )
 
                     frame_count += 1
 
                     frame = self.box_annotator.annotate(frame, detections)
                     frame = self.keypoints_annotator.annotate(frame, detections)
+                    frame = self.head_pose_annotator.annotate(frame, detections)
 
                     self.identities_handler.set_current_state(detections, frame_count)
                     self.identities_handler.write_states_to_csv()
@@ -106,6 +117,7 @@ class Runner:
                 else:
                     frame = self.box_annotator.annotate(frame, curr_detections)
                     frame = self.keypoints_annotator.annotate(frame, curr_detections)
+                    frame = self.head_pose_annotator.annotate(frame, curr_detections)
 
                     video_writer.write_frame(frame)
 

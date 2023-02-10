@@ -228,6 +228,7 @@ class Detections:
             confidence=self.confidence,
             class_id=self.class_id,
             bbox_centerpoints=self.bbox_centerpoints,
+            body_pose_keypoints=self.body_pose_keypoints,
             facial_landmarks=facial_landmarks,
             head_pose_keypoints=head_pose_keypoints,
             emotion=self.emotion,
