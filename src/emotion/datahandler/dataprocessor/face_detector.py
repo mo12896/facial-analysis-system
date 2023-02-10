@@ -2,6 +2,19 @@
 # import sys
 from abc import ABC, abstractmethod
 
+import cv2
+import matplotlib.pyplot as plt
+import mediapipe as mp
+import numpy as np
+from insightface.app import FaceAnalysis
+from retinaface import RetinaFace
+
+from src.emotion.utils.annotator import BoxAnnotator
+from src.emotion.utils.color import Color
+from src.emotion.utils.constants import OPENCV_MODEL
+from src.emotion.utils.detections import Detections
+from src.emotion.utils.utils import timer
+
 # grandparent_folder = os.path.abspath(
 #     os.path.join(
 #         os.path.dirname(os.path.abspath(__file__)),
@@ -13,19 +26,6 @@ from abc import ABC, abstractmethod
 # )
 # sys.path.append(grandparent_folder)
 
-import cv2
-import matplotlib.pyplot as plt
-import mediapipe as mp
-import numpy as np
-from insightface.app import FaceAnalysis
-
-# from retinaface import RetinaFace
-
-from src.emotion.utils.annotator import BoxAnnotator
-from src.emotion.utils.color import Color
-from src.emotion.utils.constants import OPENCV_MODEL
-from src.emotion.utils.detections import Detections
-from src.emotion.utils.utils import timer
 
 mp_face_detection = mp.solutions.face_detection
 
@@ -66,6 +66,8 @@ def create_face_detector(parameters: dict) -> FaceDetector:
     """
     if parameters["type"] == "retinaface":
         return RetinaFaceDetector(parameters)
+    elif parameters["type"] == "scrfd":
+        return SCRFDFaceDetector(parameters)
     elif parameters["type"] == "opencv":
         return OpenCVFaceDetector(parameters)
     elif parameters["type"] == "mediapipe":
@@ -97,26 +99,26 @@ class OpenCVFaceDetector(FaceDetector):
         raise ValueError("No faces detected")
 
 
-# Legacy implementation from retinface package (15x slower than insightface)
-# class RetinaFaceDetector(FaceDetector):
-#     """Face detector using RetinaFace."""
-
-#     def __init__(self, parameters: dict = {}):
-#         super().__init__(parameters)
-#         self.face_detector = RetinaFace
-
-#     @timer
-#     def detect_faces(self, frame: np.ndarray) -> Detections:
-#         faces = self.face_detector.detect_faces(frame)
-#         detections = Detections.from_retinaface(faces)
-
-#         if len(detections.bboxes) > 0:
-#             return detections
-#         raise ValueError("No faces detected")
-
-
+# Legacy implementation from retinface package (15x slower than SCRFD)
 class RetinaFaceDetector(FaceDetector):
-    """Face detector using RetinaFac from Insightface."""
+    """Face detector using RetinaFace."""
+
+    def __init__(self, parameters: dict = {}):
+        super().__init__(parameters)
+        self.face_detector = RetinaFace
+
+    @timer
+    def detect_faces(self, frame: np.ndarray) -> Detections:
+        faces = self.face_detector.detect_faces(frame)
+        detections = Detections.from_retinaface(faces)
+
+        if len(detections.bboxes) > 0:
+            return detections
+        raise ValueError("No faces detected")
+
+
+class SCRFDFaceDetector(FaceDetector):
+    """SCRFD Face Detector using InsightFace's implementation."""
 
     def __init__(self, parameters: dict = {}):
         super().__init__(parameters)
@@ -127,7 +129,7 @@ class RetinaFaceDetector(FaceDetector):
     def detect_faces(self, frame: np.ndarray) -> Detections:
 
         faces = self.face_detector.get(frame)
-        detections = Detections.from_retinaface(faces)
+        detections = Detections.from_scrfd(faces)
 
         if len(detections.bboxes) > 0:
             return detections
@@ -156,7 +158,7 @@ class MediaPipeFaceDetector(FaceDetector):
 
 if __name__ == "__main__":
     # Uncomment the sys path for testing!
-    face_detector = create_face_detector({"type": "retinaface"})
+    face_detector = create_face_detector({"type": "scrfd"})
     image = cv2.imread("/home/moritz/Workspace/masterthesis/data/test_image.png")
     detections = face_detector.detect_faces(image)
     box_annotator = BoxAnnotator(color=Color.red())

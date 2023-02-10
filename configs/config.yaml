@@ -1,8 +1,8 @@
 VIDEO_CODEC: MP4V
 VIDEO: "short_clip_debug.mp4"
-DETECTION_FREQUENCY: 10
+DETECTION_FREQUENCY: 5
 DETECTOR:
-  type: retinaface
+  type: scrfd
 EMBEDDER:
   type: insightface
   ctx_id: 0
