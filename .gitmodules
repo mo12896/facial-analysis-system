@@ -10,3 +10,6 @@
 [submodule "external/light_openpose"]
 	path = external/light_openpose
 	url = https://github.com/Daniil-Osokin/lightweight-human-pose-estimation.pytorch.git
+[submodule "external/synergy"]
+	path = external/synergy
+	url = https://github.com/choyingw/SynergyNet.git
