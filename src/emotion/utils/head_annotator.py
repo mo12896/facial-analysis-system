@@ -37,7 +37,7 @@ class HeadPoseAnnotator:
 
     @staticmethod
     def draw_landmarks(img, pts: list):
-        markersize = 2
+        markersize = 1
         color = (255, 255, 255)
         nums = [0, 17, 22, 27, 31, 36, 42, 48, 60, 68]
 
