@@ -11,6 +11,8 @@ class Detections:
         class_id: np.ndarray,
         bbox_centerpoints: Optional[np.ndarray] = None,
         body_pose_keypoints: Optional[np.ndarray] = None,
+        facial_landmarks: Optional[np.ndarray] = None,
+        head_pose_keypoints: Optional[List] = None,
         emotion: Optional[np.ndarray] = None,
         tracker_id: Optional[np.ndarray] = None,
     ):
@@ -19,6 +21,8 @@ class Detections:
         self.class_id = class_id
         self.bbox_centerpoints = self.compute_bbox_center_points(self.bboxes)
         self.body_pose_keypoints = body_pose_keypoints
+        self.facial_landmarks = facial_landmarks
+        self.head_pose_keypoints = head_pose_keypoints
         self.emotion = emotion
         self.tracker_id = tracker_id
 
@@ -59,6 +63,10 @@ class Detections:
                 else None,
                 self.body_pose_keypoints[i]
                 if self.body_pose_keypoints is not None
+                else None,
+                self.facial_landmarks[i] if self.facial_landmarks is not None else None,
+                self.head_pose_keypoints[i]
+                if self.head_pose_keypoints is not None
                 else None,
                 self.emotion[i] if self.emotion is not None else None,
                 self.tracker_id[i] if self.tracker_id is not None else None,
@@ -193,6 +201,35 @@ class Detections:
             class_id=self.class_id,
             bbox_centerpoints=self.bbox_centerpoints,
             body_pose_keypoints=body_pose_keypoints,
+            emotion=self.emotion,
+            tracker_id=self.tracker_id,
+        )
+
+    def match_head_poses(self, poses, pts_res):
+        facial_landmarks = np.zeros(
+            (len(self.bbox_centerpoints), 3, 68), dtype=np.float32
+        )
+        head_pose_keypoints = [0] * len(self.bbox_centerpoints)
+        for bbox_center in range(len(self.bbox_centerpoints)):
+            smallest_distance = 100000
+            for person in range(len(poses)):
+                # Note that 30 is the noise keypoint!
+                distance = np.linalg.norm(
+                    self.bbox_centerpoints[bbox_center]
+                    - (int(pts_res[person][0, 30]), int(pts_res[person][1, 30]))
+                )
+                if distance < smallest_distance:
+                    smallest_distance = distance
+                    facial_landmarks[bbox_center] = pts_res[person]
+                    head_pose_keypoints[bbox_center] = poses[person]
+
+        return Detections(
+            bboxes=self.bboxes,
+            confidence=self.confidence,
+            class_id=self.class_id,
+            bbox_centerpoints=self.bbox_centerpoints,
+            facial_landmarks=facial_landmarks,
+            head_pose_keypoints=head_pose_keypoints,
             emotion=self.emotion,
             tracker_id=self.tracker_id,
         )
