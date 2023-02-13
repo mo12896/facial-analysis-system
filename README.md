@@ -39,9 +39,7 @@
   </p>
 </div>
 
-<img src="./docs/animation.gif" widt="920" height="420" alt="animated" />
-<br />
-<br />
+<img src="./docs/animation.gif" widt="920" height="500" alt="animated" />
 
 <!-- TABLE OF CONTENTS -->
 <details>
@@ -66,7 +64,6 @@
     <li><a href="#acknowledgments">Acknowledgments</a></li>
   </ol>
 </details>
-<br />
 
 
 <!-- ABOUT THE PROJECT -->
