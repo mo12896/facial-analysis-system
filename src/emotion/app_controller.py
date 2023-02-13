@@ -101,7 +101,8 @@ class Runner:
                         frame, detections
                     )
 
-                    frame_count += 1
+                    # Black background
+                    # frame[:] = 0
 
                     frame = self.box_annotator.annotate(frame, detections)
                     frame = self.keypoints_annotator.annotate(frame, detections)
@@ -114,7 +115,12 @@ class Runner:
 
                     curr_detections = detections
 
+                    frame_count += 1
+
                 else:
+                    # Black background
+                    # frame[:] = 0
+
                     frame = self.box_annotator.annotate(frame, curr_detections)
                     frame = self.keypoints_annotator.annotate(frame, curr_detections)
                     frame = self.head_pose_annotator.annotate(frame, curr_detections)

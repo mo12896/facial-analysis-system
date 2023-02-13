@@ -36,11 +36,12 @@
     The main repository for my master thesis.
     <br />
     <br />
-    <br />
   </p>
 </div>
 
-
+<img src="./docs/animation.gif" widt="920" height="420" alt="animated" />
+<br />
+<br />
 
 <!-- TABLE OF CONTENTS -->
 <details>
@@ -65,7 +66,7 @@
     <li><a href="#acknowledgments">Acknowledgments</a></li>
   </ol>
 </details>
-
+<br />
 
 
 <!-- ABOUT THE PROJECT -->
