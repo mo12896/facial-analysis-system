@@ -101,7 +101,7 @@ class Runner:
                         frame, detections
                     )
 
-                    # Black background
+                    # Black background for anonymization
                     # frame[:] = 0
 
                     frame = self.box_annotator.annotate(frame, detections)
@@ -118,7 +118,7 @@ class Runner:
                     frame_count += 1
 
                 else:
-                    # Black background
+                    # Black background for anonymization
                     # frame[:] = 0
 
                     frame = self.box_annotator.annotate(frame, curr_detections)

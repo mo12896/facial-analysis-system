@@ -6,24 +6,41 @@ import pandas as pd
 IDENTITY_DIR = Path("/home/moritz/Workspace/masterthesis/data/identities")
 
 
-def plot_emotions_over_time():
+def plot_smoothed_emotions_over_time(w_size: int = 5):
     """Plot the emotions over time for each person."""
     df = pd.read_csv(IDENTITY_DIR / "identities.csv")
 
-    person_ids = df["ClassID"].unique()
+    grouped = df.groupby("ClassID")
 
     fig = plt.figure(figsize=(10, 15), tight_layout=True)
 
-    for i, person_id in enumerate(person_ids):
-        person_df = df[df["ClassID"] == person_id]
+    for i, (person_id, group) in enumerate(grouped):
+        # Apply a rolling mean to the emotions data with a window size of 10
+        emotions_rolling = (
+            group[
+                [
+                    "Frame",
+                    "Angry",
+                    "Disgust",
+                    "Happy",
+                    "Sad",
+                    "Surprise",
+                    "Fear",
+                    "Neutral",
+                ]
+            ]
+            .rolling(window=w_size)
+            .mean()
+        )
+
         ax = fig.add_subplot(2, 2, i + 1)
-        person_df.plot(
+        emotions_rolling.plot(
             x="Frame",
             y=["Angry", "Disgust", "Happy", "Sad", "Surprise", "Fear", "Neutral"],
             ax=ax,
         )
 
-        ax.set_title(f"Emotions for person_id: {person_id}")
+        ax.set_title(f"Emotions over Time for {person_id}")
         ax.set_xlabel("Frame")
         ax.set_ylabel("Confidence")
 
@@ -35,20 +52,19 @@ def plot_max_emotions_over_time():
     """Plot the maximum emotion over time for each person."""
     df = pd.read_csv(IDENTITY_DIR / "identities.csv")
 
-    person_ids = df["ClassID"].unique()
+    grouped = df.groupby("ClassID")
 
     fig = plt.figure(figsize=(10, 15), tight_layout=True)
 
-    for i, person_id in enumerate(person_ids):
-        person = df[df["ClassID"] == person_id]
+    for i, (person_id, group) in enumerate(grouped):
 
         # Get the maximum emotion for each frame
-        person_max_emotion = person.iloc[:, 7:].idxmax(axis=1)
+        person_max_emotion = group.iloc[:, 7:].idxmax(axis=1)
 
         ax = fig.add_subplot(2, 2, i + 1)
         # Plot the maximum emotion over the frame
-        ax.plot(person["Frame"], person_max_emotion)
-        ax.set_title(f"Maximum Emotion for {person_id}")
+        ax.plot(group["Frame"], person_max_emotion)
+        ax.set_title(f"Maximum Emotions over Time for {person_id}")
         ax.set_xlabel("Frame")
         ax.set_ylabel("Emotion")
 
@@ -57,5 +73,6 @@ def plot_max_emotions_over_time():
 
 
 if __name__ == "__main__":
-    plot_emotions_over_time()
+    # If window size is 1, no smoothing is applied
+    plot_smoothed_emotions_over_time(150)
     plot_max_emotions_over_time()

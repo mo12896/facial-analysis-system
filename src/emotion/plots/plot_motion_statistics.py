@@ -1,4 +1,3 @@
-import csv
 from pathlib import Path
 
 import matplotlib.pyplot as plt
@@ -21,11 +20,6 @@ def compute_gradients(point_list: list[int]):
     return gradients
 
 
-def compute_center_point(min, max):
-    center = 0.5 * (float(min) + float(max))
-    return center
-
-
 def estimate_point_density(x: list, y: list):
     # Kernel density estimation
     xy = np.vstack([x, y])
@@ -33,7 +27,7 @@ def estimate_point_density(x: list, y: list):
     return z
 
 
-def compute_statistics(x: list, y: list, person_id: str):
+def compute_statistics(x: list, y: list):
     # Convert the points to a Pandas DataFrame
     points = list(zip(x, y))
     df = pd.DataFrame(points, columns=["x", "y"])
@@ -43,7 +37,7 @@ def compute_statistics(x: list, y: list, person_id: str):
     return stats
 
 
-def perpare_data(x, y):
+def prepare_data(x, y):
     # Define the borders
     deltaX = (max(x) - min(x)) / 10
     deltaY = (max(y) - min(y)) / 10
@@ -51,7 +45,7 @@ def perpare_data(x, y):
     xmax = max(x) + deltaX
     ymin = min(y) - deltaY
     ymax = max(y) + deltaY
-    print(xmin, xmax, ymin, ymax)
+    # print(xmin, xmax, ymin, ymax)
     # Create meshgrid
     xx, yy = np.mgrid[xmin:xmax:100j, ymin:ymax:100j]
     # Kernel density estimation
@@ -64,30 +58,22 @@ def perpare_data(x, y):
 
 
 def plot_point_derivatives():
-    # Read the CSV file into a list of dictionaries
-    rows = []
-    with open(IDENTITY_DIR / "identities.csv", "r") as f:
-        reader = csv.DictReader(f)
-        for row in reader:
-            rows.append(row)
+    # Read the CSV file into a Pandas DataFrame
+    df = pd.read_csv(IDENTITY_DIR / "identities.csv")
 
-    person_ids = ["person_id1", "person_id2", "person_id3", "person_id4"]
+    # group the data by ClassID and Frame
+    grouped = df.groupby("ClassID")
 
     fig = plt.figure(figsize=(10, 15), tight_layout=True)
 
-    for i, person_id in enumerate(person_ids):
-
-        # Filter the data to get only the rows for person_id1
-        person_data = [row for row in rows if row["ClassID"] == person_id]
+    for i, (person_id, group) in enumerate(grouped):
 
         # Compute the center point (x, y) of the bounding box for each frame
-        x, y = [], []
-        for row in person_data:
-            x.append(compute_center_point(row["XMin"], row["XMax"]))
-            y.append(compute_center_point(row["YMin"], row["YMax"]))
+        x = (group["XMax"] + group["XMin"]) * 0.5
+        y = (group["YMax"] + group["YMin"]) * 0.5
 
-        # Compute the gradients of the point
-        dx, dy = compute_gradients(x), compute_gradients(y)
+        # Compute the derivative of the center point (x, y) over different frames
+        dx, dy = compute_gradients(x.tolist()), compute_gradients(y.tolist())
         gradients = [x / y if y != 0 else 0 for x, y in zip(dx, dy)]
 
         z = gaussian_kde(np.array(gradients))
@@ -98,7 +84,7 @@ def plot_point_derivatives():
         plt.plot(x_range, z(x_range))
         size = 30
         ax.set_xlim(left=-size, right=size)
-        ax.set_title(f"Point Gradients for {person_id}")
+        ax.set_title(f"2D Gaussian KDE of center derivatives for {person_id}")
         ax.set_xlabel("Gradient")
         ax.set_ylabel("PDF")
 
@@ -107,32 +93,24 @@ def plot_point_derivatives():
 
 
 def plot_2d_point_derivatives():
-    # Read the CSV file into a list of dictionaries
-    rows = []
-    with open(IDENTITY_DIR / "identities.csv", "r") as f:
-        reader = csv.DictReader(f)
-        for row in reader:
-            rows.append(row)
+    # Read the CSV file into a Pandas DataFrame
+    df = pd.read_csv(IDENTITY_DIR / "identities.csv")
 
-    person_ids = ["person_id1", "person_id2", "person_id3", "person_id4"]
+    # group the data by ClassID and Frame
+    grouped = df.groupby("ClassID")
 
     fig = plt.figure(figsize=(10, 15), tight_layout=True)
 
-    for i, person_id in enumerate(person_ids):
-
-        # Filter the data to get only the rows for person_id1
-        person_data = [row for row in rows if row["ClassID"] == person_id]
+    for i, (person_id, group) in enumerate(grouped):
 
         # Compute the center point (x, y) of the bounding box for each frame
-        x, y = [], []
-        for row in person_data:
-            x.append(compute_center_point(row["XMin"], row["XMax"]))
-            y.append(compute_center_point(row["YMin"], row["YMax"]))
+        x = (group["XMax"] + group["XMin"]) * 0.5
+        y = (group["YMax"] + group["YMin"]) * 0.5
 
         # Compute the derivative of the center point (x, y) over different frames
-        dx, dy = compute_gradients(x), compute_gradients(y)
+        dx, dy = compute_gradients(x.tolist()), compute_gradients(y.tolist())
 
-        stats = compute_statistics(dx, dy, person_id)
+        stats = compute_statistics(dx, dy)
         x_mean = stats.loc["mean", "x"]
         y_mean = stats.loc["mean", "y"]
 
@@ -141,7 +119,7 @@ def plot_2d_point_derivatives():
 
         ax = fig.add_subplot(2, 2, i + 1)
         # Plot the derivative of the center point (x, y)
-        ax.scatter(dx, dy, c=z, s=100)
+        ax.scatter(dx, dy, c=z, s=50)
         ax.scatter(x_mean, y_mean, c="red", marker="x", s=50)
 
         size = 40
@@ -158,31 +136,24 @@ def plot_2d_point_derivatives():
 
 
 def plot_2d_point_contour_derivatives():
-    rows = []
-    with open(IDENTITY_DIR / "identities.csv", "r") as f:
-        reader = csv.DictReader(f)
-        for row in reader:
-            rows.append(row)
+    # Read the CSV file into a Pandas DataFrame
+    df = pd.read_csv(IDENTITY_DIR / "identities.csv")
 
-    person_ids = ["person_id1", "person_id2", "person_id3", "person_id4"]
+    # group the data by ClassID and Frame
+    grouped = df.groupby("ClassID")
 
     fig = plt.figure(figsize=(10, 15), tight_layout=True)
 
-    for i, person_id in enumerate(person_ids):
-
-        # Filter the data to get only the rows for person_id1
-        person_data = [row for row in rows if row["ClassID"] == person_id]
+    for i, (person_id, group) in enumerate(grouped):
 
         # Compute the center point (x, y) of the bounding box for each frame
-        x, y = [], []
-        for row in person_data:
-            x.append(compute_center_point(row["XMin"], row["XMax"]))
-            y.append(compute_center_point(row["YMin"], row["YMax"]))
+        x = (group["XMax"] + group["XMin"]) * 0.5
+        y = (group["YMax"] + group["YMin"]) * 0.5
 
         # Compute the derivative of the center point (x, y) over different frames
-        dx, dy = compute_gradients(x), compute_gradients(y)
+        dx, dy = compute_gradients(x.tolist()), compute_gradients(y.tolist())
 
-        xx, yy, f, xmin, xmax, ymin, ymax = perpare_data(dx, dy)
+        xx, yy, f, xmin, xmax, ymin, ymax = prepare_data(dx, dy)
 
         ax = fig.add_subplot(2, 2, i + 1)
         ax.imshow(np.rot90(f), extent=[xmin, xmax, ymin, ymax])
@@ -197,31 +168,24 @@ def plot_2d_point_contour_derivatives():
 
 
 def plot_3d_point_derivatives():
-    rows = []
-    with open(IDENTITY_DIR / "identities.csv", "r") as f:
-        reader = csv.DictReader(f)
-        for row in reader:
-            rows.append(row)
+    # Read the CSV file into a Pandas DataFrame
+    df = pd.read_csv(IDENTITY_DIR / "identities.csv")
 
-    person_ids = ["person_id1", "person_id2", "person_id3", "person_id4"]
+    # group the data by ClassID and Frame
+    grouped = df.groupby("ClassID")
 
     fig = plt.figure(figsize=(10, 15), tight_layout=True)
 
-    for i, person_id in enumerate(person_ids):
-
-        # Filter the data to get only the rows for person_id1
-        person_data = [row for row in rows if row["ClassID"] == person_id]
+    for i, (person_id, group) in enumerate(grouped):
 
         # Compute the center point (x, y) of the bounding box for each frame
-        x, y = [], []
-        for row in person_data:
-            x.append(compute_center_point(row["XMin"], row["XMax"]))
-            y.append(compute_center_point(row["YMin"], row["YMax"]))
+        x = (group["XMax"] + group["XMin"]) * 0.5
+        y = (group["YMax"] + group["YMin"]) * 0.5
 
         # Compute the derivative of the center point (x, y) over different frames
-        dx, dy = compute_gradients(x), compute_gradients(y)
+        dx, dy = compute_gradients(x.tolist()), compute_gradients(y.tolist())
 
-        xx, yy, f, _, _, _, _ = perpare_data(dx, dy)
+        xx, yy, f, _, _, _, _ = prepare_data(dx, dy)
 
         ax = fig.add_subplot(2, 2, i + 1, projection="3d")
         surf = ax.plot_surface(
@@ -239,28 +203,19 @@ def plot_3d_point_derivatives():
 
 
 def plot_point_positions():
-    # Read the CSV file into a list of dictionaries
-    rows = []
-    with open(IDENTITY_DIR / "identities.csv", "r") as f:
-        reader = csv.DictReader(f)
-        for row in reader:
-            rows.append(row)
+    # Read the CSV file into a Pandas DataFrame
+    df = pd.read_csv(IDENTITY_DIR / "identities.csv")
 
-    person_ids = ["person_id1", "person_id2", "person_id3", "person_id4"]
+    # group the data by ClassID and Frame
+    grouped = df.groupby("ClassID")
 
     fig = plt.figure(figsize=(10, 15), tight_layout=True)
 
-    for i, person_id in enumerate(person_ids):
-
-        # Filter the data to get only the rows for person_id1
-        person_data = [row for row in rows if row["ClassID"] == person_id]
+    for i, (person_id, group) in enumerate(grouped):
 
         # Compute the center point (x, y) of the bounding box for each frame
-        # TODO: points are flipped!
-        x, y = [], []
-        for row in person_data:
-            x.append(compute_center_point(row["XMin"], row["XMax"]))
-            y.append(compute_center_point(row["YMin"], row["YMax"]))
+        x = (group["XMax"] + group["XMin"]) * 0.5
+        y = (group["YMax"] + group["YMin"]) * 0.5
 
         ax = fig.add_subplot(2, 2, i + 1)
         # Plot the derivative of the center point (x, y)
