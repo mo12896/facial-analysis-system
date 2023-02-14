@@ -85,7 +85,7 @@ def plot_point_derivatives(x_lim: int = 40, y_lim: float = 0.12):
         ax.set_xlim(left=-x_lim, right=x_lim)
         ax.set_ylim(bottom=0, top=y_lim)
         ax.set_title(f"2D Gaussian KDE of center derivatives for {person_id}")
-        ax.set_xlabel("Gradient")
+        ax.set_xlabel("Derivatives")
         ax.set_ylabel("PDF")
 
     plt.show()
