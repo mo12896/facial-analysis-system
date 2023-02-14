@@ -6,18 +6,16 @@ import pandas as pd
 IDENTITY_DIR = Path("/home/moritz/Workspace/masterthesis/data/identities")
 
 
-def plot_max_emotion_distribution():
+def plot_max_emotion_distribution(y_lim: int = 750):
     # Load the csv file into a pandas dataframe
     df = pd.read_csv(IDENTITY_DIR / "identities.csv")
 
+    emotions = ["Angry", "Disgust", "Happy", "Sad", "Surprise", "Fear", "Neutral"]
+
     # Find the maximum emotion for each person_id by selecting the column with the maximum value
-    df["Max_Emotion"] = df[
-        ["Angry", "Disgust", "Happy", "Sad", "Surprise", "Fear", "Neutral"]
-    ].idxmax(axis=1)
+    df["Max_Emotion"] = df[emotions].idxmax(axis=1)
 
     grouped = df.groupby("ClassID")
-
-    emotions = ["Angry", "Disgust", "Happy", "Sad", "Surprise", "Fear", "Neutral"]
 
     fig = plt.figure(figsize=(10, 15), tight_layout=True)
 
@@ -29,7 +27,6 @@ def plot_max_emotion_distribution():
         ax = fig.add_subplot(2, 2, i + 1)
 
         # Plot the pivot table as a bar plot
-        # plt.bar(grouped["Max_Emotion"], grouped["counts"])
         plt.bar(
             emotions,
             [
@@ -42,6 +39,7 @@ def plot_max_emotion_distribution():
         ax.set_title(f"Categorical distr. of maximum emotions for {person_id}")
         ax.set_xlabel("Emotions")
         ax.set_ylabel("Amount")
+        ax.set_ylim(0, y_lim)
 
     # Show the plot
     plt.show()

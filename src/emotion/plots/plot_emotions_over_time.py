@@ -43,6 +43,7 @@ def plot_smoothed_emotions_over_time(w_size: int = 5):
         ax.set_title(f"Emotions over Time for {person_id}")
         ax.set_xlabel("Frame")
         ax.set_ylabel("Confidence")
+        ax.set_ylim(0, 1)
 
     plt.show()
     fig.savefig(IDENTITY_DIR / "emotions_over_time.png")

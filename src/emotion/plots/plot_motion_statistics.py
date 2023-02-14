@@ -57,7 +57,7 @@ def prepare_data(x, y):
     return xx, yy, f, xmin, xmax, ymin, ymax
 
 
-def plot_point_derivatives():
+def plot_point_derivatives(x_lim: int = 40, y_lim: float = 0.12):
     # Read the CSV file into a Pandas DataFrame
     df = pd.read_csv(IDENTITY_DIR / "identities.csv")
 
@@ -82,8 +82,8 @@ def plot_point_derivatives():
         ax = fig.add_subplot(2, 2, i + 1)
         x_range = np.linspace(min(gradients), max(gradients), 100)
         plt.plot(x_range, z(x_range))
-        size = 30
-        ax.set_xlim(left=-size, right=size)
+        ax.set_xlim(left=-x_lim, right=x_lim)
+        ax.set_ylim(bottom=0, top=y_lim)
         ax.set_title(f"2D Gaussian KDE of center derivatives for {person_id}")
         ax.set_xlabel("Gradient")
         ax.set_ylabel("PDF")

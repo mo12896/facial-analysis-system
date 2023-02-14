@@ -32,7 +32,7 @@ def plot_smoothed_motion_over_time(w_size: int = 5):
         ax = fig.add_subplot(2, 2, i + 1)
         # plot the smoothed derivatives over time
         plt.plot(smoothed_derivatives.index.values, smoothed_derivatives.values)
-        ax.set_ylim(0, 300)
+        ax.set_ylim(0, 200)
         ax.set_title(f"Center derivatives w.r.t. time for {person_id}")
         ax.set_xlabel("Frames")
         ax.set_ylabel("Derivatives")
