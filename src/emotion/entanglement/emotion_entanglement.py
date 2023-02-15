@@ -91,8 +91,9 @@ def max_emotions(df: pd.DataFrame, window: int = 150) -> np.ndarray:
 def single_emotion(df: pd.DataFrame, emotion: str, window: int = 150) -> np.ndarray:
     grouped = df.groupby("ClassID")[emotion].apply(np.array).to_numpy()
     X = np.vstack(grouped)
+
     X = np.apply_along_axis(
-        lambda row: np.convolve(row, np.ones(window) / window, mode="valid"),
+        lambda row: np.convolve(row, np.ones(window) / window, mode="same"),
         axis=1,
         arr=X,
     )
@@ -100,10 +101,12 @@ def single_emotion(df: pd.DataFrame, emotion: str, window: int = 150) -> np.ndar
     return X
 
 
-def plot_emotion_entanglement(X: np.ndarray, ids) -> None:
+def plot_emotion_entanglement(X: np.ndarray, metric: str, ids, emotion) -> None:
+
+    plt.title(f"Emotion Entanglement for Emotion: {emotion}")
 
     # Compute pairwise distances between all nodes using Euclidean distance
-    distances = pdist(X)
+    distances = pdist(X, metric=metric)
 
     # Convert condensed distance matrix to square distance matrix
     dist_matrix = squareform(distances)
@@ -114,12 +117,12 @@ def plot_emotion_entanglement(X: np.ndarray, ids) -> None:
     # Draw the graph with node positions using the kamada_kawai_layout (docs)
     pos = nx.drawing.layout.kamada_kawai_layout(G, dim=2)
     nx.draw(G, pos)
-
     # # Add labels to the nodes
     labels = {i: class_id for i, class_id in enumerate(ids)}
     nx.draw_networkx_labels(G, pos, labels)
 
     # Show the plot
+    plt.savefig(f"emotion_entanglement_{metric}_{emotion}.png")
     plt.show()
 
 
@@ -131,6 +134,7 @@ def plot_emotions(X: np.ndarray, labels) -> None:
         plt.plot(X[i, :], label=labels[i])
 
     # adding Label to the x-axis
+    plt.ylim(0, 1)
     plt.xlabel("Frames")
     plt.legend()
     plt.show()
@@ -140,6 +144,10 @@ if __name__ == "__main__":
     df = pd.read_csv(IDENTITY_DIR / "identities.csv")
     pre_df = preprocess_data(df)
     # Choose the same window size as for the emotions over time
-    emotion = single_emotion(pre_df, "Neutral", window=150)
-    # plot_emotions(max_emotions, pre_df["ClassID"].unique())
-    plot_emotion_entanglement(emotion, pre_df["ClassID"].unique())
+    emotion = "Surprise"
+    emotions = single_emotion(pre_df, emotion, window=150)
+    plot_emotions(emotions, pre_df["ClassID"].unique())
+    # Use correlation, euclidean or cosine
+    plot_emotion_entanglement(
+        emotions, "euclidean", pre_df["ClassID"].unique(), emotion
+    )
