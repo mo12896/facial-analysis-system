@@ -3,7 +3,6 @@
 from dataclasses import dataclass, field
 
 import cv2
-
 import matplotlib.pyplot as plt
 import numpy as np
 from scipy.linalg import norm
@@ -32,8 +31,8 @@ def plot_truncated_cone(p0, p1, R0, R1):
     Args:
         p0 (_type_): Coordinates of the tip of the cone
         p1 (_type_): Coordinates of the center of the base of the cone
-        R0 (_type_): Radius of the tip of the cone
-        R1 (_type_): Radius of the base of the cone
+        R0 (_type_): Diameter of the tip of the cone
+        R1 (_type_): Diameter of the base of the cone
     """
     # vector in direction of axis
     v = p1 - p0
@@ -79,7 +78,9 @@ def detect_points_inside_cone(tip, n_vector, height, points: list):
         points (list): List point to test
     """
     points_inside_cone = []
-    radius = np.tan(np.deg2rad(30)) * height
+    # Based off assumption that the core binocular field of view of
+    # humans is 60 degrees
+    radius = np.tan(np.deg2rad(60)) * height
     # calculate cone distance
     for p in points:
         cone_dist = np.dot(p - tip, n_vector)
@@ -98,7 +99,9 @@ def detect_points_inside_cone(tip, n_vector, height, points: list):
     return points_inside_cone
 
 
-def draw_3d_axis(ax, yaw, pitch, roll, tdx=None, tdy=None, size=100, pts68=None):
+def draw_3d_axis(
+    ax, yaw, pitch, roll, tdx=None, tdy=None, size=100, pts68=None, person: str = None
+):
     pitch = pitch * np.pi / 180
     yaw = -(yaw * np.pi / 180)
     roll = roll * np.pi / 180
@@ -163,6 +166,8 @@ def draw_3d_axis(ax, yaw, pitch, roll, tdx=None, tdy=None, size=100, pts68=None)
     p1 = np.array([x3, y3, z3])
     plot_truncated_cone(p0, p1, 0, b_r)
 
+    ax.text(tdx, tdy, 0, person, color="black", fontsize=12, fontweight="bold")
+    ax.text(x1, y1, z1, "X", color="red")
     ax.set_xlim3d([200, 1600])
     ax.set_ylim3d([200, 1200])
     ax.set_zlim3d([-1000, 0])
@@ -173,7 +178,9 @@ def draw_3d_axis(ax, yaw, pitch, roll, tdx=None, tdy=None, size=100, pts68=None)
     return ax
 
 
-def new_draw_3d_axis(ax, yaw, pitch, roll, tdx=None, tdy=None, size=100, pts68=None):
+def new_draw_3d_axis(
+    ax, yaw, pitch, roll, tdx=None, tdy=None, size=100, pts68=None, person: str = None
+):
     pitch = pitch * np.pi / 180
     yaw = -(yaw * np.pi / 180)
     roll = roll * np.pi / 180
@@ -284,6 +291,7 @@ def new_draw_3d_axis(ax, yaw, pitch, roll, tdx=None, tdy=None, size=100, pts68=N
     plot_truncated_cone(p0, p1, 0, np.tan(np.deg2rad(30)) * size)
 
     # Set axis limits and labels
+    ax.text(tdx, tdy, tdz, person, color="black", fontsize=12, fontweight="bold")
     ax.set_xlim3d([200, 1600])
     ax.set_ylim3d([200, 1200])
     ax.set_zlim3d([-1000, 0])
@@ -456,7 +464,7 @@ if __name__ == "__main__":
         )
         identities.append(Identity(person, n_vector, tip, pts))
 
-        if translation[1] > 600:
+        if translation[1] > int(1053 / 2):
             draw_3d_axis(
                 ax,
                 angles[0],
@@ -466,6 +474,7 @@ if __name__ == "__main__":
                 translation[1],
                 size=10,
                 pts68=lmks,
+                person=person,
             )
         else:
             new_draw_3d_axis(
@@ -477,14 +486,17 @@ if __name__ == "__main__":
                 translation[1],
                 size=10,
                 pts68=lmks,
+                person=person,
             )
+
+    true_tresh = 0.8
 
     for i in range(len(identities)):
         for j in range(len(identities)):
             pts_in_cone = detect_points_inside_cone(
                 identities[i].tip, identities[i].n_vector, 1100, identities[j].points
             )
-            if pts_in_cone.count(True) / len(pts_in_cone) >= 0.8:
+            if pts_in_cone.count(True) / len(pts_in_cone) >= true_tresh:
                 identities[i].sights.append(identities[j].person_id)
 
     for identity in identities:
