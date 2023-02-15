@@ -5,10 +5,6 @@ import cv2
 import matplotlib.pyplot as plt
 import numpy as np
 
-from src.emotion.datahandler.dataprocessor.face_detector import create_face_detector
-from src.emotion.datahandler.dataprocessor.head_pose_estimator import (
-    create_head_pose_detector,
-)
 
 # grandparent_folder = os.path.abspath(
 #     os.path.join(
@@ -19,6 +15,12 @@ from src.emotion.datahandler.dataprocessor.head_pose_estimator import (
 #     )
 # )
 # sys.path.append(grandparent_folder)
+
+
+from src.emotion.datahandler.dataprocessor.face_detector import create_face_detector
+from src.emotion.datahandler.dataprocessor.head_pose_estimator import (
+    create_head_pose_detector,
+)
 
 
 def draw_3d_axis(ax, yaw, pitch, roll, tdx=None, tdy=None, size=100, pts68=None):
@@ -73,6 +75,10 @@ def draw_3d_axis(ax, yaw, pitch, roll, tdx=None, tdy=None, size=100, pts68=None)
     x3 = size * (np.sin(yaw)) + tdx
     y3 = size * (-np.cos(yaw) * np.sin(pitch)) + tdy
     z3 = -size * (np.cos(pitch) * np.cos(yaw))
+
+    # Correct for 3D radial distortion ...
+    # Add cone with 60 degree angle on top of z-axis
+    # Compute, if the cone intersects with points from other person
 
     ax.plot([tdx, x1], [tdy, y1], [0, z1], "r-", linewidth=2)
     ax.plot([tdx, x2], [tdy, y2], [0, z2], "g-", linewidth=2)
@@ -289,5 +295,6 @@ if __name__ == "__main__":
                 pts68=lmks,
             )
 
-    ax.scatter(1848 / 2, (3 * 1054) / 4, -500, c="r", marker="o")
+    # Add camera center
+    ax.scatter(1848 / 2, (3 * 1054) / 4, -600, c="r", marker="o")
     plt.show()
