@@ -1,7 +1,9 @@
 # import os
 # import sys
+from dataclasses import dataclass, field
 
 import cv2
+
 import matplotlib.pyplot as plt
 import numpy as np
 from scipy.linalg import norm
@@ -23,9 +25,15 @@ from src.emotion.datahandler.dataprocessor.head_pose_estimator import (
 )
 
 
-def truncated_cone(p0, p1, R0, R1):
+def plot_truncated_cone(p0, p1, R0, R1):
     """
     Based on https://stackoverflow.com/a/39823124/190597 (astrokeat)
+
+    Args:
+        p0 (_type_): Coordinates of the tip of the cone
+        p1 (_type_): Coordinates of the center of the base of the cone
+        R0 (_type_): Radius of the tip of the cone
+        R1 (_type_): Radius of the base of the cone
     """
     # vector in direction of axis
     v = p1 - p0
@@ -57,6 +65,37 @@ def truncated_cone(p0, p1, R0, R1):
         for i in [0, 1, 2]
     ]
     ax.plot_wireframe(X, Y, Z, linewidth=0.5, alpha=0.5)
+
+
+def detect_points_inside_cone(tip, n_vector, height, points: list):
+    """Detect if a list of points is inside a cone
+    (https://stackoverflow.com/questions/12826117/how-can-i-detect-if-a-point-is-inside-a-cone-or-not-in-3d-space)
+
+    Args:
+        tip (_type_): Coordinates of the tip of the cone
+        n_vector (_type_): Normalized axis vector pointing from tip to base
+        height (_type_): Height of cone
+        radius (_type_): Base radius of the cone
+        points (list): List point to test
+    """
+    points_inside_cone = []
+    radius = np.tan(np.deg2rad(30)) * height
+    # calculate cone distance
+    for p in points:
+        cone_dist = np.dot(p - tip, n_vector)
+
+        # reject points outside of the cone
+        if cone_dist < 0 or cone_dist > height:
+            points_inside_cone.append(False)
+        else:
+            # calculate cone radius and orthogonal distance
+            cone_radius = (cone_dist / height) * radius
+            orth_distance = np.linalg.norm((p - tip) - cone_dist * n_vector)
+
+            # check if point is inside cone
+            points_inside_cone.append(orth_distance < cone_radius)
+
+    return points_inside_cone
 
 
 def draw_3d_axis(ax, yaw, pitch, roll, tdx=None, tdy=None, size=100, pts68=None):
@@ -108,14 +147,13 @@ def draw_3d_axis(ax, yaw, pitch, roll, tdx=None, tdy=None, size=100, pts68=None)
     )
 
     size = 1100
+    b_r = np.tan(np.deg2rad(30)) * size
     # Z-Axis pointing out of the screen. drawn in blue
     x3 = size * (np.sin(yaw)) + tdx
     y3 = size * (-np.cos(yaw) * np.sin(pitch)) + tdy
     z3 = -size * (np.cos(pitch) * np.cos(yaw))
 
     # Correct for 3D radial distortion ...
-    # Add cone with 60 degree angle on top of z-axis
-    # Compute, if the cone intersects with points from other person
 
     ax.plot([tdx, x1], [tdy, y1], [0, z1], "r-", linewidth=2)
     ax.plot([tdx, x2], [tdy, y2], [0, z2], "g-", linewidth=2)
@@ -123,7 +161,7 @@ def draw_3d_axis(ax, yaw, pitch, roll, tdx=None, tdy=None, size=100, pts68=None)
 
     p0 = np.array([tdx, tdy, 0])
     p1 = np.array([x3, y3, z3])
-    truncated_cone(p0, p1, 0, np.tan(np.deg2rad(30)) * size)
+    plot_truncated_cone(p0, p1, 0, b_r)
 
     ax.set_xlim3d([200, 1600])
     ax.set_ylim3d([200, 1200])
@@ -135,7 +173,7 @@ def draw_3d_axis(ax, yaw, pitch, roll, tdx=None, tdy=None, size=100, pts68=None)
     return ax
 
 
-def new_draw_3d_coor(ax, yaw, pitch, roll, tdx=None, tdy=None, size=100, pts68=None):
+def new_draw_3d_axis(ax, yaw, pitch, roll, tdx=None, tdy=None, size=100, pts68=None):
     pitch = pitch * np.pi / 180
     yaw = -(yaw * np.pi / 180)
     roll = roll * np.pi / 180
@@ -243,7 +281,7 @@ def new_draw_3d_coor(ax, yaw, pitch, roll, tdx=None, tdy=None, size=100, pts68=N
 
     p0 = np.array([tdx, tdy, tdz])
     p1 = np.array([x3, y3, z3])
-    truncated_cone(p0, p1, 0, np.tan(np.deg2rad(30)) * size)
+    plot_truncated_cone(p0, p1, 0, np.tan(np.deg2rad(30)) * size)
 
     # Set axis limits and labels
     ax.set_xlim3d([200, 1600])
@@ -302,6 +340,90 @@ def draw_3d_coor(yaw, pitch, roll, tdx, tdy):
     return ax
 
 
+def prepare_data(yaw, pitch, roll, tdx, tdy, size=1100, pts68=None):
+    pitch = pitch * np.pi / 180
+    yaw = -(yaw * np.pi / 180)
+    roll = roll * np.pi / 180
+
+    if tdy > int(1053 / 2):
+
+        if pts68 is not None:
+            tdx = pts68[0][30]
+            tdy = pts68[1][30]
+
+            points = np.stack(
+                [pts68[0][:], pts68[1][:], -1 * np.array(range(68))], axis=1
+            )
+
+        # Z-Axis pointing out of the screen.
+        x3 = size * (np.sin(yaw)) + tdx
+        y3 = size * (-np.cos(yaw) * np.sin(pitch)) + tdy
+        z3 = -size * (np.cos(pitch) * np.cos(yaw))
+
+        vector = np.array([x3, y3, z3])
+        n_vector = vector / np.linalg.norm(vector)
+
+        tip = np.array([tdx, tdy, 0])
+
+        return tip, n_vector, points
+
+    else:
+        # Half of image height
+        y_offset = int(1053 / 2)
+        # Estimated distance in between people in the room
+        tdz = -1000
+
+        if pts68 is not None:
+            # Half of image width
+            if tdx < int(1848 / 2):
+                tdx = pts68[0][30] + int(1848 / 2)
+                tdy = pts68[1][30] + y_offset
+
+                # Calculate the mean of the x-coordinates
+                x_mean = np.mean(pts68[0])
+
+                # Reflect the x-coordinates about the x-axis at their center point
+                x_reflected = -1 * (pts68[0] - x_mean) + x_mean
+
+                points = np.stack(
+                    [
+                        x_reflected + int(1848 / 2),
+                        pts68[1][:] + y_offset,
+                        1 * np.array(range(68)) + tdz,
+                    ],
+                    axis=1,
+                )
+            else:
+                tdx = pts68[0][30] - int(1848 / 2)
+                tdy = pts68[1][30] + y_offset
+
+                # Calculate the mean of the x-coordinates
+                x_mean = np.mean(pts68[0])
+
+                # Reflect the x-coordinates about the x-axis at their center point
+                x_reflected = -1 * (pts68[0] - x_mean) + x_mean
+
+                points = np.stack(
+                    [
+                        x_reflected - int(1848 / 2),
+                        pts68[1][:] + y_offset,
+                        1 * np.array(range(68)) + tdz,
+                    ],
+                    axis=1,
+                )
+
+        # Z-Axis pointing out of the screen. drawn in blue
+        x3 = size * (np.sin(yaw + np.pi)) + tdx
+        y3 = size * (-np.cos(yaw + np.pi) * np.sin(pitch)) + tdy
+        z3 = -size * (np.cos(pitch) * np.cos(yaw + np.pi)) + tdz
+
+        vector = np.array([x3, y3, z3])
+        n_vector = vector / np.linalg.norm(vector)
+        tip = np.array([tdx, tdy, tdz])
+
+        return tip, n_vector, points
+
+
 if __name__ == "__main__":
     fig = plt.figure()
     ax = fig.add_subplot(111, projection="3d")
@@ -314,10 +436,26 @@ if __name__ == "__main__":
     head_pose_detector = create_head_pose_detector({"type": "synergy"})
 
     detections = head_pose_detector.detect_head_pose(image, detections)
-    print(image.shape)
 
+    persons = detections.class_id
     poses = detections.head_pose_keypoints
-    for angles, translation, lmks in poses:
+
+    @dataclass
+    class Identity:
+        person_id: str
+        n_vector: np.ndarray
+        tip: np.ndarray
+        points: np.ndarray
+        sights: list[str] = field(default_factory=list)
+
+    identities: list[Identity] = []
+
+    for person, (angles, translation, lmks) in zip(persons, poses):
+        tip, n_vector, pts = prepare_data(
+            angles[0], angles[1], angles[2], translation[0], translation[1], pts68=lmks
+        )
+        identities.append(Identity(person, n_vector, tip, pts))
+
         if translation[1] > 600:
             draw_3d_axis(
                 ax,
@@ -330,7 +468,7 @@ if __name__ == "__main__":
                 pts68=lmks,
             )
         else:
-            new_draw_3d_coor(
+            new_draw_3d_axis(
                 ax,
                 angles[0],
                 angles[1],
@@ -341,6 +479,17 @@ if __name__ == "__main__":
                 pts68=lmks,
             )
 
-    # Add camera center
+    for i in range(len(identities)):
+        for j in range(len(identities)):
+            pts_in_cone = detect_points_inside_cone(
+                identities[i].tip, identities[i].n_vector, 1100, identities[j].points
+            )
+            if pts_in_cone.count(True) / len(pts_in_cone) >= 0.8:
+                identities[i].sights.append(identities[j].person_id)
+
+    for identity in identities:
+        print(f"Person {identity.person_id} sees {identity.sights}")
+
+    # Add camera center point
     ax.scatter(1848 / 2, (3 * 1054) / 4, -600, c="r", marker="o")
     plt.show()
