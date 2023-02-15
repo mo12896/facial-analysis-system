@@ -4,7 +4,7 @@
 import cv2
 import matplotlib.pyplot as plt
 import numpy as np
-
+from scipy.linalg import norm
 
 # grandparent_folder = os.path.abspath(
 #     os.path.join(
@@ -21,6 +21,42 @@ from src.emotion.datahandler.dataprocessor.face_detector import create_face_dete
 from src.emotion.datahandler.dataprocessor.head_pose_estimator import (
     create_head_pose_detector,
 )
+
+
+def truncated_cone(p0, p1, R0, R1):
+    """
+    Based on https://stackoverflow.com/a/39823124/190597 (astrokeat)
+    """
+    # vector in direction of axis
+    v = p1 - p0
+    # find magnitude of vector
+    mag = norm(v)
+    # unit vector in direction of axis
+    v = v / mag
+    # make some vector not in the same direction as v
+    not_v = np.array([1, 1, 0])
+    if (v == not_v).all():
+        not_v = np.array([0, 1, 0])
+    # make vector perpendicular to v
+    n1 = np.cross(v, not_v)
+    # print n1,'\t',norm(n1)
+    # normalize n1
+    n1 /= norm(n1)
+    # make unit vector perpendicular to v and n1
+    n2 = np.cross(v, n1)
+    # surface ranges over t from 0 to length of axis and 0 to 2*pi
+    n = 80
+    t = np.linspace(0, mag, n)
+    theta = np.linspace(0, 2 * np.pi, n)
+    # use meshgrid to make 2d arrays
+    t, theta = np.meshgrid(t, theta)
+    R = np.linspace(R0, R1, n)
+    # generate coordinates for surface
+    X, Y, Z = [
+        p0[i] + v[i] * t + R * np.sin(theta) * n1[i] + R * np.cos(theta) * n2[i]
+        for i in [0, 1, 2]
+    ]
+    ax.plot_wireframe(X, Y, Z, linewidth=0.5, alpha=0.5)
 
 
 def draw_3d_axis(ax, yaw, pitch, roll, tdx=None, tdy=None, size=100, pts68=None):
@@ -71,6 +107,7 @@ def draw_3d_axis(ax, yaw, pitch, roll, tdx=None, tdy=None, size=100, pts68=None)
         np.cos(pitch) * np.sin(yaw) * np.sin(roll) + np.cos(roll) * np.sin(pitch)
     )
 
+    size = 1100
     # Z-Axis pointing out of the screen. drawn in blue
     x3 = size * (np.sin(yaw)) + tdx
     y3 = size * (-np.cos(yaw) * np.sin(pitch)) + tdy
@@ -83,6 +120,10 @@ def draw_3d_axis(ax, yaw, pitch, roll, tdx=None, tdy=None, size=100, pts68=None)
     ax.plot([tdx, x1], [tdy, y1], [0, z1], "r-", linewidth=2)
     ax.plot([tdx, x2], [tdy, y2], [0, z2], "g-", linewidth=2)
     ax.plot([tdx, x3], [tdy, y3], [0, z3], "b-", linewidth=2)
+
+    p0 = np.array([tdx, tdy, 0])
+    p1 = np.array([x3, y3, z3])
+    truncated_cone(p0, p1, 0, np.tan(np.deg2rad(30)) * size)
 
     ax.set_xlim3d([200, 1600])
     ax.set_ylim3d([200, 1200])
@@ -190,6 +231,7 @@ def new_draw_3d_coor(ax, yaw, pitch, roll, tdx=None, tdy=None, size=100, pts68=N
         + tdz
     )
 
+    size = 1100
     # Z-Axis pointing out of the screen. drawn in blue
     x3 = size * (np.sin(yaw + np.pi)) + tdx
     y3 = size * (-np.cos(yaw + np.pi) * np.sin(pitch)) + tdy
@@ -198,6 +240,10 @@ def new_draw_3d_coor(ax, yaw, pitch, roll, tdx=None, tdy=None, size=100, pts68=N
     ax.plot([tdx, x1], [tdy, y1], [tdz, z1], "r-", linewidth=2)
     ax.plot([tdx, x2], [tdy, y2], [tdz, z2], "g-", linewidth=2)
     ax.plot([tdx, x3], [tdy, y3], [tdz, z3], "b-", linewidth=2)
+
+    p0 = np.array([tdx, tdy, tdz])
+    p1 = np.array([x3, y3, z3])
+    truncated_cone(p0, p1, 0, np.tan(np.deg2rad(30)) * size)
 
     # Set axis limits and labels
     ax.set_xlim3d([200, 1600])
