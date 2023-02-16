@@ -42,7 +42,17 @@ class BoxAnnotator:
             np.ndarray: Annotated frame
         """
         frame = frame.copy()
-        for i, (bbox, _, class_id, _, _, _, _, emotion, _) in enumerate(detections):
+
+        bboxes = detections.bboxes
+        class_ids = detections.class_id
+        emotions = detections.emotion
+
+        for i in range(len(detections)):
+
+            class_id = class_ids[i]
+            emotion = emotions[i]
+            bbox = bboxes[i]
+
             if isinstance(self.color, ColorPalette):
                 color = self.color.by_idx(class_id)
             else:

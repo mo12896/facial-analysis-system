@@ -15,6 +15,8 @@ class Detections:
         head_pose_keypoints: Optional[List] = None,
         emotion: Optional[np.ndarray] = None,
         tracker_id: Optional[np.ndarray] = None,
+        tracks: Optional[np.ndarray] = None,
+        gaze_detections: Optional[np.ndarray] = None,
     ):
         self.bboxes = bboxes
         self.confidence = confidence
@@ -25,6 +27,8 @@ class Detections:
         self.head_pose_keypoints = head_pose_keypoints
         self.emotion = emotion
         self.tracker_id = tracker_id
+        self.tracks = tracks
+        self.gaze_detections = gaze_detections
 
         n = len(self.bboxes)
         validators = [
@@ -70,6 +74,8 @@ class Detections:
                 else None,
                 self.emotion[i] if self.emotion is not None else None,
                 self.tracker_id[i] if self.tracker_id is not None else None,
+                self.tracks[i] if self.tracks is not None else None,
+                self.gaze_detections[i] if self.gaze_detections is not None else None,
             )
 
     # Legacy implementation from retinface package (15x slower than insightface)
@@ -178,6 +184,10 @@ class Detections:
                 tracker_id=self.tracker_id[mask]
                 if self.tracker_id is not None
                 else None,
+                tracks=self.tracks[mask] if self.tracks is not None else None,
+                gaze_detections=self.gaze_detections[mask]
+                if self.gaze_detections is not None
+                else None,
             )
 
     def match_poses(self, group_keypoints):
@@ -203,6 +213,8 @@ class Detections:
             body_pose_keypoints=body_pose_keypoints,
             emotion=self.emotion,
             tracker_id=self.tracker_id,
+            tracks=self.tracks,
+            gaze_detections=self.gaze_detections,
         )
 
     def match_head_poses(self, poses, pts_res):
@@ -233,6 +245,8 @@ class Detections:
             head_pose_keypoints=head_pose_keypoints,
             emotion=self.emotion,
             tracker_id=self.tracker_id,
+            tracks=self.tracks,
+            gaze_detections=self.gaze_detections,
         )
 
     @classmethod

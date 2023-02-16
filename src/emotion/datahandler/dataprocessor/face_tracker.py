@@ -7,6 +7,7 @@ from onemetric.cv.utils.iou import box_iou_batch
 from yolox.tracker.byte_tracker import BYTETracker, STrack
 
 from src.emotion.utils.detections import Detections
+from src.emotion.utils.utils import timer
 
 
 class Tracker(ABC):
@@ -116,6 +117,7 @@ class ByteTracker(Tracker):
         args = parameters.get("args", BYTETrackerArgs)
         self.tracker = BYTETracker(args)
 
+    @timer
     def track_faces(self, detections: Detections, image: np.ndarray) -> Detections:
         """Track faces in a given frame.
 
@@ -131,6 +133,8 @@ class ByteTracker(Tracker):
             img_info=image.shape,
             img_size=image.shape,
         )
+
+        detections.tracks = np.array([track.tlbr for track in tracks])
 
         tracker_id = self.match_detections_with_tracks(
             detections=detections, tracks=tracks
