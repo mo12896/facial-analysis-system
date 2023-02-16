@@ -66,24 +66,56 @@ def plot_truncated_cone(p0, p1, R0, R1):
     ax.plot_wireframe(X, Y, Z, linewidth=0.5, alpha=0.5)
 
 
-def detect_points_inside_cone(tip, n_vector, height, points: list):
+def detect_points_inside_cone(tip_cone, base_cone, height, points: list, person=None):
     """Detect if a list of points is inside a cone
     (https://stackoverflow.com/questions/12826117/how-can-i-detect-if-a-point-is-inside-a-cone-or-not-in-3d-space)
 
     Args:
-        tip (_type_): Coordinates of the tip of the cone
-        n_vector (_type_): Normalized axis vector pointing from tip to base
+        tip_cone (_type_): Coordinates of the tip of the cone
+        base_cone (_type_): Normalized axis vector pointing from tip to base
         height (_type_): Height of cone
         radius (_type_): Base radius of the cone
         points (list): List point to test
     """
+
     points_inside_cone = []
+    # Calculate the unit vector pointing in the direction of the cone
+    vector = base_cone - tip_cone
+    norm_vector = vector / np.linalg.norm(vector)
     # Based off assumption that the core binocular field of view of
     # humans is 60 degrees
-    radius = np.tan(np.deg2rad(60)) * height
+    radius = np.tan(np.deg2rad(30)) * height
+
+    # Verification plots
+    # ax.plot(
+    #     [tip_cone[0], base_cone[0]],
+    #     [tip_cone[1], base_cone[1]],
+    #     [tip_cone[2], base_cone[2]],
+    #     "b-",
+    #     linewidth=2,
+    # )
+
+    # ax.text(
+    #     tip_cone[0], tip_cone[1], tip_cone[2], person, color="black", fontsize=12, fontweight="bold"
+    # )
+
+    # ax.scatter(
+    #     points[:, 0],
+    #     points[:, 1],
+    #     points[:, 2],
+    #     color="black",
+    #     s=1,
+    # )
+
+    # plot_truncated_cone(tip, base_cone, 0, np.tan(np.deg2rad(30)) * height)
+
     # calculate cone distance
     for p in points:
-        cone_dist = np.dot(p - tip, n_vector)
+        # Calculate the vector from the tip of the cone to the given point
+        dist = p - tip_cone
+        # Calculate the distance from the tip of the cone to the given point
+        # along the direction of the cone
+        cone_dist = np.dot(dist, norm_vector)
 
         # reject points outside of the cone
         if cone_dist < 0 or cone_dist > height:
@@ -91,7 +123,7 @@ def detect_points_inside_cone(tip, n_vector, height, points: list):
         else:
             # calculate cone radius and orthogonal distance
             cone_radius = (cone_dist / height) * radius
-            orth_distance = np.linalg.norm((p - tip) - cone_dist * n_vector)
+            orth_distance = np.linalg.norm((p - tip_cone) - cone_dist * norm_vector)
 
             # check if point is inside cone
             points_inside_cone.append(orth_distance < cone_radius)
@@ -119,10 +151,12 @@ def draw_3d_axis(
         tdx = pts68[0][30]
         tdy = pts68[1][30]
 
+        points = np.stack([pts68[0][:], pts68[1][:], -1 * np.array(range(68))], axis=1)
+
         ax.scatter(
-            pts68[0][:],
-            pts68[1][:],
-            -1 * np.array(range(68)),
+            points[:, 0],
+            points[:, 1],
+            points[:, 2],
             color="black",
             s=1,
         )
@@ -211,13 +245,15 @@ def new_draw_3d_axis(
             # Reflect the x-coordinates about the x-axis at their center point
             x_reflected = -1 * (pts68[0] - x_mean) + x_mean
 
-            ax.scatter(
-                x_reflected + int(1848 / 2),
-                pts68[1][:] + y_offset,
-                1 * np.array(range(68)) + tdz,
-                color="black",
-                s=1,
+            points = np.stack(
+                [
+                    x_reflected + int(1848 / 2),
+                    pts68[1][:] + y_offset,
+                    -1 * np.array(range(68)) + tdz,
+                ],
+                axis=1,
             )
+
         else:
             tdx = pts68[0][30] - int(1848 / 2)
             tdy = pts68[1][30] + y_offset
@@ -228,13 +264,22 @@ def new_draw_3d_axis(
             # Reflect the x-coordinates about the x-axis at their center point
             x_reflected = -1 * (pts68[0] - x_mean) + x_mean
 
-            ax.scatter(
-                x_reflected - int(1848 / 2),
-                pts68[1][:] + y_offset,
-                1 * np.array(range(68)) + tdz,
-                color="black",
-                s=1,
+            points = np.stack(
+                [
+                    x_reflected - int(1848 / 2),
+                    pts68[1][:] + y_offset,
+                    1 * np.array(range(68)) + tdz,
+                ],
+                axis=1,
             )
+
+    ax.scatter(
+        points[:, 0],
+        points[:, 1],
+        points[:, 2],
+        color="black",
+        s=1,
+    )
 
     # Define axis endpoints
     size = 100
@@ -302,52 +347,6 @@ def new_draw_3d_axis(
     return ax
 
 
-# For testing
-def draw_3d_coor(yaw, pitch, roll, tdx, tdy):
-    # Define axis endpoints
-    size = 100
-    # X-Axis pointing to right. drawn in red
-    x1 = size * (np.cos(yaw) * np.cos(roll)) + tdx
-    y1 = (
-        size
-        * (np.cos(pitch) * np.sin(roll) + np.cos(roll) * np.sin(pitch) * np.sin(yaw))
-        + tdy
-    )
-    z1 = size * (
-        -np.cos(pitch) * np.cos(roll) * np.sin(yaw) + np.sin(pitch) * np.sin(roll)
-    )
-
-    # Y-Axis pointing down. drawn in green
-    x2 = size * (-np.cos(yaw) * np.sin(roll)) + tdx
-    y2 = (
-        size
-        * (np.cos(pitch) * np.cos(roll) - np.sin(pitch) * np.sin(yaw) * np.sin(roll))
-        + tdy
-    )
-    z2 = size * (
-        np.cos(pitch) * np.sin(yaw) * np.sin(roll) + np.cos(roll) * np.sin(pitch)
-    )
-
-    # Z-Axis pointing out of the screen. drawn in blue
-    x3 = size * (np.sin(yaw)) + tdx
-    y3 = size * (-np.cos(yaw) * np.sin(pitch)) + tdy
-    z3 = -size * (np.cos(pitch) * np.cos(yaw))
-
-    ax.plot([tdx, x1], [tdy, y1], [0, z1], "r-", linewidth=2)
-    ax.plot([tdx, x2], [tdy, y2], [0, z2], "g-", linewidth=2)
-    ax.plot([tdx, x3], [tdy, y3], [0, z3], "b-", linewidth=2)
-
-    # Set axis limits and labels
-    ax.set_xlim3d([200, 1600])
-    ax.set_ylim3d([200, 1200])
-    ax.set_zlim3d([-1000, 0])
-    ax.set_xlabel("X")
-    ax.set_ylabel("Y")
-    ax.set_zlabel("Z")
-
-    return ax
-
-
 def prepare_data(yaw, pitch, roll, tdx, tdy, size=1100, pts68=None):
     pitch = pitch * np.pi / 180
     yaw = -(yaw * np.pi / 180)
@@ -366,14 +365,13 @@ def prepare_data(yaw, pitch, roll, tdx, tdy, size=1100, pts68=None):
         # Z-Axis pointing out of the screen.
         x3 = size * (np.sin(yaw)) + tdx
         y3 = size * (-np.cos(yaw) * np.sin(pitch)) + tdy
-        z3 = -size * (np.cos(pitch) * np.cos(yaw))
+        z3 = -size * (np.cos(pitch) * np.cos(yaw)) + 0
 
         vector = np.array([x3, y3, z3])
-        n_vector = vector / np.linalg.norm(vector)
 
         tip = np.array([tdx, tdy, 0])
 
-        return tip, n_vector, points
+        return tip, vector, points
 
     else:
         # Half of image height
@@ -426,16 +424,16 @@ def prepare_data(yaw, pitch, roll, tdx, tdy, size=1100, pts68=None):
         z3 = -size * (np.cos(pitch) * np.cos(yaw + np.pi)) + tdz
 
         vector = np.array([x3, y3, z3])
-        n_vector = vector / np.linalg.norm(vector)
+
         tip = np.array([tdx, tdy, tdz])
 
-        return tip, n_vector, points
+        return tip, vector, points
 
 
 if __name__ == "__main__":
     fig = plt.figure()
     ax = fig.add_subplot(111, projection="3d")
-    ax.view_init(elev=0, azim=-90)
+    # ax.view_init(elev=0, azim=-90)
 
     face_detector = create_face_detector({"type": "scrfd"})
     image = cv2.imread("/home/moritz/Workspace/masterthesis/data/test_image.png")
@@ -464,40 +462,45 @@ if __name__ == "__main__":
         )
         identities.append(Identity(person, n_vector, tip, pts))
 
-        if translation[1] > int(1053 / 2):
-            draw_3d_axis(
-                ax,
-                angles[0],
-                angles[1],
-                angles[2],
-                translation[0],
-                translation[1],
-                size=10,
-                pts68=lmks,
-                person=person,
-            )
-        else:
-            new_draw_3d_axis(
-                ax,
-                angles[0],
-                angles[1],
-                angles[2],
-                translation[0],
-                translation[1],
-                size=10,
-                pts68=lmks,
-                person=person,
-            )
+        # if translation[1] > int(1053 / 2):
+        #     draw_3d_axis(
+        #         ax,
+        #         angles[0],
+        #         angles[1],
+        #         angles[2],
+        #         translation[0],
+        #         translation[1],
+        #         size=10,
+        #         pts68=lmks,
+        #         person=person,
+        #     )
+        # else:
+        #     new_draw_3d_axis(
+        #         ax,
+        #         angles[0],
+        #         angles[1],
+        #         angles[2],
+        #         translation[0],
+        #         translation[1],
+        #         size=10,
+        #         pts68=lmks,
+        #         person=person,
+        #     )
 
     true_tresh = 0.8
 
     for i in range(len(identities)):
         for j in range(len(identities)):
             pts_in_cone = detect_points_inside_cone(
-                identities[i].tip, identities[i].n_vector, 1100, identities[j].points
+                identities[i].tip,
+                identities[i].n_vector,
+                1100,
+                identities[j].points,
+                identities[i].person_id,
             )
             if pts_in_cone.count(True) / len(pts_in_cone) >= true_tresh:
-                identities[i].sights.append(identities[j].person_id)
+                if not identities[i].person_id is identities[j].person_id:
+                    identities[i].sights.append(identities[j].person_id)
 
     for identity in identities:
         print(f"Person {identity.person_id} sees {identity.sights}")
