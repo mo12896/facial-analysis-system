@@ -6,6 +6,13 @@ from typing import List, Tuple
 import cv2
 import numpy as np
 
+from src.emotion.datahandler.dataprocessor.face_detector import create_face_detector
+from src.emotion.datahandler.dataprocessor.head_pose_estimator import (
+    create_head_pose_detector,
+)
+from src.emotion.utils.detections import Detections
+from src.emotion.utils.utils import timer
+
 # grandparent_folder = os.path.abspath(
 #     os.path.join(
 #         os.path.dirname(os.path.abspath(__file__)),
@@ -16,14 +23,6 @@ import numpy as np
 #     )
 # )
 # sys.path.append(grandparent_folder)
-
-
-from src.emotion.datahandler.dataprocessor.face_detector import create_face_detector
-from src.emotion.datahandler.dataprocessor.head_pose_estimator import (
-    create_head_pose_detector,
-)
-from src.emotion.utils.detections import Detections
-from src.emotion.utils.utils import timer
 
 
 @dataclass
@@ -42,13 +41,21 @@ class GazeDetector:
 
     @timer
     def detect_gazes(self, detections: Detections) -> Detections:
+        """Function to detect gazes in a set of detections
 
+        Args:
+            detections (Detections): Detections object containing the detections
+
+        Returns:
+            Detections: Detection object with gaze detections
+        """
         persons = detections.class_id
         poses = detections.head_pose_keypoints
+        pts_res = detections.facial_landmarks
 
         identities: list[Identity] = []
 
-        for person, (angles, translation, lmks) in zip(persons, poses):
+        for person, (angles, translation), lmks in zip(persons, poses, pts_res):
             tip, n_vector, pts = self.prepare_data(
                 angles[0],
                 angles[1],
@@ -72,8 +79,8 @@ class GazeDetector:
                     if not identities[i].person_id is identities[j].person_id:
                         identities[i].sights.append(identities[j].person_id)
 
-        for identity in identities:
-            print(f"Person {identity.person_id} sees {identity.sights}")
+        # for identity in identities:
+        #     print(f"Person {identity.person_id} sees {identity.sights}")
 
         detections.gaze_detections = np.array(
             [identity.sights for identity in identities]
@@ -83,6 +90,20 @@ class GazeDetector:
 
     @staticmethod
     def prepare_data(yaw, pitch, roll, tdx, tdy, size=1100, pts68=None) -> Tuple:
+        """Function to prepare the data for the gaze detection
+
+        Args:
+            yaw (_type_): _description_
+            pitch (_type_): _description_
+            roll (_type_): _description_
+            tdx (_type_): _description_
+            tdy (_type_): _description_
+            size (int, optional): _description_. Defaults to 1100.
+            pts68 (_type_, optional): _description_. Defaults to None.
+
+        Returns:
+            Tuple: Tuple of cone tip, cone base and list of face associated points
+        """
         pitch = pitch * np.pi / 180
         yaw = -(yaw * np.pi / 180)
         roll = roll * np.pi / 180

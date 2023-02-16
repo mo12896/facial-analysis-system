@@ -21,7 +21,7 @@ class HeadPoseAnnotator:
 
         image_cpy = self.draw_landmarks(image_cpy, pts_res)
 
-        for angles, translation, lmks in poses:
+        for (angles, translation), lmks in zip(poses, pts_res):
             image_cpy = draw_axis(
                 image_cpy,
                 angles[0],

@@ -3,6 +3,7 @@ from typing import Callable
 
 from dataclass_csv import DataclassReader, DataclassWriter
 
+
 from .constants import IDENTITY_DIR
 from .detections import Detections
 

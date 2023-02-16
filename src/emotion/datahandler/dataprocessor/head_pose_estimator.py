@@ -40,7 +40,9 @@ class HeadPoseDetector(ABC):
         self.parameters = parameters
 
     @abstractmethod
-    def detect_head_pose(self, image: np.ndarray, detections: Detections) -> Detections:
+    def detect_head_poses(
+        self, image: np.ndarray, detections: Detections
+    ) -> Detections:
         """Abstract method to detect head pose in a given frame.
 
         Args:
@@ -77,7 +79,9 @@ class SynergyHeadPoseDetector(HeadPoseDetector):
         self.img_size = 120
 
     @timer
-    def detect_head_pose(self, image: np.ndarray, detections: Detections) -> Detections:
+    def detect_head_poses(
+        self, image: np.ndarray, detections: Detections
+    ) -> Detections:
         pts_res = []
         poses = []
 
@@ -116,7 +120,7 @@ class SynergyHeadPoseDetector(HeadPoseDetector):
             angles, translation = predict_pose(param, roi_box)
 
             pts_res.append(lmks)
-            poses.append([angles, translation, lmks])
+            poses.append([angles, translation])
 
         detections = detections.match_head_poses(poses, pts_res)
 
@@ -130,7 +134,7 @@ if __name__ == "__main__":
 
     head_pose_detector = create_head_pose_detector({"type": "synergy"})
 
-    detections = head_pose_detector.detect_head_pose(image, detections)
+    detections = head_pose_detector.detect_head_poses(image, detections)
 
     annotator = HeadPoseAnnotator()
     img = annotator.annotate(image, detections)

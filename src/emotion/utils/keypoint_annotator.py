@@ -29,6 +29,8 @@ class KeyPointAnnotator:
         detections: Detections,
     ) -> np.ndarray:
 
+        limb_canvas = image.copy()
+
         for i in range(18):
             for n in range(len(detections.body_pose_keypoints)):
                 index = detections.body_pose_keypoints[n][i]
@@ -48,7 +50,6 @@ class KeyPointAnnotator:
                 index = detections.body_pose_keypoints[n][np.array(limb_seq[i]) - 1]
                 if -1 in index:
                     continue
-                cur_canvas = image.copy()
                 Y = index.astype(int)[:, 0]
                 X = index.astype(int)[:, 1]
                 mX = np.mean(X)
@@ -63,8 +64,9 @@ class KeyPointAnnotator:
                     360,
                     1,
                 )
-                cv2.fillConvexPoly(cur_canvas, polygon, pose_colors[i])
-                image = cv2.addWeighted(image, 0.4, cur_canvas, 0.6, 0)
+                cv2.fillConvexPoly(limb_canvas, polygon, pose_colors[i])
+
+        image = cv2.addWeighted(image, 0.4, limb_canvas, 0.6, 0)
 
         return image
 

@@ -6,6 +6,11 @@ import matplotlib.pyplot as plt
 import numpy as np
 from scipy.linalg import norm
 
+from src.emotion.datahandler.dataprocessor.face_detector import create_face_detector
+from src.emotion.datahandler.dataprocessor.head_pose_estimator import (
+    create_head_pose_detector,
+)
+
 # grandparent_folder = os.path.abspath(
 #     os.path.join(
 #         os.path.dirname(os.path.abspath(__file__)),
@@ -15,12 +20,6 @@ from scipy.linalg import norm
 #     )
 # )
 # sys.path.append(grandparent_folder)
-
-
-from src.emotion.datahandler.dataprocessor.face_detector import create_face_detector
-from src.emotion.datahandler.dataprocessor.head_pose_estimator import (
-    create_head_pose_detector,
-)
 
 
 def plot_truncated_cone(p0, p1, R0, R1):
@@ -298,7 +297,6 @@ if __name__ == "__main__":
     poses = detections.head_pose_keypoints
 
     for person, (angles, translation, lmks) in zip(persons, poses):
-
         if translation[1] > int(1053 / 2):
             draw_3d_axis(
                 ax,

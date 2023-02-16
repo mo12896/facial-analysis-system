@@ -45,6 +45,7 @@ class Runner:
         self.embed_params = self.args.get("EMBEDDER", "insightface")
         self.pose_params = self.args.get("POSE_ESTIMATOR", "l_openpose")
         self.head_pose_params = self.args.get("HEAD_POSE_ESTIMATOR", "synergy")
+        self.gaze_params = self.args.get("GAZE_DETECTOR")
 
         # Instaniate necessary objects
         self.video_info = VideoInfo.from_video_path(self.video_path)
@@ -60,7 +61,9 @@ class Runner:
         self.identities_handler = IdentityHandler()
         self.head_pose_estimator = create_head_pose_detector(self.head_pose_params)
         self.head_pose_annotator = HeadPoseAnnotator()
-        self.gaze_detector = GazeDetector()
+        self.gaze_detector = GazeDetector(
+            self.gaze_params["fov"], self.gaze_params["true_thresh"]
+        )
 
     @with_logging(logger)
     def run(self):
@@ -97,7 +100,7 @@ class Runner:
                     )
 
                     detections = self.pose_estimator.estimate_poses(frame, detections)
-                    detections = self.head_pose_estimator.detect_head_pose(
+                    detections = self.head_pose_estimator.detect_head_poses(
                         frame, detections
                     )
 
