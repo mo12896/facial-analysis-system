@@ -46,7 +46,7 @@ def preprocess_data(df: pd.DataFrame) -> pd.DataFrame:
                     interp_row = last_frame.copy()
                     interp_row["Frame"] = missing_frame
                     for col in df.columns:
-                        if col not in ["Frame", "ClassID"]:
+                        if col not in ["Frame", "ClassID", "GazeDetections"]:
                             interp_row[col] = (
                                 last_frame[col] * (row["Frame"] - missing_frame)
                                 + row[col] * (missing_frame - last_frame["Frame"])
