@@ -1,8 +1,8 @@
 from dataclasses import dataclass
 from typing import Callable
 
+import numpy as np
 from dataclass_csv import DataclassReader, DataclassWriter
-
 
 from .constants import IDENTITY_DIR
 from .detections import Detections
@@ -15,10 +15,8 @@ class IdentityState:
     frame_count: int = 0
     class_id: str = ""
     confidence: float = 0.0
-    xmin: int = 0
-    ymin: int = 0
-    xmax: int = 0
-    ymax: int = 0
+    x_center: int = 0
+    y_center: int = 0
     angry: float = 0.0
     disgust: float = 0.0
     happy: float = 0.0
@@ -26,6 +24,7 @@ class IdentityState:
     surprise: float = 0.0
     fear: float = 0.0
     neutral: float = 0.0
+    gaze_detects: np.ndarray = np.array([])
 
 
 class IdentityHandler:
@@ -60,16 +59,18 @@ class IdentityHandler:
         """
         self._identities_states = []
 
-        bboxes = detections.bboxes
+        bbox_centerpoints = detections.bbox_centerpoints
         confidences = detections.confidence
         class_ids = detections.class_id
         emotions = detections.emotion
+        gaze_detects = detections.gaze_detections
 
         for i in range(len(detections)):
-            bbox = bboxes[i]
+            bbox = bbox_centerpoints[i]
             conf = confidences[i]
             class_id = class_ids[i]
             emotion = emotions[i]
+            gaze_detect = gaze_detects[i]
 
             if emotion is None:
                 emotion = {}
@@ -78,10 +79,8 @@ class IdentityHandler:
                 frame_count=frame,
                 class_id=class_id,
                 confidence=conf,
-                xmin=bbox[0],
-                ymin=bbox[1],
-                xmax=bbox[2],
-                ymax=bbox[3],
+                x_center=bbox[0],
+                y_center=bbox[1],
                 angry=emotion.get("angry", 0.0),
                 disgust=emotion.get("disgust", 0.0),
                 happy=emotion.get("happy", 0.0),
@@ -89,6 +88,7 @@ class IdentityHandler:
                 surprise=emotion.get("surprise", 0.0),
                 fear=emotion.get("fear", 0.0),
                 neutral=emotion.get("neutral", 0.0),
+                gaze_detects=gaze_detect,
             )
             self._identities_states.append(identity_state)
 
@@ -113,8 +113,9 @@ class IdentityHandler:
                     w.map("surprise").to("Surprise")
                     w.map("fear").to("Fear")
                     w.map("neutral").to("Neutral")
+                    w.map("gaze_detects").to("GazeDetections")
                     w.write()
-                    return
+                    continue
 
             with open(self.filename, "a") as f:
                 w = DataclassWriter(f, [identity_state], IdentityState)
@@ -145,6 +146,7 @@ class IdentityHandler:
             reader.map("Surprise").to("surprise")
             reader.map("Fear").to("fear")
             reader.map("Neutral").to("neutral")
+            reader.map("GazeDetections").to("gaze_detects")
 
             for row in reader:
                 row.bboxes = self.cast_list_of_strings(row.bboxes)
