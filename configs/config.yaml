@@ -16,6 +16,7 @@ POSE_ESTIMATOR:
 HEAD_POSE_ESTIMATOR:
   type: synergy
 GAZE_DETECTOR:
-  fov: 30
-  true_thresh: 0.9
+  fov: 60
+  true_thresh: 1.0
+  axis_length: 2000
 ANCHOR_EMBDDINGS: "database/embeddings.db"

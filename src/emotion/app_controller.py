@@ -62,7 +62,9 @@ class Runner:
         self.head_pose_estimator = create_head_pose_detector(self.head_pose_params)
         self.head_pose_annotator = HeadPoseAnnotator()
         self.gaze_detector = GazeDetector(
-            self.gaze_params["fov"], self.gaze_params["true_thresh"]
+            self.gaze_params["fov"],
+            self.gaze_params["true_thresh"],
+            self.gaze_params["axis_length"],
         )
 
     @with_logging(logger)

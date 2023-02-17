@@ -35,9 +35,12 @@ class Identity:
 
 
 class GazeDetector:
-    def __init__(self, fov: int = 30, true_thresh: float = 0.8) -> None:
-        self.fov = fov
+    def __init__(
+        self, fov: int = 60, true_thresh: float = 0.8, axis_length: int = 1100
+    ) -> None:
+        self.fov = fov / 2
         self.true_thresh = true_thresh
+        self.axis_length = axis_length
 
     @timer
     def detect_gazes(self, detections: Detections) -> Detections:
@@ -62,6 +65,7 @@ class GazeDetector:
                 angles[2],
                 translation[0],
                 translation[1],
+                size=self.axis_length,
                 pts68=lmks,
             )
             identities.append(Identity(person, n_vector, tip, pts))
@@ -71,7 +75,7 @@ class GazeDetector:
                 pts_in_cone = self.detect_points_inside_cone(
                     identities[i].tip,
                     identities[i].n_vector,
-                    1100,
+                    self.axis_length,
                     identities[j].points,
                     identities[i].person_id,
                 )
@@ -79,8 +83,8 @@ class GazeDetector:
                     if not identities[i].person_id is identities[j].person_id:
                         identities[i].sights.append(identities[j].person_id)
 
-        # for identity in identities:
-        #     print(f"Person {identity.person_id} sees {identity.sights}")
+        for identity in identities:
+            print(f"Person {identity.person_id} sees {identity.sights}")
 
         detections.gaze_detections = np.array(
             [identity.sights for identity in identities]
@@ -89,7 +93,7 @@ class GazeDetector:
         return detections
 
     @staticmethod
-    def prepare_data(yaw, pitch, roll, tdx, tdy, size=1100, pts68=None) -> Tuple:
+    def prepare_data(yaw, pitch, roll, tdx, tdy, size, pts68=None) -> Tuple:
         """Function to prepare the data for the gaze detection
 
         Args:
@@ -133,7 +137,7 @@ class GazeDetector:
             # Half of image height
             y_offset = int(1053 / 2)
             # Estimated distance in between people in the room
-            tdz = -1000
+            tdz = -900
 
             if pts68 is not None:
                 # Half of image width

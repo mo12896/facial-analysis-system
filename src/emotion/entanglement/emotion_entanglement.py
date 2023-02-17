@@ -5,6 +5,7 @@ import networkx as nx
 import numpy as np
 import pandas as pd
 from scipy.spatial.distance import pdist, squareform
+from tslearn.metrics import cdist_dtw
 
 IDENTITY_DIR = Path("/home/moritz/Workspace/masterthesis/data/identities")
 
@@ -18,7 +19,7 @@ def preprocess_data(df: pd.DataFrame) -> pd.DataFrame:
     # group the DataFrame by ClassID
     grouped = df.groupby("ClassID")
 
-    max_length = grouped.apply(lambda x: len(x)).max()
+    max_length = df["Frame"].max()
 
     # iterate over each group and interpolate missing frames
     for _, group in grouped:
@@ -26,13 +27,14 @@ def preprocess_data(df: pd.DataFrame) -> pd.DataFrame:
         # Iterate over the filtered data and fill in missing frames
         last_frame = None
         new_rows = []
-        group_length = group.apply(lambda x: len(x)).max()
-        for i, (_, row) in enumerate(group.iterrows()):
+        group_length = group["Frame"].max()
+
+        for _, row in group.iterrows():
             if last_frame is None:
                 last_frame = row
                 new_rows.append(row)
-            elif i + 1 == group_length:
-                diff = max_length - row["Frame"]
+            elif row["Frame"] == group_length:
+                diff = max_length - len(new_rows)
                 if diff:
                     for j in range(diff):
                         new_row = row.copy()
@@ -55,7 +57,6 @@ def preprocess_data(df: pd.DataFrame) -> pd.DataFrame:
                 last_frame = row
 
         # Combine the new rows with the original data and sort by frame
-
         interpolated_df = pd.concat(
             [interpolated_df, pd.DataFrame(new_rows)], ignore_index=True
         )
@@ -106,17 +107,52 @@ def plot_emotion_entanglement(X: np.ndarray, metric: str, ids, emotion) -> None:
     plt.title(f"Emotion Entanglement for Emotion: {emotion}")
 
     # Compute pairwise distances between all nodes using Euclidean distance
-    distances = pdist(X, metric=metric)
 
-    # Convert condensed distance matrix to square distance matrix
-    dist_matrix = squareform(distances)
+    if metric == "dtw":
+        dist_matrix = cdist_dtw(X)
+    else:
+        distances = pdist(X, metric=metric)
+
+        # Convert condensed distance matrix to square distance matrix
+        dist_matrix = squareform(distances)
 
     # Create a graph from the distance matrix
     G = nx.from_numpy_array(dist_matrix)
 
+    # Compute the average value of each row in X
+    avg_values = np.mean(X, axis=1)
+
+    # Normalize the average values to the range [0, 1]
+    norm_avg_values = avg_values / np.max(avg_values)
+
+    # Create a dictionary that maps node index to normalized average value
+    node_sizes = {i: 5000 * norm_avg_values[i] for i in range(len(ids))}
+
+    # Compute the average distance of each node to all other nodes
+    avg_distances = np.mean(dist_matrix, axis=1)
+
+    # Normalize the average distances to the range [0, 1]
+    norm_avg_distances = avg_distances / np.max(avg_distances)
+
     # Draw the graph with node positions using the kamada_kawai_layout (docs)
     pos = nx.drawing.layout.kamada_kawai_layout(G, dim=2)
-    nx.draw(G, pos)
+    # nx.draw(G, pos)
+    # nx.draw(G, pos, node_size=list(node_sizes.values()))
+    nx.draw(
+        G,
+        pos,
+        node_size=list(node_sizes.values()),
+        node_color=norm_avg_distances,
+        cmap=plt.cm.get_cmap("coolwarm"),
+    )
+
+    # Add colorbar
+    sm = plt.cm.ScalarMappable(
+        cmap=plt.cm.get_cmap("coolwarm"), norm=plt.Normalize(vmin=0, vmax=1)
+    )
+    sm._A = []
+    plt.colorbar(sm)
+
     # # Add labels to the nodes
     labels = {i: class_id for i, class_id in enumerate(ids)}
     nx.draw_networkx_labels(G, pos, labels)
@@ -144,10 +180,10 @@ if __name__ == "__main__":
     df = pd.read_csv(IDENTITY_DIR / "identities.csv")
     pre_df = preprocess_data(df)
     # Choose the same window size as for the emotions over time
-    emotion = "Surprise"
+    emotion = "Neutral"
     emotions = single_emotion(pre_df, emotion, window=150)
-    plot_emotions(emotions, pre_df["ClassID"].unique())
-    # Use correlation, euclidean or cosine
+    # plot_emotions(emotions, pre_df["ClassID"].unique())
+    # Use dtw, correlation or euclidean
     plot_emotion_entanglement(
         emotions, "euclidean", pre_df["ClassID"].unique(), emotion
     )

@@ -116,7 +116,7 @@ def draw_3d_axis(
         np.cos(pitch) * np.sin(yaw) * np.sin(roll) + np.cos(roll) * np.sin(pitch)
     )
 
-    size = 1100
+    size = 2000
     b_r = np.tan(np.deg2rad(30)) * size
     # Z-Axis pointing out of the screen. drawn in blue
     x3 = size * (np.sin(yaw)) + tdx
@@ -164,7 +164,7 @@ def new_draw_3d_axis(
     # Half of image height
     y_offset = int(1053 / 2)
     # Estimated distance in between people in the room
-    tdz = -1000
+    tdz = -900
 
     if pts68 is not None:
         # Half of image width
@@ -254,7 +254,7 @@ def new_draw_3d_axis(
         + tdz
     )
 
-    size = 1100
+    size = 2000
     # Z-Axis pointing out of the screen. drawn in blue
     x3 = size * (np.sin(yaw + np.pi)) + tdx
     y3 = size * (-np.cos(yaw + np.pi) * np.sin(pitch)) + tdy
@@ -291,12 +291,13 @@ if __name__ == "__main__":
 
     head_pose_detector = create_head_pose_detector({"type": "synergy"})
 
-    detections = head_pose_detector.detect_head_pose(image, detections)
+    detections = head_pose_detector.detect_head_poses(image, detections)
 
     persons = detections.class_id
     poses = detections.head_pose_keypoints
+    pts_res = detections.facial_landmarks
 
-    for person, (angles, translation, lmks) in zip(persons, poses):
+    for person, (angles, translation), lmks in zip(persons, poses, pts_res):
         if translation[1] > int(1053 / 2):
             draw_3d_axis(
                 ax,
