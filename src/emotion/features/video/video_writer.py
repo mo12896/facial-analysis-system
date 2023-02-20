@@ -4,7 +4,7 @@ from pathlib import Path
 import cv2
 import numpy as np
 
-from src.emotion.datahandler.video_handler.video_info import VideoInfo
+from src.emotion.features.video.video_info import VideoInfo
 from src.emotion.utils.app_enums import VideoCodecs
 
 

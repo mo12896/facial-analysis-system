@@ -2,21 +2,21 @@ from pathlib import Path
 
 from tqdm import tqdm
 
-from src.emotion.datahandler.dataprocessor.face_detector import create_face_detector
-from src.emotion.datahandler.dataprocessor.face_embedder import create_face_embedder
-from src.emotion.datahandler.dataprocessor.face_emotion_detector import (
+from src.emotion.features.extractors.face_detector import create_face_detector
+from src.emotion.features.extractors.face_embedder import create_face_embedder
+from src.emotion.features.extractors.face_emotion_detector import (
     create_emotion_detector,
 )
-from src.emotion.datahandler.dataprocessor.face_filter import ReIdentification
-from src.emotion.datahandler.dataprocessor.face_tracker import create_tracker
-from src.emotion.datahandler.dataprocessor.gaze_detector import GazeDetector
-from src.emotion.datahandler.dataprocessor.head_pose_estimator import (
+from src.emotion.features.extractors.face_reid import ReIdentification
+from src.emotion.features.extractors.face_tracker import create_tracker
+from src.emotion.features.extractors.gaze_detector import GazeDetector
+from src.emotion.features.extractors.head_pose_estimator import (
     create_head_pose_detector,
 )
-from src.emotion.datahandler.dataprocessor.pose_estimator import create_pose_estimator
-from src.emotion.datahandler.video_handler.video_info import VideoInfo
-from src.emotion.datahandler.video_handler.video_loader import VideoDataLoader
-from src.emotion.datahandler.video_handler.video_writer import VideoDataWriter
+from src.emotion.features.extractors.pose_estimator import create_pose_estimator
+from src.emotion.features.video.video_info import VideoInfo
+from src.emotion.features.video.video_loader import VideoDataLoader
+from src.emotion.features.video.video_writer import VideoDataWriter
 from src.emotion.utils.annotator import BoxAnnotator
 from src.emotion.utils.app_enums import VideoCodecs
 from src.emotion.utils.color import Color

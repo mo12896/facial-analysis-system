@@ -16,7 +16,7 @@ from external.light_openpose.val import normalize, pad_width
 # TODO: Change back from symlink to external import!
 from pytop.pyt_openpose.body import Body
 from pytop.pyt_openpose.hand import Hand
-from src.emotion.datahandler.dataprocessor.face_detector import create_face_detector
+from src.emotion.features.extractors.face_detector import create_face_detector
 from src.emotion.utils.color import Color
 from src.emotion.utils.constants import DATA_DIR, MODEL_DIR
 from src.emotion.utils.detections import Detections
