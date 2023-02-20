@@ -6,11 +6,11 @@ from typing import List, Tuple
 import cv2
 import numpy as np
 
+from src.emotion.features.detections import Detections
 from src.emotion.features.extractors.face_detector import create_face_detector
 from src.emotion.features.extractors.head_pose_estimator import (
     create_head_pose_detector,
 )
-from src.emotion.utils.detections import Detections
 from src.emotion.utils.utils import timer
 
 # grandparent_folder = os.path.abspath(

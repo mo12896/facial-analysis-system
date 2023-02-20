@@ -4,8 +4,8 @@ from typing import Callable
 import numpy as np
 from dataclass_csv import DataclassReader, DataclassWriter
 
-from .constants import IDENTITY_DIR
-from .detections import Detections
+from src.emotion.features.detections import Detections
+from src.emotion.utils.constants import IDENTITY_DIR
 
 
 @dataclass(slots=True)

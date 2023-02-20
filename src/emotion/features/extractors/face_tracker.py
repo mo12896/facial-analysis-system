@@ -6,7 +6,7 @@ import numpy as np
 from onemetric.cv.utils.iou import box_iou_batch
 from yolox.tracker.byte_tracker import BYTETracker, STrack
 
-from src.emotion.utils.detections import Detections
+from src.emotion.features.detections import Detections
 from src.emotion.utils.utils import timer
 
 

@@ -3,8 +3,8 @@ import pandas as pd
 import scipy.optimize
 from sklearn.metrics.pairwise import cosine_similarity
 
+from src.emotion.features.detections import Detections
 from src.emotion.features.extractors.face_embedder import FaceEmbedder
-from src.emotion.utils.detections import Detections
 from src.emotion.utils.utils import SQLite
 
 

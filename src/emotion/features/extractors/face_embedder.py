@@ -10,7 +10,7 @@ import numpy as np
 import pandas as pd
 from insightface.app import FaceAnalysis
 
-from src.emotion.utils.detections import Detections
+from src.emotion.features.detections import Detections
 from src.emotion.utils.utils import timer
 
 

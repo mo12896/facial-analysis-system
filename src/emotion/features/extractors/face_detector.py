@@ -9,10 +9,10 @@ import numpy as np
 from insightface.app import FaceAnalysis
 from retinaface import RetinaFace
 
-from src.emotion.utils.annotator import BoxAnnotator
+from src.emotion.features.annotators.annotator import BoxAnnotator
+from src.emotion.features.detections import Detections
 from src.emotion.utils.color import Color
 from src.emotion.utils.constants import OPENCV_MODEL
-from src.emotion.utils.detections import Detections
 from src.emotion.utils.utils import timer
 
 # grandparent_folder = os.path.abspath(

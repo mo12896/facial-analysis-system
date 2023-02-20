@@ -4,12 +4,12 @@ from typing import Union
 import cv2
 import numpy as np
 
-from .color import Color, ColorPalette
-from .constants import PAIRS, limb_seq, pose_colors
-from .detections import Detections
+from src.emotion.features.detections import Detections
+from src.emotion.utils.color import Color, ColorPalette
+from src.emotion.utils.constants import PAIRS, limb_seq, pose_colors
 
 
-class KeyPointAnnotator:
+class BodyAnnotator:
     def __init__(
         self,
         color: Union[Color, ColorPalette],

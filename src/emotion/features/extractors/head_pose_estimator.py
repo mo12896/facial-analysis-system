@@ -11,9 +11,9 @@ from synergy3DMM import SynergyNet
 
 from external.synergy.utils.ddfa import Normalize, ToTensor
 from external.synergy.utils.inference import crop_img, predict_pose, predict_sparseVert
+from src.emotion.features.annotators.head_annotator import HeadPoseAnnotator
+from src.emotion.features.detections import Detections
 from src.emotion.features.extractors.face_detector import create_face_detector
-from src.emotion.utils.detections import Detections
-from src.emotion.utils.head_annotator import HeadPoseAnnotator
 from src.emotion.utils.utils import timer
 
 # grandparent_folder = os.path.abspath(

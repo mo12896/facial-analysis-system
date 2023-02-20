@@ -5,7 +5,7 @@ import numpy as np
 from deepface.extendedmodels import Emotion
 from rmn import RMN
 
-from src.emotion.utils.detections import Detections
+from src.emotion.features.detections import Detections
 from src.emotion.utils.utils import timer
 
 

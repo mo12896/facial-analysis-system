@@ -3,8 +3,8 @@ from typing import List, Optional, Union
 import cv2
 import numpy as np
 
-from .color import Color, ColorPalette
-from .detections import Detections
+from src.emotion.features.detections import Detections
+from src.emotion.utils.color import Color, ColorPalette
 
 
 class BoxAnnotator:

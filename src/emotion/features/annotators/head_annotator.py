@@ -1,7 +1,7 @@
 import cv2
 
 from external.synergy.utils.inference import draw_axis
-from src.emotion.utils.detections import Detections
+from src.emotion.features.detections import Detections
 
 
 class HeadPoseAnnotator:
