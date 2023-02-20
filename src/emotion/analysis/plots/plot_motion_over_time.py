@@ -18,8 +18,10 @@ def plot_smoothed_motion_over_time(w_size: int = 5):
     for i, (person_id, group) in enumerate(grouped):
 
         # calculate the center points in x and y position for each group
-        x_center = (group["XMax"] + group["XMin"]) * 0.5
-        y_center = (group["YMax"] + group["YMin"]) * 0.5
+        # x_center = (group["XMax"] + group["XMin"]) * 0.5
+        # y_center = (group["YMax"] + group["YMin"]) * 0.5
+        x_center = group["x_center"]
+        y_center = group["y_center"]
 
         # calculate the ratio of change in x to change in y
         dx, dy = x_center.diff(), y_center.diff()

@@ -8,7 +8,7 @@ import pandas as pd
 IDENTITY_DIR = Path("/home/moritz/Workspace/masterthesis/data/identities")
 
 
-def plot_gaze_network_graph(df: pd.DataFrame, node_size: int = 2000):
+def plot_gaze_entanglement(df: pd.DataFrame, node_size: int = 2000):
     # Create an empty graph
     G = nx.DiGraph()
 
@@ -122,6 +122,4 @@ if __name__ == "__main__":
 
     df["GazeCount"] = df["GazeDetections"].apply(lambda x: len(eval(x)))
 
-    # df = preprocess_data(df)
-
-    plot_gaze_network_graph(df)
+    plot_gaze_entanglement(df)

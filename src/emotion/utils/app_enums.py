@@ -1,6 +1,12 @@
 from enum import Enum
 
 
+class SimilarityMetric(Enum):
+    euclidean = "euclidean"
+    cosine = "cosine"
+    dtw = "dtw"
+
+
 class FaceDetectionBackends(Enum):
     """Enum for the different DeepFace backends."""
 
