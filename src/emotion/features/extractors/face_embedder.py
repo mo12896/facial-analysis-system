@@ -46,17 +46,6 @@ class FaceEmbedder(ABC):
             np.ndarray: Embeddings of the person.
         """
 
-    @abstractmethod
-    def get_face_embeddings_from_folder_pca(self, image_folder: Path) -> list[dict]:
-        """Returns the embeddings of an identity.
-
-        Args:
-            images_path (Path): Path to the images of a person.
-
-        Returns:
-            np.ndarray: Embeddings of the person.
-        """
-
     @timer
     def get_anchor_face_embedding(self, image_folder: Path) -> np.ndarray:
         """Returns the mean embedding of an identity.
@@ -72,7 +61,9 @@ class FaceEmbedder(ABC):
         def wrapper(image_folder: Path) -> np.ndarray:
             result = self.get_face_embeddings_from_folder(image_folder)
 
-            embedding = np.mean(np.array(result, dtype=np.float32), axis=0)
+            X_embedded = [embedding["embedding"] for embedding in result]
+
+            embedding = np.mean(np.array(X_embedded, dtype=np.float32), axis=0)
 
             return embedding
 
@@ -128,19 +119,7 @@ class InsightFaceEmbedder(FaceEmbedder):
         return pd.DataFrame(data).transpose()
 
     @timer
-    def get_face_embeddings_from_folder(self, image_folder: Path) -> list:
-        embeddings = []
-
-        for image in image_folder.glob("*.png"):
-            img = cv2.imread(str(image))
-            face = self.model.get(img)
-            if len(face) == 0:
-                continue
-            embeddings.append(face[0].normed_embedding)
-
-        return embeddings
-
-    def get_face_embeddings_from_folder_pca(self, image_folder: Path) -> list[dict]:
+    def get_face_embeddings_from_folder(self, image_folder: Path) -> list[dict]:
         embeddings = []
 
         for image in image_folder.glob("*.png"):
@@ -153,6 +132,19 @@ class InsightFaceEmbedder(FaceEmbedder):
             )
 
         return embeddings
+
+    # @timer
+    # def get_face_embeddings_from_folder(self, image_folder: Path) -> list:
+    #     embeddings = []
+
+    #     for image in image_folder.glob("*.png"):
+    #         img = cv2.imread(str(image))
+    #         face = self.model.get(img)
+    #         if len(face) == 0:
+    #             continue
+    #         embeddings.append(face[0].normed_embedding)
+
+    #     return embeddings
 
 
 # Only 128D embeddings, thus worse differentiation between identities.
