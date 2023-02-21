@@ -7,8 +7,9 @@ from data_preprocessing import (
     LinearInterpolator,
     RollingAverageSmoother,
 )
-from entanglement import SimilarityMetric, plot_entanglement_graph
-from plot_utils import plot_time_series
+
+from src.emotion.analysis.entanglement import SimilarityMetric, plot_entanglement_graph
+from src.emotion.analysis.plot_utils import plot_time_series
 
 IDENTITY_DIR = Path("/home/moritz/Workspace/masterthesis/data/identities")
 
