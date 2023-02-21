@@ -26,6 +26,7 @@ from src.emotion.analysis.data_preprocessing import (
 )
 from src.emotion.analysis.motion_entanglement import DerivativesGetter
 
+
 IDENTITY_DIR = Path("/home/moritz/Workspace/masterthesis/data/identities")
 
 
@@ -77,13 +78,12 @@ def prepare_data(x, y):
     return xx, yy, f, xmin, xmax, ymin, ymax
 
 
-def plot_point_derivatives(df: pd.DataFrame):
+def plot_point_derivatives(df: pd.DataFrame, max_len: int = 250):
 
     # group the data by ClassID and Frame
     grouped = df.groupby("ClassID")
     max_height = df["Derivatives"].max()
     min_height = df["Derivatives"].min()
-    max_len = 250
 
     fig = plt.figure(figsize=(10, 15), tight_layout=True)
 
@@ -259,7 +259,7 @@ if __name__ == "__main__":
     preprocessor = DataPreprocessor(preprocessing_pipeline)
     pre_df = preprocessor.preprocess_data(df)
 
-    plot_point_derivatives(pre_df)
+    plot_point_derivatives(pre_df, 250)
     plot_2d_point_contour_derivatives()
     plot_2d_point_derivatives()
     plot_3d_point_derivatives()

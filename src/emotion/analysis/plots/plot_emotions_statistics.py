@@ -21,7 +21,7 @@ from src.emotion.analysis.data_preprocessing import DataPreprocessor, LinearInte
 IDENTITY_DIR = Path("/home/moritz/Workspace/masterthesis/data/identities")
 
 
-def plot_max_emotion_distribution(df: pd.DataFrame, y_lim: int = 750):
+def plot_max_emotion_distribution(df: pd.DataFrame):
 
     emotions = ["Angry", "Disgust", "Happy", "Sad", "Surprise", "Fear", "Neutral"]
 
@@ -29,6 +29,8 @@ def plot_max_emotion_distribution(df: pd.DataFrame, y_lim: int = 750):
     df["Max_Emotion"] = df[emotions].idxmax(axis=1)
 
     grouped = df.groupby("ClassID")
+    max_length_group_index = grouped.size().idxmax()
+    y_lim = len(grouped.get_group(max_length_group_index))
 
     fig = plt.figure(figsize=(10, 15), tight_layout=True)
 

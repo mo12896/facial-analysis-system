@@ -25,7 +25,7 @@ from src.emotion.analysis.data_preprocessing import (
 IDENTITY_DIR = Path("/home/moritz/Workspace/masterthesis/data/identities")
 
 
-def plot_smoothed_emotions_over_time(df: pd.DataFrame, w_size: int = 5):
+def plot_smoothed_emotions_over_time(df: pd.DataFrame):
     """Plot the emotions over time for each person."""
 
     grouped = df.groupby("ClassID")
@@ -64,9 +64,10 @@ def plot_smoothed_emotions_over_time(df: pd.DataFrame, w_size: int = 5):
 
 
 # TODO: Adapt to new preprocessing pipeline
-def plot_max_emotions_over_time():
+def plot_max_emotions_over_time(df: pd.DataFrame):
     """Plot the maximum emotion over time for each person."""
-    df = pd.read_csv(IDENTITY_DIR / "identities.csv")
+
+    emotions = ["Angry", "Disgust", "Happy", "Sad", "Surprise", "Fear", "Neutral"]
 
     grouped = df.groupby("ClassID")
 
@@ -75,7 +76,7 @@ def plot_max_emotions_over_time():
     for i, (person_id, group) in enumerate(grouped):
 
         # Get the maximum emotion for each frame
-        person_max_emotion = group.iloc[:, 7:].idxmax(axis=1)
+        person_max_emotion = group[emotions].idxmax(axis=1)
 
         ax = fig.add_subplot(2, 2, i + 1)
         # Plot the maximum emotion over the frame
@@ -112,4 +113,10 @@ if __name__ == "__main__":
     pre_df = preprocessor.preprocess_data(df)
 
     plot_smoothed_emotions_over_time(pre_df)
-    # plot_max_emotions_over_time()
+
+    # preprocessing_pipeline_2 = [LinearInterpolator()]
+
+    # preprocessor_2 = DataPreprocessor(preprocessing_pipeline_2)
+    # pre_df_2 = preprocessor_2.preprocess_data(df)
+
+    # plot_max_emotions_over_time(pre_df_2)
