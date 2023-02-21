@@ -22,7 +22,7 @@ from src.emotion.analysis.data_preprocessing import (
     RollingAverageSmoother,
     ZeroToOneNormalizer,
 )
-from src.emotion.analysis.motion_entanglement import DerivativesGetter
+from src.emotion.analysis.entanglement.motion_entanglement import DerivativesGetter
 
 IDENTITY_DIR = Path("/home/moritz/Workspace/masterthesis/data/identities")
 

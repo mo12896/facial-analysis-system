@@ -1,11 +1,12 @@
 import os
+import shutil
 import sys
-from pathlib import Path
+from typing import Tuple
 
 import matplotlib.pyplot as plt
 import numpy as np
+from sklearn.cluster import KMeans
 from sklearn.decomposition import PCA
-from sklearn.manifold import TSNE
 
 parent_folder = os.path.abspath(
     os.path.join(os.path.dirname(os.path.abspath(__file__)), os.pardir)
@@ -16,34 +17,82 @@ from src.emotion.features.extractors.face_embedder import (
     FaceEmbedder,
     create_face_embedder,
 )
-from src.emotion.utils.constants import DATA_DIR_IMAGES
+from src.emotion.utils.constants import DATA_DIR_TEST_IMAGES
 
 
-def generate_face_embeddings(
-    image_folders: list[Path], embedder: FaceEmbedder
-) -> np.ndarray:
-    """Generates the embeddings for a set of identities.
+def scree_plot(X: np.ndarray) -> int:
+    """Plots the scree plot for the PCA."""
+    # Fit PCA model
+    pca = PCA()
+    pca.fit(X)
 
-    Args:
-        images_path (list[Path]): List of paths to the images of a person.
+    # Extract explained variances
+    explained_variances = pca.explained_variance_ratio_
 
-    Returns:
-        list[np.ndarray]: List of embeddings.
-    """
+    # Calculate broken-stick model
+    bs = 1.0 / np.arange(1, len(explained_variances) + 1)
 
-    final_embeddings = []
-    for image_folder in image_folders:
-        embeddings = embedder.get_face_embeddings_from_folder(image_folder)
-        final_embeddings += embeddings
+    # Calculate cumulative variances
+    cumulative_variances = np.cumsum(explained_variances)
 
-    return np.array(final_embeddings, dtype=np.float32)
+    # Calculate residuals
+    residuals = -(explained_variances - bs)
+
+    # Find elbow point
+    threshold = 0.2
+    elbow_point = np.argmax(residuals < threshold)
+
+    # Plot scree plot
+    _, ax = plt.subplots()
+    ax.plot(
+        np.arange(1, len(explained_variances) + 1),
+        explained_variances,
+        "bo-",
+        linewidth=2,
+    )
+    ax.plot(np.arange(1, len(explained_variances) + 1), bs, "r--", linewidth=2)
+    ax.plot(
+        np.arange(1, len(explained_variances) + 1),
+        cumulative_variances,
+        "g--",
+        linewidth=2,
+    )
+    ax.set_title("Scree Plot")
+    ax.set_xlabel("Principal Component")
+    ax.set_ylabel("Proportion of Variance Explained")
+    ax.legend(["Actual", "Broken-Stick", "Cumulative"])
+
+    # Plot elbow point
+    ax.plot(
+        elbow_point + 1,
+        explained_variances[elbow_point],
+        "ro",
+        markersize=10,
+        label=f"Elbow Point ({elbow_point+1})",
+    )
+
+    plt.show()
+
+    return elbow_point
+
+
+def cluster_data(X: np.ndarray, K: int, elbow: int) -> Tuple[np.ndarray, np.ndarray]:
+    """Performs K-means clustering on the data using the given number of clusters."""
+    # Reduce dimensions with PCA
+    pca = PCA(n_components=elbow)
+    reduced_dims = pca.fit_transform(X)
+
+    # Perform K-means clustering
+    kmeans = KMeans(n_clusters=K, random_state=0)
+    labels = kmeans.fit_predict(reduced_dims)
+
+    return labels, reduced_dims
 
 
 if __name__ == "__main__":
-    images_path = [item for item in DATA_DIR_IMAGES.iterdir() if item.is_dir()]
-    # Best results with t-SNE 2 and PCA 2 or 3
-    t_sne = 2
-    n_pca = 3
+    # images_path = [item for item in DATA_DIR_TEST_IMAGES.iterdir() if item.is_dir()]
+    images_path = DATA_DIR_TEST_IMAGES
+    K = 4
 
     # embedder = create_face_embedder({"type": "facerecog"})
     embedder = create_face_embedder(
@@ -51,42 +100,57 @@ if __name__ == "__main__":
     )
 
     # Load the high-dimensional embeddings into a numpy array
-    X_embedded = generate_face_embeddings(images_path, embedder=embedder)
+    # X_embedded, image_names = generate_face_embeddings(images_path, embedder=embedder)
+    embeddings = embedder.get_face_embeddings_from_folder_pca(images_path)
 
-    if t_sne == 2:
-        tsne = TSNE(n_components=2)
-        embeddings_2d = tsne.fit_transform(X_embedded)
+    X_embedded = np.array([embedding["embedding"] for embedding in embeddings])
 
-        # Plot the results
-        plt.scatter(embeddings_2d[:, 0], embeddings_2d[:, 1])
-        plt.show()
-    elif t_sne == 3:
-        tsne = TSNE(n_components=3)
-        embeddings_3d = tsne.fit_transform(X_embedded)
+    image_names = [embedding["image_path"] for embedding in embeddings]
 
-        # Plot the 3D embeddings
-        fig = plt.figure()
-        ax = fig.add_subplot(111, projection="3d")
-        ax.scatter(embeddings_3d[:, 0], embeddings_3d[:, 1], embeddings_3d[:, 2])
-        plt.show()
-    else:
-        raise ValueError("t-SNE must be 2 or 3.")
+    elbow = scree_plot(X_embedded) + 1
 
-    if n_pca == 2:
-        pca = PCA(n_components=2)
-        embeddings_2d = pca.fit_transform(X_embedded)
+    use_elbow = input(f"Do you want to use the detected elbow point: {elbow}? (y/n)")
 
-        # Plot the results
-        plt.scatter(embeddings_2d[:, 0], embeddings_2d[:, 1])
-        plt.show()
-    elif n_pca == 3:
-        pca = PCA(n_components=3)
-        embeddings_3d = pca.fit_transform(X_embedded)
+    if use_elbow == "n":
+        new_elbow = int(input("Please enter the new elbow point: "))
+        elbow = new_elbow
 
-        # Plot the 3D embeddings
-        fig = plt.figure()
-        ax = fig.add_subplot(111, projection="3d")
-        ax.scatter(embeddings_3d[:, 0], embeddings_3d[:, 1], embeddings_3d[:, 2])
-        plt.show()
-    else:
-        raise ValueError("PCA must be 2 or 3.")
+    labels, reduced_dims = cluster_data(X_embedded, K, elbow)
+
+    # Define the colors for each cluster
+    colors = plt.cm.get_cmap("viridis", K)
+
+    # Create a scatter plot for each cluster
+    fig = plt.figure()
+    ax = fig.add_subplot(111, projection="3d")
+    for i in range(K):
+        cluster_i = np.where(labels == i)[0]
+        ax.scatter(
+            reduced_dims[cluster_i, 0],
+            reduced_dims[cluster_i, 1],
+            reduced_dims[cluster_i, 2],
+            c=colors(i),
+            alpha=0.8,
+            label=f"Cluster {i+1}",
+        )
+
+    # Add axis labels and legend
+    ax.set_xlabel("PC 1")
+    ax.set_ylabel("PC 2")
+    ax.set_zlabel("PC 3")
+    ax.legend()
+
+    for i in range(K):
+        cluster_i = np.where(labels == i)[0]
+        cluster_dir = images_path / f"person_id{i+1}"
+        cluster_dir.mkdir(exist_ok=True)
+        for j in cluster_i:
+            embedding = embeddings[j]
+            image_path = embedding["image_path"]
+            image_filename = image_path.name
+            cluster_image_path = cluster_dir / image_filename
+            shutil.copy(str(image_path), str(cluster_image_path))
+            image_path.unlink()
+
+    # Show the plot
+    plt.show()

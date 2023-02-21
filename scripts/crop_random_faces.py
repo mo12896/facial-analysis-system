@@ -6,17 +6,18 @@ import random
 from pathlib import Path
 
 import cv2
-import numpy as np
-from retinaface import RetinaFace
 from tqdm import tqdm
-
-from src.emotion.utils.constants import DATA_DIR_IMAGES, VIDEO_PATH
 
 # parent_folder = os.path.abspath(
 #     os.path.join(os.path.dirname(os.path.abspath(__file__)), os.pardir)
 # )
 # sys.path.append(parent_folder)
 
+from src.emotion.features.extractors.face_detector import (
+    FaceDetector,
+    create_face_detector,
+)
+from src.emotion.utils.constants import DATA_DIR_TEST_IMAGES, VIDEO_PATH
 
 # Number of frames to sample from the video
 NUM_FRAMES = 20
@@ -38,7 +39,9 @@ def cleanup(folder_path: Path) -> None:
             element.rmdir()
 
 
-def crop_random_faces_from_n_frames(video_path, output_folder, num_frames=10):
+def crop_random_faces_from_n_frames(
+    video_path, output_folder, detector: FaceDetector, num_frames=10
+):
     """Crop random faces from a video.
 
     Args:
@@ -49,8 +52,6 @@ def crop_random_faces_from_n_frames(video_path, output_folder, num_frames=10):
 
     cap = cv2.VideoCapture(video_path)
 
-    detector = RetinaFace
-
     total_frames = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
 
     frames = random.sample(range(total_frames), num_frames)
@@ -60,8 +61,8 @@ def crop_random_faces_from_n_frames(video_path, output_folder, num_frames=10):
         cap.set(cv2.CAP_PROP_POS_FRAMES, i)
         _, frame = cap.read()
 
-        faces = detector.detect_faces(frame)
-        bboxes = np.array([faces[face]["facial_area"] for face in faces])
+        detections = detector.detect_faces(frame)
+        bboxes = detections.bboxes
 
         for j, bbox in enumerate(bboxes):
             face = frame[int(bbox[1]) : int(bbox[3]), int(bbox[0]) : int(bbox[2])]
@@ -74,8 +75,8 @@ def crop_random_faces_from_n_frames(video_path, output_folder, num_frames=10):
 
 
 if __name__ == "__main__":
-    video_path = VIDEO_PATH
-    output_folder = DATA_DIR_IMAGES
+    video_path = str(VIDEO_PATH)
+    output_folder = DATA_DIR_TEST_IMAGES
 
     if output_folder.exists():
         response = input(f"{output_folder} already exists. Overwrite? [y/n] ")
@@ -84,9 +85,13 @@ if __name__ == "__main__":
             exit()
         cleanup(output_folder)
 
-    crop_random_faces_from_n_frames(video_path, output_folder, num_frames=NUM_FRAMES)
+    detector = create_face_detector({"type": "scrfd"})
 
-    for i in range(1, NUM_IMAGE_DIRS + 1):
-        folder_name = f"person_id{i}"
-        folder_path = output_folder / folder_name
-        folder_path.mkdir(parents=True, exist_ok=True)
+    crop_random_faces_from_n_frames(
+        video_path, output_folder, detector, num_frames=NUM_FRAMES
+    )
+
+    # for i in range(1, NUM_IMAGE_DIRS + 1):
+    #     folder_name = f"person_id{i}"
+    #     folder_path = output_folder / folder_name
+    #     folder_path.mkdir(parents=True, exist_ok=True)

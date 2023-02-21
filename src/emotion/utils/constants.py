@@ -8,6 +8,7 @@ root = Path.cwd()
 CONFIG_DIR = root / "configs"
 DATA_DIR = root / "data"
 DATA_DIR_IMAGES = DATA_DIR / "images"
+DATA_DIR_TEST_IMAGES = DATA_DIR / "test_images"
 DATA_DIR_DATABASE = DATA_DIR / "database"
 LOG_DIR = root / "logs"
 IDENTITY_DIR = DATA_DIR / "identities"

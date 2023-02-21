@@ -46,6 +46,17 @@ class FaceEmbedder(ABC):
             np.ndarray: Embeddings of the person.
         """
 
+    @abstractmethod
+    def get_face_embeddings_from_folder_pca(self, image_folder: Path) -> list[dict]:
+        """Returns the embeddings of an identity.
+
+        Args:
+            images_path (Path): Path to the images of a person.
+
+        Returns:
+            np.ndarray: Embeddings of the person.
+        """
+
     @timer
     def get_anchor_face_embedding(self, image_folder: Path) -> np.ndarray:
         """Returns the mean embedding of an identity.
@@ -126,6 +137,20 @@ class InsightFaceEmbedder(FaceEmbedder):
             if len(face) == 0:
                 continue
             embeddings.append(face[0].normed_embedding)
+
+        return embeddings
+
+    def get_face_embeddings_from_folder_pca(self, image_folder: Path) -> list[dict]:
+        embeddings = []
+
+        for image in image_folder.glob("*.png"):
+            img = cv2.imread(str(image))
+            face = self.model.get(img)
+            if len(face) == 0:
+                continue
+            embeddings.append(
+                {"image_path": image, "embedding": face[0].normed_embedding}
+            )
 
         return embeddings
 
