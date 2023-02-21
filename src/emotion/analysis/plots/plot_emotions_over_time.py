@@ -1,37 +1,51 @@
+# import os
+# import sys
 from pathlib import Path
 
 import matplotlib.pyplot as plt
 import pandas as pd
 
+# grandparent_folder = os.path.abspath(
+#     os.path.join(
+#         os.path.dirname(os.path.abspath(__file__)),
+#         os.pardir,
+#         os.pardir,
+#         os.pardir,
+#         os.pardir,
+#     )
+# )
+# sys.path.append(grandparent_folder)
+
+from src.emotion.analysis.data_preprocessing import (
+    DataPreprocessor,
+    LinearInterpolator,
+    RollingAverageSmoother,
+)
+
 IDENTITY_DIR = Path("/home/moritz/Workspace/masterthesis/data/identities")
 
 
-def plot_smoothed_emotions_over_time(w_size: int = 5):
+def plot_smoothed_emotions_over_time(df: pd.DataFrame, w_size: int = 5):
     """Plot the emotions over time for each person."""
-    df = pd.read_csv(IDENTITY_DIR / "identities.csv")
 
     grouped = df.groupby("ClassID")
 
     fig = plt.figure(figsize=(10, 15), tight_layout=True)
 
     for i, (person_id, group) in enumerate(grouped):
-        # Apply a rolling mean to the emotions data with a window size of 10
-        emotions_rolling = (
-            group[
-                [
-                    "Frame",
-                    "Angry",
-                    "Disgust",
-                    "Happy",
-                    "Sad",
-                    "Surprise",
-                    "Fear",
-                    "Neutral",
-                ]
+
+        emotions_rolling = group[
+            [
+                "Frame",
+                "Angry",
+                "Disgust",
+                "Happy",
+                "Sad",
+                "Surprise",
+                "Fear",
+                "Neutral",
             ]
-            .rolling(window=w_size)
-            .mean()
-        )
+        ]
 
         ax = fig.add_subplot(2, 2, i + 1)
         emotions_rolling.plot(
@@ -49,6 +63,7 @@ def plot_smoothed_emotions_over_time(w_size: int = 5):
     fig.savefig(IDENTITY_DIR / "emotions_over_time.png")
 
 
+# TODO: Adapt to new preprocessing pipeline
 def plot_max_emotions_over_time():
     """Plot the maximum emotion over time for each person."""
     df = pd.read_csv(IDENTITY_DIR / "identities.csv")
@@ -75,5 +90,26 @@ def plot_max_emotions_over_time():
 
 if __name__ == "__main__":
     # If window size is 1, no smoothing is applied
-    plot_smoothed_emotions_over_time(150)
-    plot_max_emotions_over_time()
+    df = pd.read_csv(IDENTITY_DIR / "identities.csv")
+
+    preprocessing_pipeline = [
+        LinearInterpolator(),
+        RollingAverageSmoother(
+            window_size=150,
+            cols=[
+                "Angry",
+                "Disgust",
+                "Happy",
+                "Sad",
+                "Surprise",
+                "Fear",
+                "Neutral",
+            ],
+        ),
+    ]
+
+    preprocessor = DataPreprocessor(preprocessing_pipeline)
+    pre_df = preprocessor.preprocess_data(df)
+
+    plot_smoothed_emotions_over_time(pre_df)
+    # plot_max_emotions_over_time()

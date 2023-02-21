@@ -1,14 +1,27 @@
+# import os
+# import sys
 from pathlib import Path
 
 import matplotlib.pyplot as plt
 import pandas as pd
 
+# grandparent_folder = os.path.abspath(
+#     os.path.join(
+#         os.path.dirname(os.path.abspath(__file__)),
+#         os.pardir,
+#         os.pardir,
+#         os.pardir,
+#         os.pardir,
+#     )
+# )
+# sys.path.append(grandparent_folder)
+
+from src.emotion.analysis.data_preprocessing import DataPreprocessor, LinearInterpolator
+
 IDENTITY_DIR = Path("/home/moritz/Workspace/masterthesis/data/identities")
 
 
-def plot_max_emotion_distribution(y_lim: int = 750):
-    # Load the csv file into a pandas dataframe
-    df = pd.read_csv(IDENTITY_DIR / "identities.csv")
+def plot_max_emotion_distribution(df: pd.DataFrame, y_lim: int = 750):
 
     emotions = ["Angry", "Disgust", "Happy", "Sad", "Surprise", "Fear", "Neutral"]
 
@@ -47,4 +60,11 @@ def plot_max_emotion_distribution(y_lim: int = 750):
 
 
 if __name__ == "__main__":
-    plot_max_emotion_distribution()
+    df = pd.read_csv(IDENTITY_DIR / "identities.csv")
+
+    preprocessing_pipeline = [LinearInterpolator()]
+
+    preprocessor = DataPreprocessor(preprocessing_pipeline)
+    pre_df = preprocessor.preprocess_data(df)
+
+    plot_max_emotion_distribution(pre_df)

@@ -27,12 +27,12 @@ def plot_emotional_entanglement(
     save_fig: bool = False,
 ) -> None:
 
-    preprocessing_steps = [
+    preprocessing_pipeline = [
         LinearInterpolator(),
         RollingAverageSmoother(window_size=window_size, cols=emotion),
     ]
 
-    preprocessor = DataPreprocessor(preprocessing_steps)
+    preprocessor = DataPreprocessor(preprocessing_pipeline)
     pre_df = preprocessor.preprocess_data(df)
 
     grouped = pre_df.groupby("ClassID")[emotion[0]].apply(np.array).to_numpy()

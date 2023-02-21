@@ -1,3 +1,5 @@
+# import os
+# import sys
 from pathlib import Path
 
 import matplotlib.pyplot as plt
@@ -5,10 +7,28 @@ import numpy as np
 import pandas as pd
 from scipy.stats import gaussian_kde
 
+# grandparent_folder = os.path.abspath(
+#     os.path.join(
+#         os.path.dirname(os.path.abspath(__file__)),
+#         os.pardir,
+#         os.pardir,
+#         os.pardir,
+#         os.pardir,
+#     )
+# )
+# sys.path.append(grandparent_folder)
+
+from src.emotion.analysis.data_preprocessing import (
+    DataPreprocessor,
+    LinearInterpolator,
+    MinusOneToOneNormalizer,
+    RollingAverageSmoother,
+)
+from src.emotion.analysis.motion_entanglement import DerivativesGetter
+
 IDENTITY_DIR = Path("/home/moritz/Workspace/masterthesis/data/identities")
 
 
-# TODO: Check what the best way for computing the gradients is!
 def compute_gradients(point_list: list[int]):
     gradients = []
 
@@ -57,33 +77,27 @@ def prepare_data(x, y):
     return xx, yy, f, xmin, xmax, ymin, ymax
 
 
-def plot_point_derivatives(x_lim: int = 40, y_lim: float = 0.12):
-    # Read the CSV file into a Pandas DataFrame
-    df = pd.read_csv(IDENTITY_DIR / "identities.csv")
+def plot_point_derivatives(df: pd.DataFrame):
 
     # group the data by ClassID and Frame
     grouped = df.groupby("ClassID")
+    max_height = df["Derivatives"].max()
+    min_height = df["Derivatives"].min()
+    max_len = 250
 
     fig = plt.figure(figsize=(10, 15), tight_layout=True)
 
     for i, (person_id, group) in enumerate(grouped):
 
-        # Compute the center point (x, y) of the bounding box for each frame
-        x = (group["XMax"] + group["XMin"]) * 0.5
-        y = (group["YMax"] + group["YMin"]) * 0.5
-
-        # Compute the derivative of the center point (x, y) over different frames
-        dx, dy = compute_gradients(x.tolist()), compute_gradients(y.tolist())
-        gradients = [x / y if y != 0 else 0 for x, y in zip(dx, dy)]
-
+        gradients = group["Derivatives"]
         z = gaussian_kde(np.array(gradients))
 
         # Plot the gradients
         ax = fig.add_subplot(2, 2, i + 1)
         x_range = np.linspace(min(gradients), max(gradients), 100)
         plt.plot(x_range, z(x_range))
-        ax.set_xlim(left=-x_lim, right=x_lim)
-        ax.set_ylim(bottom=0, top=y_lim)
+        ax.set_xlim(left=min_height, right=max_height)
+        ax.set_ylim(bottom=0, top=max_len)
         ax.set_title(f"2D Gaussian KDE of center derivatives for {person_id}")
         ax.set_xlabel("Derivatives")
         ax.set_ylabel("PDF")
@@ -92,6 +106,7 @@ def plot_point_derivatives(x_lim: int = 40, y_lim: float = 0.12):
     fig.savefig(IDENTITY_DIR / "point_derivatives.png")
 
 
+# TODO: Adapt the following functions to new preprocessing pipelines
 def plot_2d_point_derivatives():
     # Read the CSV file into a Pandas DataFrame
     df = pd.read_csv(IDENTITY_DIR / "identities.csv")
@@ -231,7 +246,20 @@ def plot_point_positions():
 
 
 if __name__ == "__main__":
-    plot_point_derivatives()
+    # Read the CSV file into a Pandas DataFrame
+    df = pd.read_csv(IDENTITY_DIR / "identities.csv")
+
+    preprocessing_pipeline = [
+        LinearInterpolator(),
+        DerivativesGetter(negatives=True),
+        RollingAverageSmoother(window_size=5, cols=["Derivatives"]),
+        MinusOneToOneNormalizer(cols=["Derivatives"]),
+    ]
+
+    preprocessor = DataPreprocessor(preprocessing_pipeline)
+    pre_df = preprocessor.preprocess_data(df)
+
+    plot_point_derivatives(pre_df)
     plot_2d_point_contour_derivatives()
     plot_2d_point_derivatives()
     plot_3d_point_derivatives()

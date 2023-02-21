@@ -12,10 +12,8 @@ from external.light_openpose.modules.keypoints import extract_keypoints, group_k
 from external.light_openpose.modules.load_state import load_state
 from external.light_openpose.modules.pose import Pose
 from external.light_openpose.val import normalize, pad_width
-
-# TODO: Change back from symlink to external import!
-from pytop.pyt_openpose.body import Body
-from pytop.pyt_openpose.hand import Hand
+from external.pytorch_openpose.src.body import Body
+from external.pytorch_openpose.src.hand import Hand
 from src.emotion.features.annotators.body_annotator import BodyAnnotator
 from src.emotion.features.detections import Detections
 from src.emotion.features.extractors.face_detector import create_face_detector

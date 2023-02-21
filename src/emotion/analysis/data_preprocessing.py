@@ -126,6 +126,7 @@ class RollingAverageSmoother:
         grouped = data.groupby("ClassID")
 
         for _, group in grouped:
+
             emotions_rolling = (
                 group[self.cols]
                 .rolling(window=self.window_size, min_periods=1, center=True)
@@ -154,13 +155,21 @@ class StandardDeviationNormalizer:
         Returns:
             pd.DataFrame: Normalized DataFrame
         """
-        data[self.cols] = (data[self.cols] - data[self.cols].mean()) / data[
-            self.cols
-        ].std()
+        grouped = data.groupby("ClassID")
+        data_copy = data.copy()
+
+        for _, group in grouped:
+
+            norm_data = (group[self.cols] - data_copy[self.cols].mean()) / data_copy[
+                self.cols
+            ].std()
+
+            data.loc[group.index, self.cols] = norm_data
+
         return data
 
 
-class RangeZeroToOneNormalizer:
+class ZeroToOneNormalizer:
     def __init__(self, cols: List[str]) -> None:
         """Constructor for the Normalizer class.
 
@@ -178,7 +187,47 @@ class RangeZeroToOneNormalizer:
         Returns:
             pd.DataFrame: Normalized DataFrame
         """
-        data[self.cols] = (data[self.cols] - data[self.cols].min()) / (
-            data[self.cols].max() - data[self.cols].min()
-        )
+        grouped = data.groupby("ClassID")
+        data_copy = data.copy()
+
+        for _, group in grouped:
+
+            norm_data = (group[self.cols] - data_copy[self.cols].min()) / (
+                data_copy[self.cols].max() - data_copy[self.cols].min()
+            )
+
+            data.loc[group.index, self.cols] = norm_data
+
+        return data
+
+
+class MinusOneToOneNormalizer:
+    def __init__(self, cols: List[str]) -> None:
+        """Constructor for the Normalizer class.
+
+        Args:
+            cols (List[str]): List of columns to normalize
+        """
+        self.cols = cols
+
+    def __call__(self, data: pd.DataFrame) -> pd.DataFrame:
+        """Normalize the data.
+
+        Args:
+            data (pd.DataFrame): DataFrame to normalize
+
+        Returns:
+            pd.DataFrame: Normalized DataFrame
+        """
+        grouped = data.groupby("ClassID")
+        data_copy = data.copy()
+
+        for _, group in grouped:
+
+            norm_data = (group[self.cols] - data_copy[self.cols].mean()) / (
+                data_copy[self.cols].max() - data_copy[self.cols].min()
+            )
+
+            data.loc[group.index, self.cols] = norm_data
+
         return data

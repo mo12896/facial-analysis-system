@@ -17,13 +17,7 @@ MODEL_DIR = root / "model"
 # Paths to external, installed libraries
 sys.path.append(f"{root}/external/bytetrack")
 sys.path.append(f"{root}/external/synergy")
-# Run once to generate the symlink to PytorchOpenPose work
-# TODO: This is not clean, so change in the future!
-# os.symlink(
-#     f"{root}/external/pytorch_openpose",
-#     "pytop",
-#     target_is_directory=True,
-# )
+
 
 # Asset Files
 IMAGE_PATH = DATA_DIR / "test_image.png"

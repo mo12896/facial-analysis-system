@@ -12,7 +12,7 @@ parent_folder = os.path.abspath(
 sys.path.append(parent_folder)
 
 
-from src.emotion.datahandler.dataprocessor.face_embedder import (
+from src.emotion.features.extractors.face_embedder import (
     FaceEmbedder,
     create_face_embedder,
 )

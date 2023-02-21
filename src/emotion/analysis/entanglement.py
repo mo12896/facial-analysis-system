@@ -9,7 +9,7 @@ from tslearn.metrics import cdist_dtw
 
 class SimilarityMetric(Enum):
     euclidean = "euclidean"
-    cosine = "cosine"
+    correlation = "correlation"
     dtw = "dtw"
 
 
