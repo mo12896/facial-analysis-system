@@ -8,16 +8,22 @@ from pathlib import Path
 import cv2
 from tqdm import tqdm
 
-# parent_folder = os.path.abspath(
-#     os.path.join(os.path.dirname(os.path.abspath(__file__)), os.pardir)
-# )
-# sys.path.append(parent_folder)
-
 from src.emotion.features.extractors.face_detector import (
     FaceDetector,
     create_face_detector,
 )
 from src.emotion.utils.constants import DATA_DIR_TEST_IMAGES, VIDEO_PATH
+
+# parent_folder = os.path.abspath(
+#     os.path.join(
+#         os.path.dirname(os.path.abspath(__file__)),
+#         os.pardir,
+#         os.pardir,
+#         os.pardir,
+#     )
+# )
+# sys.path.append(parent_folder)
+
 
 # Number of frames to sample from the video
 NUM_FRAMES = 20
@@ -90,8 +96,3 @@ if __name__ == "__main__":
     crop_random_faces_from_n_frames(
         video_path, output_folder, detector, num_frames=NUM_FRAMES
     )
-
-    # for i in range(1, NUM_IMAGE_DIRS + 1):
-    #     folder_name = f"person_id{i}"
-    #     folder_path = output_folder / folder_name
-    #     folder_path.mkdir(parents=True, exist_ok=True)

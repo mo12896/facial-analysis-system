@@ -1,22 +1,75 @@
+# The video codec to use when saving the processed video.
 VIDEO_CODEC: MP4V
-VIDEO: "short_clip_debug.mp4"
+
+# The name of the input video file to process.
+VIDEO: short_clip_debug.mp4
+
+# The name of the anchor embeddings database.
+ANCHOR_EMBEDDDINGS: embeddings.db
+
+# Whether to save the anchor face embeddings to the database after creation.
+SAVE_EMBEDDINGS: False
+
+# The number of frames to sample from the input video to create the database.
+SAMPLE_FRAMES: 20
+
+# The dimensionality reduction method to use for the anchor face embeddings.
+REDUCER:
+  # The type of reducer to use (currently only "pca" and "autoencoder" are supported).
+  type: pca
+  # The number of principal components to keep in the PCA.
+  n_components: 4
+
+# The clustering method to use for the anchor face embeddings.
+CLUSTERER:
+  # The type of clusterer to use (currently only "kmeans" and "kmedoids" are supported).
+  type: kmeans
+
+# The number of person ids to cluster and folders to create.
+K: 4
+
+# The number of frames between face detections.
 DETECTION_FREQUENCY: 5
+
+# The face detector to use.
 DETECTOR:
+  # The type of face detector to use (currently only "scrfd" and "retinaface" are supported).
   type: scrfd
+
+# The face embedding method to use.
 EMBEDDER:
+  # The type of face embedding method to use (currently only "insightface" is supported).
   type: insightface
+  # The ID of the GPU to use for face embedding computation.
   ctx_id: 0
+  # The size of the face detection window to use.
   det_size: 128
+
+# The face tracker to use.
 TRACKER:
+  # The type of face tracker to use (currently only "byte" is supported).
   type: byte
+
+# The emotion detection method to use.
 EMOTION_DETECTOR:
+  # The type of emotion detection method to use (currently only "rmn" and "deepface" are supported).
   type: rmn
+
+# The pose estimator to use.
 POSE_ESTIMATOR:
+  # The type of pose estimator to use (currently only "l_openpose" is supported).
   type: l_openpose
+
+# The head pose estimator to use.
 HEAD_POSE_ESTIMATOR:
+  # The type of head pose estimator to use (currently only "synergy" is supported).
   type: synergy
+
+# The gaze detector to use.
 GAZE_DETECTOR:
+  # The field of view assumption for humans.
   fov: 60
+  # The threshold for determining whether another face is seen or not.
   true_thresh: 0.9
+  # The length of the gaze detection axis.
   axis_length: 2000
-ANCHOR_EMBDDINGS: "database/embeddings.db"

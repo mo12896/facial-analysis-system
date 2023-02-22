@@ -5,6 +5,7 @@ from sklearn.metrics.pairwise import cosine_similarity
 
 from src.emotion.features.detections import Detections
 from src.emotion.features.extractors.face_embedder import FaceEmbedder
+from src.emotion.utils.constants import DATA_DIR_DATABASE
 from src.emotion.utils.utils import SQLite
 
 
@@ -13,7 +14,7 @@ class ReIdentification:
 
     def __init__(
         self,
-        embeddings_path: str,
+        embeddings_db: str,
         embedder: FaceEmbedder,
     ):
         """Constructor for the Filter class.
@@ -22,7 +23,7 @@ class ReIdentification:
             embeddings_path (Path): Path to the anchor embeddings.
             embedder (FaceEmbedder): Embedding Network for faces.
         """
-        self.embeddings_path = embeddings_path
+        self.embeddings_path = str(DATA_DIR_DATABASE / embeddings_db)
         self.embedder = embedder
 
     def filter(self, detections: Detections, image: np.ndarray) -> Detections:

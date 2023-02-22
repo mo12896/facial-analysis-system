@@ -3,6 +3,7 @@ import shutil
 
 # import sys
 from abc import ABC, abstractmethod
+from pathlib import Path
 from typing import Tuple
 
 import matplotlib.pyplot as plt
@@ -17,7 +18,12 @@ from src.emotion.features.extractors.face_embedder import create_face_embedder
 from src.emotion.utils.constants import DATA_DIR_TEST_IMAGES
 
 # parent_folder = os.path.abspath(
-#     os.path.join(os.path.dirname(os.path.abspath(__file__)), os.pardir)
+#     os.path.join(
+#         os.path.dirname(os.path.abspath(__file__)),
+#         os.pardir,
+#         os.pardir,
+#         os.pardir,
+#     )
 # )
 # sys.path.append(parent_folder)
 
@@ -211,6 +217,51 @@ def scree_plot(
     plt.show()
 
 
+def plot_clusters(labels: np.ndarray, reduced_dims: np.ndarray, K: int):
+    """
+    Create a 3D scatter plot for each cluster.
+    """
+    fig = plt.figure()
+    ax = fig.add_subplot(111, projection="3d")
+    colors = plt.cm.get_cmap("viridis", K)
+    for i in range(K):
+        cluster_i = np.where(labels == i)[0]
+        ax.scatter(
+            reduced_dims[cluster_i, 0],
+            reduced_dims[cluster_i, 1],
+            reduced_dims[cluster_i, 2],
+            c=colors(i),
+            alpha=0.8,
+            label=f"Cluster {i+1}",
+        )
+
+    ax.set_xlabel("PC 1")
+    ax.set_ylabel("PC 2")
+    ax.set_zlabel("PC 3")
+    ax.legend()
+
+    plt.show()
+
+
+def save_clusters(
+    labels: np.ndarray, embeddings: list, images_path: Path, K: int
+) -> None:
+    """
+    Save the clustered images to their respective directories.
+    """
+    for i in range(K):
+        cluster_i = np.where(labels == i)[0]
+        cluster_dir = images_path / f"person_id{i+1}"
+        cluster_dir.mkdir(exist_ok=True)
+        for j in cluster_i:
+            embedding = embeddings[j]
+            image_path = embedding["image_path"]
+            image_filename = image_path.name
+            cluster_image_path = cluster_dir / image_filename
+            shutil.copy(str(image_path), str(cluster_image_path))
+            image_path.unlink()
+
+
 if __name__ == "__main__":
     # images_path = [item for item in DATA_DIR_TEST_IMAGES.iterdir() if item.is_dir()]
     images_path = DATA_DIR_TEST_IMAGES
@@ -243,39 +294,8 @@ if __name__ == "__main__":
     adapter = ClustererAdapter(reducer, clusterer)
     labels, reduced_dims = adapter.cluster_data(X_embedded)
 
-    # Create a scatter plot for each cluster
-    fig = plt.figure()
-    ax = fig.add_subplot(111, projection="3d")
-    colors = plt.cm.get_cmap("viridis", K)
-    for i in range(K):
-        cluster_i = np.where(labels == i)[0]
-        ax.scatter(
-            reduced_dims[cluster_i, 0],
-            reduced_dims[cluster_i, 1],
-            reduced_dims[cluster_i, 2],
-            c=colors(i),
-            alpha=0.8,
-            label=f"Cluster {i+1}",
-        )
-
-    ax.set_xlabel("PC 1")
-    ax.set_ylabel("PC 2")
-    ax.set_zlabel("PC 3")
-    ax.legend()
+    plot_clusters(labels, reduced_dims, K)
 
     # Save the clusters
     if SAVE_CLUSTERS:
-        for i in range(K):
-            cluster_i = np.where(labels == i)[0]
-            cluster_dir = images_path / f"person_id{i+1}"
-            cluster_dir.mkdir(exist_ok=True)
-            for j in cluster_i:
-                embedding = embeddings[j]
-                image_path = embedding["image_path"]
-                image_filename = image_path.name
-                cluster_image_path = cluster_dir / image_filename
-                shutil.copy(str(image_path), str(cluster_image_path))
-                image_path.unlink()
-
-    # Show the plot
-    plt.show()
+        save_clusters(labels, embeddings, images_path, K)

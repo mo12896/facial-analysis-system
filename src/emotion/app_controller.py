@@ -37,9 +37,7 @@ class Runner:
         self.video_path = str(DATA_DIR / self.args.get("VIDEO", "short_clip_debug.mp4"))
         self.video_codec = self.args.get("VIDEO_CODEC", "MP4V")
         self.detector = self.args.get("DETECTOR", "scrfd")
-        self.embeddings_path = str(
-            DATA_DIR / self.args.get("ANCHOR_EMBDDINGS", "database/embeddings.db")
-        )
+        self.embeddings_path = self.args.get("ANCHOR_EMBDDINGS", "embeddings.db")
         self.tracker_params = self.args.get("TRACKER", "byte")
         self.emotion_detector = self.args.get("EMOTION_DETECTOR", "deepface")
         self.embed_params = self.args.get("EMBEDDER", "insightface")
