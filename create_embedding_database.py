@@ -90,6 +90,10 @@ if __name__ == "__main__":
     if save_embeddings:
         save_clusters(labels, embeddings, output_folder, K)
 
+        input(
+            "Have you checked all generated person IDs and want to track them? Press Enter to confirm: "
+        )
+
         images_path = [item for item in DATA_DIR_TEST_IMAGES.iterdir() if item.is_dir()]
 
         # Save the embeddings to the database
