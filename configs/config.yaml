@@ -7,6 +7,9 @@ VIDEO: short_clip_debug.mp4
 # The name of the anchor embeddings database.
 ANCHOR_EMBEDDDINGS: embeddings_test.db
 
+# Set to true if you want to create a new embedding database.
+EMBEDDB: False
+
 # Whether to save the anchor face embeddings to the database after creation.
 SAVE_EMBEDDINGS: True
 

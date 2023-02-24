@@ -22,6 +22,20 @@ def parse_arguments() -> dict:
         help="Path to config file (default: config.yaml).",
     )
     parser.add_argument(
+        "-v",
+        "--video",
+        dest="video",
+        default="short_clip_debug.mp4",
+        help="Name of the video to process.",
+    )
+    parser.add_argument(
+        "-e",
+        "--embeddb",
+        dest="embeddb",
+        default=True,
+        help="Set to true if you want to create a new embedding database.",
+    )
+    parser.add_argument(
         "-d",
         "--debug",
         dest="debug",
@@ -36,5 +50,8 @@ def parse_arguments() -> dict:
         print("Loaded config file into python dict!")
     except yaml.YAMLError as exc:
         print(exc)
+
+    configs["VIDEO"] = args.video
+    configs["EMBEDDB"] = args.embeddb
 
     return configs

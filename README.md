@@ -30,7 +30,7 @@
   <a href="https://github.com/othneildrew/Best-README-Template">
   </a>
 
-  <h2 align="center">Visual Tracking System for Group PERMA Estimation using State-of-the-Art Deep Neural Networks and Frameworks</h2>
+  <h2 align="center">Visual Tracking System for PERMA Estimation using State-of-the-Art Deep Neural Networks and Frameworks</h2>
 
   <p align="center">
     The main repository for my master thesis.
