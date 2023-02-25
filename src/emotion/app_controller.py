@@ -44,6 +44,7 @@ class Runner:
         self.pose_params = self.args.get("POSE_ESTIMATOR", "l_openpose")
         self.head_pose_params = self.args.get("HEAD_POSE_ESTIMATOR", "synergy")
         self.gaze_params = self.args.get("GAZE_DETECTOR")
+        self.K = self.args.get("K", 4)
 
         # Instaniate necessary objects
         self.video_info = VideoInfo.from_video_path(self.video_path)
@@ -72,6 +73,7 @@ class Runner:
 
         frame_count: int = 0
         prev_detections = None
+        reid = True
 
         with VideoDataWriter(
             output_path=DATA_DIR,
@@ -88,7 +90,9 @@ class Runner:
                 )
             ):
 
-                if frame_count == 0 or not frame_count % self.detection_frequency:
+                if (
+                    frame_count == 0 or not frame_count % self.detection_frequency
+                ) and reid:
                     # if frame_count == 0:
 
                     detections = self.face_detector.detect_faces(frame)
@@ -121,33 +125,49 @@ class Runner:
                     prev_detections = detections
 
                     frame_count += 1
+                    # reid = False
 
-                # elif frame_count != 0 and not frame_count % self.detection_frequency:
+                # TODO: Add Tracker
+                # elif (
+                #     frame_count != 0 and not frame_count % self.detection_frequency
+                # ) and not reid:
                 #     # Black background for anonymization
                 #     # frame[:] = 0
 
+                #     detections = self.face_detector.detect_faces(frame)
+                #     # detections.tracks = prev_detections.bboxes
+
                 #     # No must have, since ReID-based tracking!
-                #     detections = self.face_tracker.track_faces(prev_detections, frame)
-                #     detections.bboxes = detections.tracks
+                #     detections = self.face_tracker.track_faces(detections, frame)
+                #     # detections.bboxes = detections.tracks
+                #     detections.class_id = detections.tracker_id
 
                 #     detections = self.face_emotion_detector.detect_emotions(
                 #         detections, frame
                 #     )
 
                 #     detections = self.pose_estimator.estimate_poses(frame, detections)
-                #     detections = self.head_pose_estimator.detect_head_pose(
+                #     detections = self.head_pose_estimator.detect_head_poses(
                 #         frame, detections
                 #     )
+
+                #     detections = self.gaze_detector.detect_gazes(detections)
 
                 #     frame = self.box_annotator.annotate(frame, detections)
                 #     frame = self.body_annotator.annotate(frame, detections)
                 #     frame = self.head_pose_annotator.annotate(frame, detections)
+
+                #     self.identities_handler.set_current_state(detections, frame_count)
+                #     self.identities_handler.write_states_to_csv()
 
                 #     video_writer.write_frame(frame)
 
                 #     prev_detections = detections
 
                 #     frame_count += 1
+                #     if len(detections) != self.K:
+                #         reid = True
+
                 else:
                     # Black background for anonymization
                     # frame[:] = 0

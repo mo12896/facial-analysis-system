@@ -32,7 +32,7 @@ def parse_arguments() -> dict:
         "-e",
         "--embeddb",
         dest="embeddb",
-        default=True,
+        action="store_true",
         help="Set to true if you want to create a new embedding database.",
     )
     parser.add_argument(

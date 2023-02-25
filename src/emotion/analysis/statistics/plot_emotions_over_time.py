@@ -4,6 +4,13 @@ from pathlib import Path
 
 import matplotlib.pyplot as plt
 import pandas as pd
+from matplotlib.figure import Figure
+
+from src.emotion.analysis.data_preprocessing import (
+    DataPreprocessor,
+    LinearInterpolator,
+    RollingAverageSmoother,
+)
 
 # grandparent_folder = os.path.abspath(
 #     os.path.join(
@@ -16,21 +23,17 @@ import pandas as pd
 # )
 # sys.path.append(grandparent_folder)
 
-from src.emotion.analysis.data_preprocessing import (
-    DataPreprocessor,
-    LinearInterpolator,
-    RollingAverageSmoother,
-)
 
 IDENTITY_DIR = Path("/home/moritz/Workspace/masterthesis/data/identities")
 
 
-def plot_smoothed_emotions_over_time(df: pd.DataFrame):
+def plot_smoothed_emotions_over_time(df: pd.DataFrame, plot: bool = True) -> Figure:
     """Plot the emotions over time for each person."""
 
     grouped = df.groupby("ClassID")
 
-    fig = plt.figure(figsize=(10, 15), tight_layout=True)
+    fig = plt.figure(figsize=(20, 5), tight_layout=True)
+    fig.suptitle("Emotions over Time")
 
     for i, (person_id, group) in enumerate(grouped):
 
@@ -47,7 +50,7 @@ def plot_smoothed_emotions_over_time(df: pd.DataFrame):
             ]
         ]
 
-        ax = fig.add_subplot(2, 2, i + 1)
+        ax = fig.add_subplot(1, 4, i + 1)
         emotions_rolling.plot(
             x="Frame",
             y=["Angry", "Disgust", "Happy", "Sad", "Surprise", "Fear", "Neutral"],
@@ -59,12 +62,15 @@ def plot_smoothed_emotions_over_time(df: pd.DataFrame):
         ax.set_ylabel("Confidence")
         ax.set_ylim(0, 1)
 
-    plt.show()
+    if plot:
+        plt.show()
     fig.savefig(IDENTITY_DIR / "emotions_over_time.png")
+
+    return fig
 
 
 # TODO: Adapt to new preprocessing pipeline
-def plot_max_emotions_over_time(df: pd.DataFrame):
+def plot_max_emotions_over_time(df: pd.DataFrame, plot: bool = True) -> Figure:
     """Plot the maximum emotion over time for each person."""
 
     emotions = ["Angry", "Disgust", "Happy", "Sad", "Surprise", "Fear", "Neutral"]
@@ -72,6 +78,7 @@ def plot_max_emotions_over_time(df: pd.DataFrame):
     grouped = df.groupby("ClassID")
 
     fig = plt.figure(figsize=(10, 15), tight_layout=True)
+    fig.suptitle("Maximum Emotions over Time")
 
     for i, (person_id, group) in enumerate(grouped):
 
@@ -85,8 +92,12 @@ def plot_max_emotions_over_time(df: pd.DataFrame):
         ax.set_xlabel("Frame")
         ax.set_ylabel("Emotion")
 
-    plt.show()
+    if plot:
+        plt.show()
+
     fig.savefig(IDENTITY_DIR / "max_emotions_over_time.png")
+
+    return fig
 
 
 if __name__ == "__main__":

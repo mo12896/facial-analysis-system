@@ -5,6 +5,16 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 
+from src.emotion.analysis.data_preprocessing import (
+    DataPreprocessor,
+    DerivativesGetter,
+    LinearInterpolator,
+    RollingAverageSmoother,
+    ZeroToOneNormalizer,
+)
+from src.emotion.analysis.entanglement import SimilarityMetric, plot_entanglement_graph
+from src.emotion.analysis.plot_utils import plot_time_series
+
 # grandparent_folder = os.path.abspath(
 #     os.path.join(
 #         os.path.dirname(os.path.abspath(__file__)),
@@ -15,35 +25,8 @@ import pandas as pd
 # )
 # sys.path.append(grandparent_folder)
 
-from src.emotion.analysis.data_preprocessing import (
-    DataPreprocessor,
-    LinearInterpolator,
-    RollingAverageSmoother,
-    ZeroToOneNormalizer,
-)
-from src.emotion.analysis.entanglement import SimilarityMetric, plot_entanglement_graph
-from src.emotion.analysis.plot_utils import plot_time_series
 
 IDENTITY_DIR = Path("/home/moritz/Workspace/masterthesis/data/identities")
-
-
-class DerivativesGetter:
-    def __init__(self, negatives: bool = False):
-        self.negatives = negatives
-
-    def _calculate_derivatives(self, group: pd.DataFrame) -> pd.Series:
-        x_diff = group["x_center"].diff()
-        y_diff = group["y_center"].diff()
-
-        if self.negatives:
-            return x_diff / y_diff
-
-        return abs(x_diff / y_diff)
-
-    def __call__(self, df: pd.DataFrame) -> pd.DataFrame:
-        derivatives = df.groupby("ClassID").apply(self._calculate_derivatives).fillna(0)
-        df["Derivatives"] = derivatives.reset_index(drop=True)
-        return df
 
 
 def plot_motion_entanglement(

@@ -1,3 +1,5 @@
+import subprocess
+
 from src.emotion.app_controller import Runner
 from src.emotion.app_gui import parse_arguments
 from src.emotion.create_embedding_database import FaceClusterer
@@ -13,6 +15,10 @@ def main() -> None:
 
     runner = Runner(args)
     runner.run()
+
+    subprocess.run(
+        ["streamlit", "run", "src/emotion/dashboard.py"], capture_output=True
+    )
 
 
 if __name__ == "__main__":

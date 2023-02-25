@@ -3,11 +3,12 @@ from pathlib import Path
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
+from matplotlib.figure import Figure
 
 IDENTITY_DIR = Path("/home/moritz/Workspace/masterthesis/data/identities")
 
 
-def plot_gaze_statistics(df: pd.DataFrame):
+def plot_gaze_statistics(df: pd.DataFrame, plot: bool = True) -> Figure:
 
     # Create a dictionary to hold the counts
     counts = {}
@@ -49,6 +50,7 @@ def plot_gaze_statistics(df: pd.DataFrame):
 
     # Plot the matrix
     fig, ax = plt.subplots()
+    fig.suptitle("Gaze Detections Matrix")
     ax.imshow(matrix, cmap="Blues")
 
     # We want to show all ticks...
@@ -66,9 +68,12 @@ def plot_gaze_statistics(df: pd.DataFrame):
         for j in range(len(class_ids)):
             ax.text(j, i, matrix[i][j], ha="center", va="center", color="w")
 
-    ax.set_title("Gaze Detections Matrix")
     fig.tight_layout()
-    plt.show()
+
+    if plot:
+        plt.show()
+
+    return fig
 
 
 if __name__ == "__main__":

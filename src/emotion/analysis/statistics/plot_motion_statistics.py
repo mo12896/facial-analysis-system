@@ -5,7 +5,16 @@ from pathlib import Path
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
+from matplotlib.figure import Figure
 from scipy.stats import gaussian_kde
+
+from src.emotion.analysis.data_preprocessing import (
+    DataPreprocessor,
+    DerivativesGetter,
+    LinearInterpolator,
+    MinusOneToOneNormalizer,
+    RollingAverageSmoother,
+)
 
 # grandparent_folder = os.path.abspath(
 #     os.path.join(
@@ -17,14 +26,6 @@ from scipy.stats import gaussian_kde
 #     )
 # )
 # sys.path.append(grandparent_folder)
-
-from src.emotion.analysis.data_preprocessing import (
-    DataPreprocessor,
-    LinearInterpolator,
-    MinusOneToOneNormalizer,
-    RollingAverageSmoother,
-)
-from src.emotion.analysis.entanglement.motion_entanglement import DerivativesGetter
 
 
 IDENTITY_DIR = Path("/home/moritz/Workspace/masterthesis/data/identities")
@@ -78,14 +79,17 @@ def prepare_data(x, y):
     return xx, yy, f, xmin, xmax, ymin, ymax
 
 
-def plot_point_derivatives(df: pd.DataFrame, max_len: int = 250):
+def plot_point_derivatives(
+    df: pd.DataFrame, max_len: int = 250, plot: bool = True
+) -> Figure:
 
     # group the data by ClassID and Frame
     grouped = df.groupby("ClassID")
     max_height = df["Derivatives"].max()
     min_height = df["Derivatives"].min()
 
-    fig = plt.figure(figsize=(10, 15), tight_layout=True)
+    fig = plt.figure(figsize=(20, 5), tight_layout=True)
+    fig.suptitle("Point Derivatives")
 
     for i, (person_id, group) in enumerate(grouped):
 
@@ -93,7 +97,7 @@ def plot_point_derivatives(df: pd.DataFrame, max_len: int = 250):
         z = gaussian_kde(np.array(gradients))
 
         # Plot the gradients
-        ax = fig.add_subplot(2, 2, i + 1)
+        ax = fig.add_subplot(1, 4, i + 1)
         x_range = np.linspace(min(gradients), max(gradients), 100)
         plt.plot(x_range, z(x_range))
         ax.set_xlim(left=min_height, right=max_height)
@@ -102,8 +106,12 @@ def plot_point_derivatives(df: pd.DataFrame, max_len: int = 250):
         ax.set_xlabel("Derivatives")
         ax.set_ylabel("PDF")
 
-    plt.show()
+    if plot:
+        plt.show()
+
     fig.savefig(IDENTITY_DIR / "point_derivatives.png")
+
+    return fig
 
 
 # TODO: Adapt the following functions to new preprocessing pipelines

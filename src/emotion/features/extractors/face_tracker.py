@@ -116,6 +116,7 @@ class ByteTracker(Tracker):
     def __init__(self, parameters: dict = {}):
         args = parameters.get("args", BYTETrackerArgs)
         self.tracker = BYTETracker(args)
+        self.person_ids: list = []
 
     @timer
     def track_faces(self, detections: Detections, image: np.ndarray) -> Detections:
@@ -145,6 +146,7 @@ class ByteTracker(Tracker):
             [tracker_id is not None for tracker_id in detections.tracker_id], dtype=bool
         )
         detections.filter(mask=mask, inplace=True)
+
         return detections
 
     def match_detections_with_tracks(
@@ -171,6 +173,7 @@ class ByteTracker(Tracker):
         for tracker_index, detection_index in enumerate(track2detection):
             if iou[tracker_index, detection_index] != 0:
                 tracker_ids[detection_index] = tracks[tracker_index].track_id
+                # tracker_ids[detection_index] = self.person_ids[tracker_index]
 
         return tracker_ids
 

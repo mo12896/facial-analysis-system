@@ -4,6 +4,9 @@ from pathlib import Path
 
 import matplotlib.pyplot as plt
 import pandas as pd
+from matplotlib.figure import Figure
+
+from src.emotion.analysis.data_preprocessing import DataPreprocessor, LinearInterpolator
 
 # grandparent_folder = os.path.abspath(
 #     os.path.join(
@@ -16,12 +19,11 @@ import pandas as pd
 # )
 # sys.path.append(grandparent_folder)
 
-from src.emotion.analysis.data_preprocessing import DataPreprocessor, LinearInterpolator
 
 IDENTITY_DIR = Path("/home/moritz/Workspace/masterthesis/data/identities")
 
 
-def plot_max_emotion_distribution(df: pd.DataFrame):
+def plot_max_emotion_distribution(df: pd.DataFrame, plot: bool = True) -> Figure:
 
     emotions = ["Angry", "Disgust", "Happy", "Sad", "Surprise", "Fear", "Neutral"]
 
@@ -32,14 +34,15 @@ def plot_max_emotion_distribution(df: pd.DataFrame):
     max_length_group_index = grouped.size().idxmax()
     y_lim = len(grouped.get_group(max_length_group_index))
 
-    fig = plt.figure(figsize=(10, 15), tight_layout=True)
+    fig = plt.figure(figsize=(20, 5), tight_layout=True)
+    fig.suptitle("Categorical distribution of maximum emotions")
 
     for i, (person_id, group) in enumerate(grouped):
 
         # Group the data by person_id and calculate the count of each emotion for each person
         grouped = group.groupby("Max_Emotion").size().reset_index(name="counts")
 
-        ax = fig.add_subplot(2, 2, i + 1)
+        ax = fig.add_subplot(1, 4, i + 1)
 
         # Plot the pivot table as a bar plot
         plt.bar(
@@ -57,8 +60,11 @@ def plot_max_emotion_distribution(df: pd.DataFrame):
         ax.set_ylim(0, y_lim)
 
     # Show the plot
-    plt.show()
+    if plot:
+        plt.show()
     fig.savefig(IDENTITY_DIR / "max_emotion_distribution.png")
+
+    return fig
 
 
 if __name__ == "__main__":

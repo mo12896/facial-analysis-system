@@ -231,3 +231,22 @@ class MinusOneToOneNormalizer:
             data.loc[group.index, self.cols] = norm_data
 
         return data
+
+
+class DerivativesGetter:
+    def __init__(self, negatives: bool = False):
+        self.negatives = negatives
+
+    def _calculate_derivatives(self, group: pd.DataFrame) -> pd.Series:
+        x_diff = group["x_center"].diff()
+        y_diff = group["y_center"].diff()
+
+        if self.negatives:
+            return x_diff / y_diff
+
+        return abs(x_diff / y_diff)
+
+    def __call__(self, df: pd.DataFrame) -> pd.DataFrame:
+        derivatives = df.groupby("ClassID").apply(self._calculate_derivatives).fillna(0)
+        df["Derivatives"] = derivatives.reset_index(drop=True)
+        return df
