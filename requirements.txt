@@ -9,6 +9,7 @@ filterpy==1.4.5
 h5py==3.7.0
 insightface==0.7.2
 lap==0.4.0
+loguru
 matcher==0.2
 matplotlib==3.6.3
 mediapipe==0.8.11

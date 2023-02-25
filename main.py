@@ -16,9 +16,10 @@ def main() -> None:
     runner = Runner(args)
     runner.run()
 
-    subprocess.run(
-        ["streamlit", "run", "src/emotion/dashboard.py"], capture_output=True
-    )
+    if args.get("DASHBOARD"):
+        subprocess.run(
+            ["streamlit", "run", "src/emotion/dashboard.py"], capture_output=True
+        )
 
 
 if __name__ == "__main__":

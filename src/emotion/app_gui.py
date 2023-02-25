@@ -37,8 +37,8 @@ def parse_arguments() -> dict:
     )
     parser.add_argument(
         "-d",
-        "--debug",
-        dest="debug",
+        "--dashboard",
+        dest="dashboard",
         action="store_true",
         help="Enable debug mode.",
     )
@@ -53,5 +53,6 @@ def parse_arguments() -> dict:
 
     configs["VIDEO"] = args.video
     configs["EMBEDDB"] = args.embeddb
+    configs["DASHBOARD"] = args.dashboard
 
     return configs

@@ -69,7 +69,7 @@ def run_app():
     st.write("<br>", unsafe_allow_html=True)
 
     # Add content to the app
-    st.title("Analytics Dashboard for the Visual PERMA Features!")
+    st.title("Analytics Dashboard for the Visual PERMA Features")
     st.write("<hr>", unsafe_allow_html=True)
 
     # Read the data from the csv file
