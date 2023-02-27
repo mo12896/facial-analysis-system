@@ -4,16 +4,19 @@ from abc import ABC, abstractmethod
 
 import cv2
 import matplotlib.pyplot as plt
-import mediapipe as mp
+
+# import mediapipe as mp
 import numpy as np
 from insightface.app import FaceAnalysis
-from retinaface import RetinaFace
 
 from src.emotion.features.annotators.annotator import BoxAnnotator
 from src.emotion.features.detections import Detections
 from src.emotion.utils.color import Color
 from src.emotion.utils.constants import OPENCV_MODEL
 from src.emotion.utils.utils import timer
+
+# from retinaface import RetinaFace
+
 
 # grandparent_folder = os.path.abspath(
 #     os.path.join(
@@ -27,7 +30,7 @@ from src.emotion.utils.utils import timer
 # sys.path.append(grandparent_folder)
 
 
-mp_face_detection = mp.solutions.face_detection
+# mp_face_detection = mp.solutions.face_detection
 
 
 class FaceDetector(ABC):
@@ -65,13 +68,13 @@ def create_face_detector(parameters: dict) -> FaceDetector:
         FaceDetector: Face detector object
     """
     if parameters["type"] == "retinaface":
-        return RetinaFaceDetector(parameters)
+        raise NotImplementedError("RetinaFace is not supported!")
     elif parameters["type"] == "scrfd":
         return SCRFDFaceDetector(parameters)
     elif parameters["type"] == "opencv":
         return OpenCVFaceDetector(parameters)
     elif parameters["type"] == "mediapipe":
-        return MediaPipeFaceDetector(parameters)
+        raise NotImplementedError("MediaPipe is not supported!")
     else:
         raise ValueError("The chosen face detector is not supported!")
 
@@ -100,21 +103,21 @@ class OpenCVFaceDetector(FaceDetector):
 
 
 # Legacy implementation from retinface package (15x slower than SCRFD)
-class RetinaFaceDetector(FaceDetector):
-    """Face detector using RetinaFace."""
+# class RetinaFaceDetector(FaceDetector):
+#     """Face detector using RetinaFace."""
 
-    def __init__(self, parameters: dict = {}):
-        super().__init__(parameters)
-        self.face_detector = RetinaFace
+#     def __init__(self, parameters: dict = {}):
+#         super().__init__(parameters)
+#         self.face_detector = RetinaFace
 
-    @timer
-    def detect_faces(self, frame: np.ndarray) -> Detections:
-        faces = self.face_detector.detect_faces(frame)
-        detections = Detections.from_retinaface(faces)
+#     @timer
+#     def detect_faces(self, frame: np.ndarray) -> Detections:
+#         faces = self.face_detector.detect_faces(frame)
+#         detections = Detections.from_retinaface(faces)
 
-        if len(detections.bboxes) > 0:
-            return detections
-        raise ValueError("No faces detected")
+#         if len(detections.bboxes) > 0:
+#             return detections
+#         raise ValueError("No faces detected")
 
 
 class SCRFDFaceDetector(FaceDetector):
@@ -136,24 +139,24 @@ class SCRFDFaceDetector(FaceDetector):
         raise ValueError("No faces detected")
 
 
-class MediaPipeFaceDetector(FaceDetector):
-    def __init__(self, parameters: dict = {}):
-        super().__init__(parameters)
-        self.face_detector = mp_face_detection.FaceDetection
+# class MediaPipeFaceDetector(FaceDetector):
+#     def __init__(self, parameters: dict = {}):
+#         super().__init__(parameters)
+#         self.face_detector = mp_face_detection.FaceDetection
 
-    @timer
-    def detect_faces(self, frame: np.ndarray) -> Detections:
-        face_detection = self.face_detector(
-            model_selection=0, min_detection_confidence=0.5
-        )
-        # frame.flags.writeable = False
-        frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-        results = face_detection.process(frame)
-        detections = Detections.from_mediapipe(results.detections, frame.shape[:2])
+#     @timer
+#     def detect_faces(self, frame: np.ndarray) -> Detections:
+#         face_detection = self.face_detector(
+#             model_selection=0, min_detection_confidence=0.5
+#         )
+#         # frame.flags.writeable = False
+#         frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+#         results = face_detection.process(frame)
+#         detections = Detections.from_mediapipe(results.detections, frame.shape[:2])
 
-        if len(detections.bboxes) > 0:
-            return detections
-        raise ValueError("No faces detected")
+#         if len(detections.bboxes) > 0:
+#             return detections
+#         raise ValueError("No faces detected")
 
 
 if __name__ == "__main__":

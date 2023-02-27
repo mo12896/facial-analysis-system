@@ -1,0 +1,35 @@
+# services:
+#   vptapp:
+#     # environment:
+#     #     - DOCKER_BUILDKIT=1
+#     # build:
+#     #   context: .
+#     #   dockerfile: Dockerfile
+#     # tags:
+#     #     - mo12896/visual-perma-tracker:0.0.5
+#     image: mo12896/visual-perma-tracker:0.0.5
+#     volumes:
+#       - './data:/home/data'
+#       - './configs:/home/configs'
+#       - './data/identities:/home/data/identities'
+#     stdin_open: true
+#     tty: true
+#     command: python main.py -d
+#     deploy:
+#       resources:
+#         reservations:
+#           devices:
+#             - driver: nvidia
+#               capabilities: [gpu]
+
+services:
+  nvidia-test:
+    image: nvidia/cuda:11.5.2-base-ubuntu20.04
+    command: nvidia-smi
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]

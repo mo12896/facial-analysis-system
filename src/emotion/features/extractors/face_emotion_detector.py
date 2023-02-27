@@ -1,8 +1,9 @@
 from abc import ABC, abstractmethod
 
-import cv2
+# import cv2
 import numpy as np
-from deepface.extendedmodels import Emotion
+
+# from deepface.extendedmodels import Emotion
 from rmn import RMN
 
 from src.emotion.features.detections import Detections
@@ -46,55 +47,55 @@ def create_emotion_detector(parameters: dict = {}) -> EmotionDetector:
         EmotionDetector: Emotion detector object.
     """
     if parameters["type"] == "deepface":
-        return DeepFaceEmotionDetector(parameters)
+        raise NotImplementedError("DeepFace emotion detector is not implemented yet!")
     elif parameters["type"] == "rmn":
         return RMNEmotionDetector(parameters)
     else:
         raise ValueError(f"Emotion detector {parameters['type']} is not supported")
 
 
-class DeepFaceEmotionDetector(EmotionDetector):
-    def __init__(self, parameters: dict = {}) -> None:
-        super().__init__(parameters)
-        self.emotion_detector = Emotion.loadModel()
-        self.emo_label = [
-            "angry",
-            "disgust",
-            "fear",
-            "happy",
-            "sad",
-            "surprise",
-            "neutral",
-        ]
+# class DeepFaceEmotionDetector(EmotionDetector):
+#     def __init__(self, parameters: dict = {}) -> None:
+#         super().__init__(parameters)
+#         self.emotion_detector = Emotion.loadModel()
+#         self.emo_label = [
+#             "angry",
+#             "disgust",
+#             "fear",
+#             "happy",
+#             "sad",
+#             "surprise",
+#             "neutral",
+#         ]
 
-    @timer
-    def detect_emotions(self, detections: Detections, image: np.ndarray) -> Detections:
+#     @timer
+#     def detect_emotions(self, detections: Detections, image: np.ndarray) -> Detections:
 
-        emotions = []
+#         emotions = []
 
-        for bbox in detections.bboxes:
-            img = image[int(bbox[1]) : int(bbox[3]), int(bbox[0]) : int(bbox[2])]
-            img_gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-            img_gray = cv2.resize(img_gray, (48, 48))
-            img_gray = np.expand_dims(img_gray, axis=0)
+#         for bbox in detections.bboxes:
+#             img = image[int(bbox[1]) : int(bbox[3]), int(bbox[0]) : int(bbox[2])]
+#             img_gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+#             img_gray = cv2.resize(img_gray, (48, 48))
+#             img_gray = np.expand_dims(img_gray, axis=0)
 
-            emotion_predictions = self.emotion_detector.predict(img_gray, verbose=0)[
-                0, :
-            ]
+#             emotion_predictions = self.emotion_detector.predict(img_gray, verbose=0)[
+#                 0, :
+#             ]
 
-            sum_of_predictions = emotion_predictions.sum()
+#             sum_of_predictions = emotion_predictions.sum()
 
-            emotions_dict = {}
+#             emotions_dict = {}
 
-            for i, emotion_label in enumerate(self.emo_label):
-                emotion_prediction = 100 * emotion_predictions[i] / sum_of_predictions
-                emotions_dict[emotion_label] = emotion_prediction
+#             for i, emotion_label in enumerate(self.emo_label):
+#                 emotion_prediction = 100 * emotion_predictions[i] / sum_of_predictions
+#                 emotions_dict[emotion_label] = emotion_prediction
 
-            emotions.append(emotions_dict)
+#             emotions.append(emotions_dict)
 
-        detections.emotion = np.array(emotions)
+#         detections.emotion = np.array(emotions)
 
-        return detections
+#         return detections
 
 
 # Faster! Not necessarily more accurate!

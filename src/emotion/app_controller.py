@@ -12,7 +12,8 @@ from src.emotion.features.extractors.face_emotion_detector import (
     create_emotion_detector,
 )
 from src.emotion.features.extractors.face_reid import ReIdentification
-from src.emotion.features.extractors.face_tracker import create_tracker
+
+# from src.emotion.features.extractors.face_tracker import create_tracker
 from src.emotion.features.extractors.gaze_detector import GazeDetector
 from src.emotion.features.extractors.head_pose_estimator import (
     create_head_pose_detector,
@@ -38,7 +39,7 @@ class Runner:
         self.video_codec = self.args.get("VIDEO_CODEC", "MP4V")
         self.detector = self.args.get("DETECTOR", "scrfd")
         self.embeddings_path = self.args.get("ANCHOR_EMBDDINGS", "embeddings.db")
-        self.tracker_params = self.args.get("TRACKER", "byte")
+        # self.tracker_params = self.args.get("TRACKER", "byte")
         self.emotion_detector = self.args.get("EMOTION_DETECTOR", "deepface")
         self.embed_params = self.args.get("EMBEDDER", "insightface")
         self.pose_params = self.args.get("POSE_ESTIMATOR", "l_openpose")
@@ -50,7 +51,7 @@ class Runner:
         self.video_info = VideoInfo.from_video_path(self.video_path)
         self.video_loader = VideoDataLoader(Path(self.video_path))
         self.face_detector = create_face_detector(self.detector)
-        self.face_tracker = create_tracker(self.tracker_params)
+        # self.face_tracker = create_tracker(self.tracker_params)
         self.face_embedder = create_face_embedder(self.embed_params)
         self.face_emotion_detector = create_emotion_detector(self.emotion_detector)
         self.face_reid = ReIdentification(self.embeddings_path, self.face_embedder)

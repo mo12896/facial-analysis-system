@@ -13,7 +13,8 @@ from external.light_openpose.modules.load_state import load_state
 from external.light_openpose.modules.pose import Pose
 from external.light_openpose.val import normalize, pad_width
 from external.pytorch_openpose.src.body import Body
-from external.pytorch_openpose.src.hand import Hand
+
+# from external.pytorch_openpose.src.hand import Hand
 from src.emotion.features.annotators.body_annotator import BodyAnnotator
 from src.emotion.features.detections import Detections
 from src.emotion.features.extractors.face_detector import create_face_detector
@@ -85,9 +86,9 @@ class PyTorchOpenPoseEstimator(PoseEstimator):
         super().__init__(parameters)
         # Load OpenPose models
         body_pose = MODEL_DIR / "body_pose_model.pth"
-        hand_pose = MODEL_DIR / "hand_pose_model.pth"
+        # hand_pose = MODEL_DIR / "hand_pose_model.pth"
         self.body_pose_estimator = Body(body_pose)
-        self.hand_pose_estimator = Hand(hand_pose)
+        # self.hand_pose_estimator = Hand(hand_pose)
         self.hands = True
         self.body = True
 

@@ -1,7 +1,7 @@
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
 
-import dlib
+# import dlib
 import numpy as np
 from onemetric.cv.utils.iou import box_iou_batch
 from yolox.tracker.byte_tracker import BYTETracker, STrack
@@ -41,61 +41,61 @@ def create_tracker(paramaters: dict = {}):
         Tracker: Tracker object
     """
     if paramaters["type"] == "dlib":
-        return DlibTracker(paramaters)
+        raise NotImplementedError("Dlib tracker not implemented!")
     elif paramaters["type"] == "byte":
         return ByteTracker(paramaters)
     else:
         raise ValueError("Invalid tracker name!")
 
 
-# TODO: Not correct!
-class DlibTracker(Tracker):
-    """Dlib tracker implementation."""
+# # TODO: Not fully implemented
+# class DlibTracker(Tracker):
+#     """Dlib tracker implementation."""
 
-    def __init__(self, parameters: dict = {}):
-        self.detection_frequency = parameters.get("detection_frequency", 10)
-        self.confidence = None
-        self.first_run = True
+#     def __init__(self, parameters: dict = {}):
+#         self.detection_frequency = parameters.get("detection_frequency", 10)
+#         self.confidence = None
+#         self.first_run = True
 
-    def track_faces(self, detections: Detections, image: np.ndarray) -> Detections:
-        # For frame_count >= 0, the detections become more accurate!
-        if self.first_run:
-            self.trackers: list = []
+#     def track_faces(self, detections: Detections, image: np.ndarray) -> Detections:
+#         # For frame_count >= 0, the detections become more accurate!
+#         if self.first_run:
+#             self.trackers: list = []
 
-            self.confidence = detections.confidence
+#             self.confidence = detections.confidence
 
-            for (x, y, w, h) in detections.bboxes:
+#             for (x, y, w, h) in detections.bboxes:
 
-                tracker = dlib.correlation_tracker()
-                rect = dlib.rectangle(x, y, w, h)
+#                 tracker = dlib.correlation_tracker()
+#                 rect = dlib.rectangle(x, y, w, h)
 
-                tracker.start_track(image, rect)
-                self.trackers.append(tracker)
+#                 tracker.start_track(image, rect)
+#                 self.trackers.append(tracker)
 
-            self.first_run = False
+#             self.first_run = False
 
-            return detections
+#             return detections
 
-        bboxes = []
+#         bboxes = []
 
-        for track in self.trackers:
-            track.update(image)
-            pos = track.get_position()
+#         for track in self.trackers:
+#             track.update(image)
+#             pos = track.get_position()
 
-            startX = int(pos.left())
-            startY = int(pos.top())
-            endX = int(pos.right())
-            endY = int(pos.bottom())
+#             startX = int(pos.left())
+#             startY = int(pos.top())
+#             endX = int(pos.right())
+#             endY = int(pos.bottom())
 
-            bboxes.append((startX, startY, endX, endY))
+#             bboxes.append((startX, startY, endX, endY))
 
-        detections = Detections(
-            bboxes=np.array(bboxes),
-            confidence=self.confidence,
-            class_id=np.zeros(len(bboxes), dtype=np.int32),
-        )
+#         detections = Detections(
+#             bboxes=np.array(bboxes),
+#             confidence=self.confidence,
+#             class_id=np.zeros(len(bboxes), dtype=np.int32),
+#         )
 
-        return detections
+#         return detections
 
 
 @dataclass(frozen=True)

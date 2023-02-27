@@ -11,7 +11,8 @@ import numpy as np
 import tensorflow as tf
 from sklearn.cluster import KMeans
 from sklearn.decomposition import PCA
-from sklearn_extra.cluster import KMedoids
+
+# from sklearn_extra.cluster import KMedoids
 from tensorflow.keras import layers
 
 from src.emotion.features.extractors.face_embedder import create_face_embedder
@@ -114,17 +115,17 @@ class KMeansClusterer(Clusterer):
         return self.kmeans.fit_predict(X)
 
 
-class KMedoidsClusterer(Clusterer):
-    """Clustering using K-medoids."""
+# class KMedoidsClusterer(Clusterer):
+#     """Clustering using K-medoids."""
 
-    def __init__(self, K: int):
-        self.K = K
-        self.kmedoids = None
+#     def __init__(self, K: int):
+#         self.K = K
+#         self.kmedoids = None
 
-    def cluster(self, X: np.ndarray) -> np.ndarray:
-        if self.kmedoids is None:
-            self.kmedoids = KMedoids(n_clusters=self.K, random_state=0)
-        return self.kmedoids.fit_predict(X)
+#     def cluster(self, X: np.ndarray) -> np.ndarray:
+#         if self.kmedoids is None:
+#             self.kmedoids = KMedoids(n_clusters=self.K, random_state=0)
+#         return self.kmedoids.fit_predict(X)
 
 
 def create_clusterer(params: dict = {}) -> Clusterer:
@@ -134,7 +135,7 @@ def create_clusterer(params: dict = {}) -> Clusterer:
     if method == "kmeans":
         return KMeansClusterer(K)
     elif method == "kmedoids":
-        return KMedoidsClusterer(K)
+        raise NotImplementedError("K-medoids clustering is not implemented yet.")
     else:
         raise ValueError(f"Unknown clustering method: {method}")
 
