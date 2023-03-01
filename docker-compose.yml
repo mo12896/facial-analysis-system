@@ -1,35 +1,17 @@
-# services:
-#   vptapp:
-#     # environment:
-#     #     - DOCKER_BUILDKIT=1
-#     # build:
-#     #   context: .
-#     #   dockerfile: Dockerfile
-#     # tags:
-#     #     - mo12896/visual-perma-tracker:0.0.5
-#     image: mo12896/visual-perma-tracker:0.0.5
-#     volumes:
-#       - './data:/home/data'
-#       - './configs:/home/configs'
-#       - './data/identities:/home/data/identities'
-#     stdin_open: true
-#     tty: true
-#     command: python main.py -d
-#     deploy:
-#       resources:
-#         reservations:
-#           devices:
-#             - driver: nvidia
-#               capabilities: [gpu]
-
+# Run with sudo docker-compose up!!!
 services:
-  nvidia-test:
-    image: nvidia/cuda:11.5.2-base-ubuntu20.04
-    command: nvidia-smi
+  visual-perma-tracker-app:
+    image: mo12896/visual-perma-tracker:0.0.18
+    volumes:
+      - /home/moritz/Workspace/masterthesis/data:/home/data
+      - /home/moritz/Workspace/masterthesis/data/identities:/home/data/identities
+      - /home/moritz/Workspace/masterthesis/configs:/home/configs
+    stdin_open: true
+    tty: true
     deploy:
       resources:
         reservations:
           devices:
             - driver: nvidia
-              count: 1
               capabilities: [gpu]
+

@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from typing import Callable
+from typing import Callable, List
 
 import numpy as np
 from dataclass_csv import DataclassReader, DataclassWriter
@@ -8,7 +8,8 @@ from src.emotion.features.detections import Detections
 from src.emotion.utils.constants import IDENTITY_DIR
 
 
-@dataclass(slots=True)
+# Python3.10: Use slots=True
+@dataclass
 class IdentityState:
     """Identity state of the current user"""
 
@@ -32,12 +33,12 @@ class IdentityHandler:
 
     def __init__(self):
         self.filename = IDENTITY_DIR / "identities.csv"
-        self._identities_states: list[IdentityState] = []
+        self._identities_states: List[IdentityState] = []
 
     def __len__(self):
         return len(self._identities_states)
 
-    def get_current_state(self) -> list[IdentityState]:
+    def get_current_state(self) -> List[IdentityState]:
         return self._identities_states
 
     def set_current_state(self, detections: Detections, frame: int):
@@ -122,7 +123,7 @@ class IdentityHandler:
                 w.write(skip_header=True)
 
     # TODO: Not tested!
-    def read_states_from_csv(self) -> list[IdentityState]:
+    def read_states_from_csv(self) -> List[IdentityState]:
         """Convenience method to read user states from a csv file
 
         Returns:

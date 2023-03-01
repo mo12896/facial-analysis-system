@@ -1,6 +1,7 @@
 # import os
 # import sys
 from abc import ABC, abstractmethod
+from typing import List, Tuple
 
 import cv2
 import matplotlib.pyplot as plt
@@ -288,7 +289,7 @@ class OpenPoseEstimator(PoseEstimator):
         return all_keypoints
 
     @staticmethod
-    def extract_keypoints(heatmap: np.ndarray, img: np.ndarray) -> list[tuple[int]]:
+    def extract_keypoints(heatmap: np.ndarray, img: np.ndarray) -> List[Tuple[int]]:
         """Function to extract keypoints for a single person
 
         Args:

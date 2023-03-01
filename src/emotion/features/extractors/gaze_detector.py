@@ -31,7 +31,7 @@ class Identity:
     n_vector: np.ndarray
     tip: np.ndarray
     points: np.ndarray
-    sights: list[str] = field(default_factory=list)
+    sights: List[str] = field(default_factory=list)
 
 
 class GazeDetector:

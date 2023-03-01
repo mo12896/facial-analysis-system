@@ -3,6 +3,7 @@ import sqlite3
 
 # import sys
 from pathlib import Path
+from typing import Dict, List
 
 import insightface
 import numpy as np
@@ -31,7 +32,7 @@ def dummy_embeddings():
     return (embedding1, embedding2, embedding3)
 
 
-def generate_face_embeddings(images_path: list[Path], embedder: FaceEmbedder) -> dict:
+def generate_face_embeddings(images_path: List[Path], embedder: FaceEmbedder) -> Dict:
     """Generates the embeddings for a set of identities.
 
     Args:
@@ -93,7 +94,7 @@ def read_key_embeddings_from_database(database: Path) -> np.ndarray:
 
 
 def validate_embeddings(
-    database: Path, images_path: list[Path], embedder: FaceEmbedder
+    database: Path, images_path: List[Path], embedder: FaceEmbedder
 ):
     """Validates the embeddings.
 

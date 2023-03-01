@@ -1,3 +1,5 @@
+from typing import List, Tuple
+
 import numpy as np
 import pandas as pd
 import scipy.optimize
@@ -74,7 +76,7 @@ class ReIdentification:
 
     def match_embeddings(
         self, df1: pd.DataFrame, df2: pd.DataFrame, threshold: float = 0.4
-    ) -> list[tuple]:
+    ) -> List[Tuple]:
         """Bipartite matching of two DataFrames using the Hungarian algorithm.
 
         Args:
@@ -113,7 +115,7 @@ class ReIdentification:
         return list(zip(df1_label, df2_label))
 
     @staticmethod
-    def hungarian_algorithm(cost_matrix: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
+    def hungarian_algorithm(cost_matrix: np.ndarray) -> Tuple[np.ndarray, np.ndarray]:
         """The Hungarian algorithm is a combinatorial optimization algorithm that solves
         the assignment problem in polynomial time.
 

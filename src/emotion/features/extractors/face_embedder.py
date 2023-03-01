@@ -1,6 +1,7 @@
 import functools
 from abc import ABC, abstractmethod
 from pathlib import Path
+from typing import Dict, List
 
 import cv2
 
@@ -119,7 +120,7 @@ class InsightFaceEmbedder(FaceEmbedder):
         return pd.DataFrame(data).transpose()
 
     @timer
-    def get_face_embeddings_from_folder(self, image_folder: Path) -> list[dict]:
+    def get_face_embeddings_from_folder(self, image_folder: Path) -> List[Dict]:
         embeddings = []
 
         for image in image_folder.glob("*.png"):
