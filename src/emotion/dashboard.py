@@ -37,7 +37,7 @@ from src.emotion.analysis.statistics.plot_motion_statistics import (
 from src.emotion.utils.constants import IDENTITY_DIR
 
 
-def run_app():
+def run_app(emo_window: int = 150):
     # Set the title of the app and add a custom favicon
     st.set_page_config(
         page_title="Visual Feature Analytics Dashboard",
@@ -79,7 +79,7 @@ def run_app():
     emo_time_preprocessing_pipeline = [
         LinearInterpolator(),
         RollingAverageSmoother(
-            window_size=150,
+            window_size=emo_window,
             cols=[
                 "Angry",
                 "Disgust",
@@ -124,7 +124,7 @@ def run_app():
     # Define a list of functions that generate the figures
     fig_funcs = [
         lambda: plot_smoothed_emotions_over_time(
-            preprocessed_data["emo_time"], plot=True
+            preprocessed_data["emo_time"], plot=False
         ),
         lambda: plot_max_emotion_distribution(
             preprocessed_data["emo_stat"], plot=False
@@ -169,4 +169,4 @@ def run_app():
 
 
 if __name__ == "__main__":
-    run_app()
+    run_app(emo_window=500)

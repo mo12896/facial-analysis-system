@@ -1,12 +1,12 @@
 import argparse
-from typing import Any
+from typing import Any, Dict
 
 import yaml
 
 from src.emotion.utils.constants import CONFIG_DIR
 
 
-def parse_arguments() -> dict:
+def parse_arguments() -> Dict:
     """Parse command line arguments.
 
     Returns:
@@ -25,7 +25,7 @@ def parse_arguments() -> dict:
         "-v",
         "--video",
         dest="video",
-        default="short_clip_debug.mp4",
+        default="test_video.mp4",
         help="Name of the video to process.",
     )
     parser.add_argument(
@@ -46,7 +46,7 @@ def parse_arguments() -> dict:
     args = parser.parse_args()
 
     try:
-        configs: dict[str, Any] = yaml.safe_load(args.config.read_text())
+        configs: Dict[str, Any] = yaml.safe_load(args.config.read_text())
         print("Loaded config file into python dict!")
     except yaml.YAMLError as exc:
         print(exc)

@@ -22,7 +22,7 @@ sys.path.append(f"{root}/external/synergy")
 
 # Asset Files
 IMAGE_PATH = DATA_DIR / "test_image.png"
-VIDEO_PATH = DATA_DIR / "short_clip.mp4"
+VIDEO_PATH = DATA_DIR / "test_video.mp4"
 LIGHT_OPENPOSE_MODEL = MODEL_DIR / "checkpoint_iter_370000.pth"
 EMOTION_ENV = Path("/home/moritz/anaconda3/envs/emotion")
 OPENCV_MODEL = (

@@ -6,8 +6,10 @@ services:
       - /home/moritz/Workspace/masterthesis/data:/home/data
       - /home/moritz/Workspace/masterthesis/data/identities:/home/data/identities
       - /home/moritz/Workspace/masterthesis/configs:/home/configs
+      - /home/moritz/Workspace/masterthesis/data/images:/home/data/images
     stdin_open: true
     tty: true
+    command: python3 -c "import onnxruntime as rt; print(rt.get_device())"
     deploy:
       resources:
         reservations:

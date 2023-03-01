@@ -35,7 +35,7 @@ class Runner:
         self.args = args
 
         self.detection_frequency = self.args.get("DETECTION_FREQUENCY", 5)
-        self.video_path = str(DATA_DIR / self.args.get("VIDEO", "short_clip_debug.mp4"))
+        self.video_path = str(DATA_DIR / self.args.get("VIDEO", "short_clip.mp4"))
         self.video_codec = self.args.get("VIDEO_CODEC", "MP4V")
         self.detector = self.args.get("DETECTOR", "scrfd")
         self.embeddings_path = self.args.get("ANCHOR_EMBDDINGS", "embeddings.db")
@@ -104,7 +104,7 @@ class Runner:
                         detections, frame
                     )
 
-                    detections = self.pose_estimator.estimate_poses(frame, detections)
+                    # detections = self.pose_estimator.estimate_poses(frame, detections)
                     detections = self.head_pose_estimator.detect_head_poses(
                         frame, detections
                     )
@@ -115,7 +115,7 @@ class Runner:
                     # frame[:] = 0
 
                     frame = self.box_annotator.annotate(frame, detections)
-                    frame = self.body_annotator.annotate(frame, detections)
+                    # frame = self.body_annotator.annotate(frame, detections)
                     frame = self.head_pose_annotator.annotate(frame, detections)
 
                     self.identities_handler.set_current_state(detections, frame_count)
@@ -174,7 +174,7 @@ class Runner:
                     # frame[:] = 0
 
                     frame = self.box_annotator.annotate(frame, prev_detections)
-                    frame = self.body_annotator.annotate(frame, prev_detections)
+                    # frame = self.body_annotator.annotate(frame, prev_detections)
                     frame = self.head_pose_annotator.annotate(frame, prev_detections)
 
                     video_writer.write_frame(frame)
