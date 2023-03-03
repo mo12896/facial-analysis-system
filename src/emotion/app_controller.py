@@ -35,10 +35,11 @@ class Runner:
         self.args = args
 
         self.detection_frequency = self.args.get("DETECTION_FREQUENCY", 5)
-        self.video_path = str(DATA_DIR / self.args.get("VIDEO", "short_clip.mp4"))
+        self.filename = self.args.get("VIDEO", "short_clip.mp4")
+        self.video_path = str(DATA_DIR / self.filename)
         self.video_codec = self.args.get("VIDEO_CODEC", "MP4V")
         self.detector = self.args.get("DETECTOR", "scrfd")
-        self.embeddings_path = self.args.get("ANCHOR_EMBDDINGS", "embeddings.db")
+        self.embeddings_path = self.args.get("ANCHOR_EMBEDDINGS", "embeddings.db")
         # self.tracker_params = self.args.get("TRACKER", "byte")
         self.emotion_detector = self.args.get("EMOTION_DETECTOR", "deepface")
         self.embed_params = self.args.get("EMBEDDER", "insightface")
@@ -58,7 +59,9 @@ class Runner:
         self.pose_estimator = create_pose_estimator(self.pose_params)
         self.box_annotator = BoxAnnotator(color=Color.red())
         self.body_annotator = BodyAnnotator(color=Color.red())
-        self.identities_handler = IdentityHandler()
+        self.identities_handler = IdentityHandler(
+            IDENTITY_DIR / (self.filename.split(".")[0] + ".csv")
+        )
         self.head_pose_estimator = create_head_pose_detector(self.head_pose_params)
         self.head_pose_annotator = HeadPoseAnnotator()
         self.gaze_detector = GazeDetector(
@@ -77,7 +80,7 @@ class Runner:
         reid = True
 
         with VideoDataWriter(
-            output_path=DATA_DIR,
+            filename=str(DATA_DIR / (self.filename.split(".")[0] + "_output")),
             logger=logger,
             video_info=self.video_info,
             video_codec=VideoCodecs[self.video_codec],

@@ -97,11 +97,11 @@ class FaceClusterer:
         if self.save_embeddings:
             save_clusters(labels, embeddings, self.output_folder, self.K)
 
-            input(
-                "Have you checked all generated person IDs and want to track them? Press Enter to confirm: "
-            )
+            # Note that we have to track all persons, to get the gaze feature. Later we will then discard the
+            # persons that do not want to be tracked.
+            input("Have you checked all generated person IDs? Press Enter to confirm: ")
 
-            images_path = [
+            images_paths = [
                 item for item in self.output_folder.iterdir() if item.is_dir()
             ]
 
@@ -113,12 +113,12 @@ class FaceClusterer:
                 self.database.unlink()
 
             embeddings = generate_face_embeddings(
-                images_path=images_path, embedder=embedder
+                images_path=images_paths, embedder=embedder
             )
             write_embeddings_to_database(database=self.database, embeddings=embeddings)
 
             validate_embeddings(
-                database=self.database, images_path=images_path, embedder=embedder
+                database=self.database, images_path=images_paths, embedder=embedder
             )
 
             with SQLite(str(self.database)) as conn:
@@ -133,4 +133,4 @@ class FaceClusterer:
 if __name__ == "__main__":
     configs = load_configs()
     face_clusterer = FaceClusterer(configs)
-    face_clusterer.run()
+    face_clusterer.create_database()

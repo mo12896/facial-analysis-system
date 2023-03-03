@@ -2,12 +2,14 @@ import subprocess
 
 from src.emotion.app_controller import Runner
 from src.emotion.app_gui import parse_arguments
-from src.emotion.create_embedding_database import FaceClusterer
+from src.emotion.embedder import FaceClusterer
 
 
 def main() -> None:
 
     args = parse_arguments()
+
+    args["EMBEDDB"] = True
 
     if args.get("EMBEDDB"):
         clusterer = FaceClusterer(args)

@@ -51,7 +51,7 @@ def parse_arguments() -> Dict:
     except yaml.YAMLError as exc:
         print(exc)
 
-    configs["VIDEO"] = args.video
+    # configs["VIDEO"] = args.video
     configs["EMBEDDB"] = args.embeddb
     configs["DASHBOARD"] = args.dashboard
 

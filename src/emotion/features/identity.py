@@ -1,11 +1,11 @@
 from dataclasses import dataclass
+from pathlib import Path
 from typing import Callable, List
 
 import numpy as np
 from dataclass_csv import DataclassReader, DataclassWriter
 
 from src.emotion.features.detections import Detections
-from src.emotion.utils.constants import IDENTITY_DIR
 
 
 # Python3.10: Use slots=True
@@ -31,8 +31,8 @@ class IdentityState:
 class IdentityHandler:
     """Identity handler for the current users state"""
 
-    def __init__(self):
-        self.filename = IDENTITY_DIR / "identities.csv"
+    def __init__(self, filename: Path):
+        self.filename = filename
         self._identities_states: List[IdentityState] = []
 
     def __len__(self):
