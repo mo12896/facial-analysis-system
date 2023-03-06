@@ -6,7 +6,7 @@ import numpy as np
 from catboost import Pool
 from joblib import Parallel, delayed
 from models import MODELS
-from sklearn.model_selection import GridSearchCV, KFold
+from sklearn.model_selection import GridSearchCV, KFold, RandomizedSearchCV
 from sklearn.multioutput import MultiOutputRegressor
 
 
@@ -28,11 +28,36 @@ class MultiVariateRegressor(ABC):
             GridSearchCV: Grid Search object
         """
 
+    def random_search(
+        self, X_train, y_train, n_iter, kf, metric_name
+    ) -> RandomizedSearchCV:
+        """Random search for hyperparameters
+
+        Args:
+            X_train (_type_): Independent variables
+            y_train (_type_): Dependent variables
+            n_iter (_type_): Number of iterations
+            kf (_type_): k-fold cross validation
+            metric_name (_type_): Metric to optimize
+
+        Returns:
+            GridSearchCV: Grid Search object
+        """
+
 
 class DefaultMultiVariateRegressor(MultiVariateRegressor):
     def grid_search(self, X_train, y_train, kf, metric_name) -> GridSearchCV:
         random_search = GridSearchCV(
             self.model, self.params, cv=kf, scoring=f"neg_{metric_name}"
+        )
+        random_search.fit(X_train, y_train)
+        return random_search
+
+    def random_search(
+        self, X_train, y_train, n_iter, kf, metric_name
+    ) -> RandomizedSearchCV:
+        random_search = RandomizedSearchCV(
+            self.model, self.params, n_iter=n_iter, cv=kf, scoring=f"neg_{metric_name}"
         )
         random_search.fit(X_train, y_train)
         return random_search
@@ -47,12 +72,32 @@ class CustomMultiVariateRegressor(MultiVariateRegressor):
         random_search.fit(X_train, y_train)
         return random_search
 
+    def random_search(
+        self, X_train, y_train, n_iter, kf, metric_name
+    ) -> RandomizedSearchCV:
+        multi_model = MultiOutputRegressor(self.model, n_jobs=-1)
+        random_search = RandomizedSearchCV(
+            multi_model, self.params, n_iter=n_iter, cv=kf, scoring=f"neg_{metric_name}"
+        )
+        random_search.fit(X_train, y_train)
+        return random_search
+
 
 class CatBoostRegressor(MultiVariateRegressor):
     def grid_search(self, X_train, y_train, kf, metric_name) -> GridSearchCV:
         train_pool = Pool(X_train, y_train)
         random_search = GridSearchCV(
             self.model, self.params, cv=kf, scoring=f"neg_{metric_name}"
+        )
+        random_search.fit(train_pool, silent=True)
+        return random_search
+
+    def random_search(
+        self, X_train, y_train, n_iter, kf, metric_name
+    ) -> RandomizedSearchCV:
+        train_pool = Pool(X_train, y_train)
+        random_search = RandomizedSearchCV(
+            self.model, self.params, n_iter=n_iter, cv=kf, scoring=f"neg_{metric_name}"
         )
         random_search.fit(train_pool, silent=True)
         return random_search

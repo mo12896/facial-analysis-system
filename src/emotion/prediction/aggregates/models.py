@@ -1,11 +1,11 @@
 # from catboost import CatBoostRegressor
-from sklearn import linear_model
 from sklearn.ensemble import (
     AdaBoostRegressor,
     ExtraTreesRegressor,
     GradientBoostingRegressor,
     RandomForestRegressor,
 )
+from sklearn.linear_model import Lasso, LinearRegression, Ridge
 from sklearn.neural_network import MLPRegressor
 from sklearn.svm import SVR
 
@@ -58,17 +58,17 @@ MODELS = [
     },
     {
         "name": "LinearRegression",
-        "model": linear_model.LinearRegression(),
+        "model": LinearRegression(),
         "params": {},
     },
     {
         "name": "Ridge",
-        "model": linear_model.Ridge(),
+        "model": Ridge(),
         "params": {"alpha": [0.001, 0.01, 0.1, 1.0]},
     },
     {
         "name": "Lasso",
-        "model": linear_model.Lasso(),
+        "model": Lasso(),
         "params": {"alpha": [0.001, 0.01, 0.1, 1.0]},
     },
     # {
