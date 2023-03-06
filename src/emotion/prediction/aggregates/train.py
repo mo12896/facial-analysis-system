@@ -1,3 +1,4 @@
+from abc import ABC
 from typing import Dict, List
 
 import matplotlib.pyplot as plt
@@ -7,6 +8,63 @@ from joblib import Parallel, delayed
 from models import MODELS
 from sklearn.model_selection import GridSearchCV, KFold
 from sklearn.multioutput import MultiOutputRegressor
+
+
+class MultiVariateRegressor(ABC):
+    def __init__(self, model, params):
+        self.model = model
+        self.params = params
+
+    def grid_search(self, X_train, y_train, kf, metric_name) -> GridSearchCV:
+        """Grid search for hyperparameters
+
+        Args:
+            X_train (_type_): Independent variables
+            y_train (_type_): Dependent variables
+            kf (_type_): k-fold cross validation
+            metric_name (_type_): Metric to optimize
+
+        Returns:
+            GridSearchCV: Grid Search object
+        """
+
+
+class DefaultMultiVariateRegressor(MultiVariateRegressor):
+    def grid_search(self, X_train, y_train, kf, metric_name) -> GridSearchCV:
+        random_search = GridSearchCV(
+            self.model, self.params, cv=kf, scoring=f"neg_{metric_name}"
+        )
+        random_search.fit(X_train, y_train)
+        return random_search
+
+
+class CustomMultiVariateRegressor(MultiVariateRegressor):
+    def grid_search(self, X_train, y_train, kf, metric_name) -> GridSearchCV:
+        multi_model = MultiOutputRegressor(self.model, n_jobs=-1)
+        random_search = GridSearchCV(
+            multi_model, self.params, cv=kf, scoring=f"neg_{metric_name}"
+        )
+        random_search.fit(X_train, y_train)
+        return random_search
+
+
+class CatBoostRegressor(MultiVariateRegressor):
+    def grid_search(self, X_train, y_train, kf, metric_name) -> GridSearchCV:
+        train_pool = Pool(X_train, y_train)
+        random_search = GridSearchCV(
+            self.model, self.params, cv=kf, scoring=f"neg_{metric_name}"
+        )
+        random_search.fit(train_pool, silent=True)
+        return random_search
+
+
+def create_multivariate_regressor(model_name, model, params) -> MultiVariateRegressor:
+    if model_name == "CatBoostRegressor":
+        return CatBoostRegressor(model, params)
+    elif model_name in ["GradientBoostingRegressor", "SVR", "AdaBoostRegressor"]:
+        return CustomMultiVariateRegressor(model, params)
+    else:
+        return DefaultMultiVariateRegressor(model, params)
 
 
 class HyperparaSearch:
@@ -20,7 +78,7 @@ class HyperparaSearch:
         self._n_folds = n_folds
         self._metrics = metrics
 
-    # TODO: Implement random search, refactor the class + make CatBoost work
+    # TODO: Implement random search + make CatBoost work
     # Define a helper function for parallelizing hyperparameter search
     def search_model(self, model_dict, X_train, y_train):
         results = []
@@ -32,39 +90,18 @@ class HyperparaSearch:
         kf = KFold(n_splits=self._n_folds, shuffle=True)
 
         for metric_name in self._metrics:
-            if model_name == "CatBoostRegressor":
-                train_pool = Pool(X_train, y_train)
-                random_search = GridSearchCV(
-                    model, params, cv=kf, scoring=f"neg_{metric_name}"
-                )
-                random_search.fit(train_pool, silent=True)
-            elif model_name in [
-                "GradientBoostingRegressor",
-                "SVR",
-                "AdaBoostRegressor",
-            ]:
-                multi_model = MultiOutputRegressor(model, n_jobs=-1)
-                random_search = GridSearchCV(
-                    multi_model,
-                    params,
-                    cv=kf,
-                    scoring=f"neg_{metric_name}",
-                )
-                random_search.fit(X_train, y_train)
-            else:
-                random_search = GridSearchCV(
-                    model, params, cv=kf, scoring=f"neg_{metric_name}"
-                )
-                random_search.fit(X_train, y_train)
+            regressor = create_multivariate_regressor(model_name, model, params)
 
-            result = {
+            result = regressor.grid_search(X_train, y_train, kf, metric_name)
+
+            result_dict = {
                 "model": model_name,
-                "params": random_search.best_params_,
+                "params": result.best_params_,
                 "metric": metric_name,
-                "score": -random_search.best_score_,
+                "score": -result.best_score_,
             }
-            results.append(result)
-            print(f"{metric_name}: {-random_search.best_score_:.3f}")
+            results.append(result_dict)
+            print(f"{metric_name}: {-result.best_score_:.3f}")
 
         return results
 
