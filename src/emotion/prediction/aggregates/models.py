@@ -1,4 +1,4 @@
-# from catboost import CatBoostRegressor
+from catboost import CatBoostRegressor
 from sklearn.ensemble import (
     AdaBoostRegressor,
     ExtraTreesRegressor,
@@ -71,10 +71,13 @@ MODELS = [
         "model": Lasso(),
         "params": {"alpha": [0.001, 0.01, 0.1, 1.0]},
     },
-    # {
-    #     "name": "CatBoostRegressor",
-    #     "model": CatBoostRegressor(),
-    #     "params": {"iterations": [10, 50, 100], "depth": [2, 4, 6]},
-    #     "learning_rate": [0.001, 0.01, 0.1, 1.0],
-    # },
+    {
+        "name": "CatBoostRegressor",
+        "model": CatBoostRegressor(verbose=False),
+        "params": {
+            "estimator__iterations": [10, 50, 100],
+            "estimator__depth": [2, 4, 6],
+            "estimator__learning_rate": [0.001, 0.01, 0.1, 1.0],
+        },
+    },
 ]

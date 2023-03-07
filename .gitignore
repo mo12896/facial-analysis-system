@@ -10,6 +10,7 @@ res10_300x300_ssd_iter_140000.caffemodel
 emotion_venv/
 model/
 pytop
+catboost_info/
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

@@ -13,6 +13,7 @@ DATA_DIR_DATABASE = DATA_DIR / "database"
 LOG_DIR = root / "logs"
 IDENTITY_DIR = DATA_DIR / "identities"
 MODEL_DIR = root / "model"
+CUSTOM_MODEL_DIR = MODEL_DIR / "custom_models"
 
 
 # Paths to external, installed libraries
