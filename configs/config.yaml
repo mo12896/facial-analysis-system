@@ -34,6 +34,8 @@ K: 4
 # The number of frames between face detections.
 DETECTION_FREQUENCY: 5
 
+BRIGHTNESS: perceived_brightness_rms
+
 # The face detector to use.
 DETECTOR:
   # The type of face detector to use (currently only "scrfd" and "retinaface" are supported).

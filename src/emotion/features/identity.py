@@ -26,6 +26,7 @@ class IdentityState:
     fear: float = 0.0
     neutral: float = 0.0
     gaze_detects: np.ndarray = np.array([])
+    brightness: float = 0.0
 
 
 class IdentityHandler:
@@ -65,6 +66,7 @@ class IdentityHandler:
         class_ids = detections.class_id
         emotions = detections.emotion
         gaze_detects = detections.gaze_detections
+        brightness = detections.brightness
 
         for i in range(len(detections)):
             bbox = bbox_centerpoints[i]
@@ -72,6 +74,7 @@ class IdentityHandler:
             class_id = class_ids[i]
             emotion = emotions[i]
             gaze_detect = gaze_detects[i]
+            brightness = brightness
 
             if emotion is None:
                 emotion = {}
@@ -90,6 +93,7 @@ class IdentityHandler:
                 fear=emotion.get("fear", 0.0),
                 neutral=emotion.get("neutral", 0.0),
                 gaze_detects=gaze_detect,
+                brightness=brightness,
             )
             self._identities_states.append(identity_state)
 
@@ -115,6 +119,7 @@ class IdentityHandler:
                     w.map("fear").to("Fear")
                     w.map("neutral").to("Neutral")
                     w.map("gaze_detects").to("GazeDetections")
+                    w.map("brightness").to("Brightness")
                     w.write()
                     continue
 
@@ -148,6 +153,7 @@ class IdentityHandler:
             reader.map("Fear").to("fear")
             reader.map("Neutral").to("neutral")
             reader.map("GazeDetections").to("gaze_detects")
+            reader.map("Brightness").to("brightness")
 
             for row in reader:
                 row.bboxes = self.cast_list_of_strings(row.bboxes)

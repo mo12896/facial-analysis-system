@@ -17,6 +17,7 @@ class Detections:
         tracker_id: Optional[np.ndarray] = None,
         tracks: Optional[np.ndarray] = None,
         gaze_detections: Optional[np.ndarray] = None,
+        brightness: Optional[float] = None,
     ):
         self.bboxes = bboxes
         self.confidence = confidence
@@ -29,6 +30,7 @@ class Detections:
         self.tracker_id = tracker_id
         self.tracks = tracks
         self.gaze_detections = gaze_detections
+        self.brightness = brightness
 
         n = len(self.bboxes)
         validators = [
@@ -76,6 +78,7 @@ class Detections:
                 self.tracker_id[i] if self.tracker_id is not None else None,
                 self.tracks[i] if self.tracks is not None else None,
                 self.gaze_detections[i] if self.gaze_detections is not None else None,
+                self.brightness[i] if self.brightness is not None else None,
             )
 
     # Legacy implementation from retinface package (15x slower than insightface)
@@ -188,6 +191,9 @@ class Detections:
                 gaze_detections=self.gaze_detections[mask]
                 if self.gaze_detections is not None
                 else None,
+                brightness=self.brightness[mask]
+                if self.brightness is not None
+                else None,
             )
 
     def match_poses(self, group_keypoints):
@@ -215,6 +221,7 @@ class Detections:
             tracker_id=self.tracker_id,
             tracks=self.tracks,
             gaze_detections=self.gaze_detections,
+            brightness=self.brightness,
         )
 
     def match_head_poses(self, poses, pts_res):
@@ -247,6 +254,7 @@ class Detections:
             tracker_id=self.tracker_id,
             tracks=self.tracks,
             gaze_detections=self.gaze_detections,
+            brightness=self.brightness,
         )
 
     @classmethod

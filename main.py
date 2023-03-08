@@ -9,8 +9,6 @@ def main() -> None:
 
     args = parse_arguments()
 
-    args["EMBEDDB"] = True
-
     if args.get("EMBEDDB"):
         clusterer = FaceClusterer(args)
         clusterer.create_database()

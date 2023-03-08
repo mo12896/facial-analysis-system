@@ -18,6 +18,7 @@ from src.emotion.features.extractors.gaze_detector import GazeDetector
 from src.emotion.features.extractors.head_pose_estimator import (
     create_head_pose_detector,
 )
+from src.emotion.features.extractors.room_brightness import brightness_factory
 from src.emotion.features.identity import IdentityHandler
 from src.emotion.features.video.video_info import VideoInfo
 from src.emotion.features.video.video_loader import VideoDataLoader
@@ -47,6 +48,7 @@ class Runner:
         self.head_pose_params = self.args.get("HEAD_POSE_ESTIMATOR", "synergy")
         self.gaze_params = self.args.get("GAZE_DETECTOR")
         self.K = self.args.get("K", 4)
+        self.brightness_func = self.args.get("BRIGHTNESS", "perceived_brightness_rms")
 
         # Instaniate necessary objects
         self.video_info = VideoInfo.from_video_path(self.video_path)
@@ -69,6 +71,7 @@ class Runner:
             self.gaze_params["true_thresh"],
             self.gaze_params["axis_length"],
         )
+        self.brightness_estimator = brightness_factory(self.brightness_func)
 
     @with_logging(logger)
     def run(self):
@@ -113,6 +116,7 @@ class Runner:
                     )
 
                     detections = self.gaze_detector.detect_gazes(detections)
+                    detections = self.brightness_estimator(frame, detections)
 
                     # Black background for anonymization
                     # frame[:] = 0

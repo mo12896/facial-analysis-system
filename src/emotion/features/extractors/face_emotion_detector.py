@@ -54,6 +54,15 @@ def create_emotion_detector(parameters: dict = {}) -> EmotionDetector:
         raise ValueError(f"Emotion detector {parameters['type']} is not supported")
 
 
+class HSEmotionDetector(EmotionDetector):
+    def __init__(self, parameters: dict = {}) -> None:
+        raise NotImplementedError("HSEmotion detector is not implemented yet!")
+
+    @timer
+    def detect_emotions(self, detections: Detections, image: np.ndarray) -> Detections:
+        raise NotImplementedError
+
+
 # class DeepFaceEmotionDetector(EmotionDetector):
 #     def __init__(self, parameters: dict = {}) -> None:
 #         super().__init__(parameters)
