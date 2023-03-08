@@ -34,6 +34,7 @@ logger = setup_logger("runner_logger", file_logger=True)
 class Runner:
     def __init__(self, args):
         self.args = args
+        self.verbose = self.args.get("VERBOSE", False)
 
         self.detection_frequency = self.args.get("DETECTION_FREQUENCY", 5)
         self.filename = self.args.get("VIDEO", "short_clip.mp4")
@@ -116,19 +117,21 @@ class Runner:
                     )
 
                     detections = self.gaze_detector.detect_gazes(detections)
+
                     detections = self.brightness_estimator(frame, detections)
 
-                    # Black background for anonymization
-                    # frame[:] = 0
+                    if self.verbose:
+                        # Black background for anonymization
+                        # frame[:] = 0
 
-                    frame = self.box_annotator.annotate(frame, detections)
-                    # frame = self.body_annotator.annotate(frame, detections)
-                    frame = self.head_pose_annotator.annotate(frame, detections)
+                        frame = self.box_annotator.annotate(frame, detections)
+                        frame = self.body_annotator.annotate(frame, detections)
+                        frame = self.head_pose_annotator.annotate(frame, detections)
+
+                        video_writer.write_frame(frame)
 
                     self.identities_handler.set_current_state(detections, frame_count)
                     self.identities_handler.write_states_to_csv()
-
-                    video_writer.write_frame(frame)
 
                     prev_detections = detections
 
@@ -177,14 +180,18 @@ class Runner:
                 #         reid = True
 
                 else:
-                    # Black background for anonymization
-                    # frame[:] = 0
 
-                    frame = self.box_annotator.annotate(frame, prev_detections)
-                    # frame = self.body_annotator.annotate(frame, prev_detections)
-                    frame = self.head_pose_annotator.annotate(frame, prev_detections)
+                    if self.verbose:
+                        # Black background for anonymization
+                        # frame[:] = 0
 
-                    video_writer.write_frame(frame)
+                        frame = self.box_annotator.annotate(frame, prev_detections)
+                        frame = self.body_annotator.annotate(frame, prev_detections)
+                        frame = self.head_pose_annotator.annotate(
+                            frame, prev_detections
+                        )
+
+                        video_writer.write_frame(frame)
 
                     frame_count += 1
 

@@ -22,9 +22,9 @@ def parse_arguments() -> Dict:
         help="Path to config file (default: config.yaml).",
     )
     parser.add_argument(
-        "-v",
-        "--video",
-        dest="video",
+        "-i",
+        "--input_video",
+        dest="input_video",
         default="test_video.mp4",
         help="Name of the video to process.",
     )
@@ -33,14 +33,21 @@ def parse_arguments() -> Dict:
         "--embeddb",
         dest="embeddb",
         action="store_true",
-        help="Set to true if you want to create a new embedding database.",
+        help="Set this flag to create a new embedding database.",
     )
     parser.add_argument(
         "-d",
         "--dashboard",
         dest="dashboard",
         action="store_true",
-        help="Enable debug mode.",
+        help="Set this flag to run the dashboard.",
+    )
+    parser.add_argument(
+        "-v",
+        "--verbose",
+        dest="verbose",
+        action="store_true",
+        help="Make the operation more talkative.",
     )
 
     args = parser.parse_args()
@@ -54,5 +61,6 @@ def parse_arguments() -> Dict:
     # configs["VIDEO"] = args.video
     configs["EMBEDDB"] = args.embeddb
     configs["DASHBOARD"] = args.dashboard
+    configs["VERBOSE"] = args.verbose
 
     return configs
