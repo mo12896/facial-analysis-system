@@ -1,11 +1,24 @@
 # import os
 # import sys
-from pathlib import Path
 from typing import Dict
 
+# import matplotlib.image as mpimg
+import matplotlib.pyplot as plt
 import networkx as nx
+import numpy as np
 import pandas as pd
+import seaborn as sns
+from scipy.stats import gaussian_kde
 from tsfresh.feature_extraction import MinimalFCParameters, extract_features
+
+from src.emotion.analysis.data_preprocessing import (
+    DataPreprocessor,
+    DerivativesGetter,
+    LinearInterpolator,
+    RollingAverageSmoother,
+    ZeroToOneNormalizer,
+)
+from src.emotion.utils.constants import IDENTITY_DIR
 
 # grandparent_folder = os.path.abspath(
 #     os.path.join(
@@ -16,16 +29,6 @@ from tsfresh.feature_extraction import MinimalFCParameters, extract_features
 #     )
 # )
 # sys.path.append(grandparent_folder)
-
-from src.emotion.analysis.data_preprocessing import (
-    DataPreprocessor,
-    DerivativesGetter,
-    LinearInterpolator,
-    RollingAverageSmoother,
-    ZeroToOneNormalizer,
-)
-
-IDENTITY_DIR = Path("/home/moritz/Workspace/masterthesis/data/identities")
 
 
 def time_series_features(
@@ -176,13 +179,86 @@ def sna_gaze_features(df: pd.DataFrame) -> pd.DataFrame:
     return df_features
 
 
+def position_features(df: pd.DataFrame, verbose: bool = True) -> pd.DataFrame:
+    # Rotate the positions for 180 degrees around x-axis
+    df["y_center"] = df["y_center"].apply(lambda y: -y) + 720
+
+    stds = pd.DataFrame(columns=["Std_X_Center", "Std_Y_Center"])
+    kdes = {}
+    # Compute kernel density estimation for each ClassID
+    for class_id in df["ClassID"].unique():
+        # Select the data for the current ClassID
+        data = df[df["ClassID"] == class_id][["x_center", "y_center"]]
+
+        # Compute the kernel density estimation
+        k = gaussian_kde(data.T)
+
+        # Compute the standard deviation of the KDE in each direction
+        x_std = np.sqrt(k.covariance[0, 0])
+        y_std = np.sqrt(k.covariance[1, 1])
+
+        stds.loc[class_id] = [x_std, y_std]
+
+        if verbose:
+            x, y = np.mgrid[
+                data["x_center"].min() : data["x_center"].max() : 100j,
+                data["y_center"].min() : data["y_center"].max() : 100j,
+            ]
+
+            positions = np.vstack([x.ravel(), y.ravel()])
+            z = np.reshape(k(positions).T, x.shape)
+
+            # Store the KDE in a dictionary
+            kdes[class_id] = z
+
+    if verbose:
+        # Plot the KDEs in a single plot
+        fig, ax = plt.subplots(figsize=(8, 6))
+
+        # Add an image to the plot
+        # img = mpimg.imread(str(DATA_DIR / "test_pic.png"))
+        # ax.imshow(img, extent=[0, 1280, 0, 720], aspect="auto", alpha=0.5)
+
+        sns.set_style("white")
+        for class_id, kde in kdes.items():
+            sns.kdeplot(
+                ax=ax,
+                data=df[df["ClassID"] == class_id],
+                x="x_center",
+                y="y_center",
+                cmap="Blues",
+                alpha=0.5,
+                shade=True,
+                thresh=0.05,
+                fill=True,
+            )
+            ax.contour(x, y, kde, levels=5, colors="k", linewidths=0.5)
+            ax.text(
+                x=df[df["ClassID"] == class_id]["x_center"].mean(),
+                y=df[df["ClassID"] == class_id]["y_center"].mean(),
+                s=class_id,
+                fontsize=16,
+            )
+
+        fig.suptitle("Kernel Density Estimation for Different ClassIDs", fontsize=20)
+        ax.set_xlabel("X Center")
+        ax.set_ylabel("Y Center")
+        ax.set_xlim(0, 1280)
+        ax.set_ylim(0, 720)
+
+        plt.show()
+
+    return stds
+
+
 # TODO: Note, that we have to stoe the amount of frames into account
 # to later weight the vide-clip against all other video-clips per day!
 # (Easier: Or just concatemate all identitites.csv files :-))
 if __name__ == "__main__":
     emotions = ["Angry", "Disgust", "Happy", "Sad", "Surprise", "Fear", "Neutral"]
 
-    df = pd.read_csv(IDENTITY_DIR / "short_clip_debug.csv")
+    filename = "short_clip_debug.csv"
+    df = pd.read_csv(IDENTITY_DIR / filename)
 
     preprocessing_pipeline = [
         LinearInterpolator(),
@@ -210,21 +286,32 @@ if __name__ == "__main__":
                 "__maximum",
                 "__absolute_maximum",
                 "__minimum",
+                "__median",
+                "__variance",
             ],
         }
     ]
 
-    # feature_vectors = time_series_features(pre_df, cols, feature_dict[0])
-    # print(feature_vectors)
+    feature_vectors = time_series_features(pre_df, cols, feature_dict[0])
+    print(feature_vectors)
 
-    # df_counts = max_emotion_features(df, emotions)
-    # print(df_counts)
+    df_counts = max_emotion_features(df, emotions)
+    print(df_counts)
 
-    # presence = presence_features(df)
-    # print(presence)
+    presence = presence_features(df)
+    print(presence)
 
-    # gaze_matrix = sna_gaze_features(df)
-    # print(gaze_matrix)
+    gaze_matrix = sna_gaze_features(df)
+    print(gaze_matrix)
 
-    # df_features = pd.concat([feature_vectors, df_counts, presence, gaze_matrix], axis=1)
-    # print(df_features)
+    pos_feature = position_features(df, verbose=False)
+    print(pos_feature)
+
+    df_features = pd.concat(
+        [feature_vectors, df_counts, presence, gaze_matrix, pos_feature], axis=1
+    )
+    # save the dataframe to a CSV file
+    dataset = filename.split(".")[0] + "_dataset.csv"
+    df_features.to_csv(str(IDENTITY_DIR / dataset), index=False)
+
+    print(df_features)
