@@ -1,7 +1,7 @@
 # Note: When rerunning the build, you can save time by:
 # DOCKER_BUILDKIT=1 docker build --cache-from visual-perma-tracker:latest -t visual-perma-tracker:latest .
 # DOCKER_BUILDKIT=1 docker build -t mo12896/visual-perma-tracker:0.0.8 .
-# sudo docker run --gpus all -v /home/moritz/Workspace/masterthesis/data:/home/data -v /home/moritz/Workspace/masterthesis/data/identities:/home/data/identities -v /home/moritz/Workspace/masterthesis/configs:/home/configs mo12896/visual-perma-tracker:0.0.8
+# sudo docker run --gpus all -it -v /home/moritz/Workspace/masterthesis/data:/home/data -v /home/moritz/Workspace/masterthesis/data/identities:/home/data/identities -v /home/moritz/Workspace/masterthesis/configs:/home/configs mo12896/visual-perma-tracker:0.0.8
 # Enter the container after running: docker run --rm -it --entrypoint=/bin/bash mo12896/visual-perma-tracker:0.0.8
 # Worked, but issues with CUDA
 #FROM nvidia/cuda:11.5.0-base-ubuntu20.04
@@ -17,7 +17,8 @@ RUN apt-get update && apt-get install -y python3-opencv
 
 # Install Python dependencies
 RUN pip3 install --upgrade pip \
-    && pip3 install --default-timeout=10000000 -r requirements.txt
+    && pip3 install --default-timeout=10000000 -r requirements.txt \
+    && pip3 uninstall opencv-python -y
 
 # Create directories
 RUN mkdir /home/data /home/data/images /home/data/database /home/data/identities /home/logs
@@ -35,8 +36,8 @@ COPY main.py /home/main.py
 RUN cd /home/external/synergy/Sim3DR && ./build_sim3dr.sh
 RUN cd /home/external/synergy/FaceBoxes && ./build_cpu_nms.sh
 
-# This only works, when run after the build ...
-#RUN pip uninstall opencv-python -y
+# This only works, when run after the build for 0.0.26 ...
+#RUN pip3 uninstall opencv-python -y
 #RUN apt-get update && apt-get install -y ffmpeg libavcodec-dev libavformat-dev libavutil-dev libswscale-dev libavresample-dev libopencv-dev libgtk2.0-dev
 
 CMD ["sh", "-c", "python main.py $@"]

@@ -1,7 +1,7 @@
 # Run with sudo docker-compose up!!!
 services:
   visual-perma-tracker-app:
-    image: mo12896/visual-perma-tracker:0.0.26
+    image: mo12896/visual-perma-tracker:0.0.33
     volumes:
       - /home/moritz/Workspace/masterthesis/data:/home/data
       - /home/moritz/Workspace/masterthesis/data/identities:/home/data/identities
@@ -9,7 +9,8 @@ services:
       - /home/moritz/Workspace/masterthesis/data/images:/home/data/images
     stdin_open: true
     tty: true
-    command: python main.py
+    # ffmpeg has to be thrown in at runtime for some reason, but then it works for 0.0.32:
+    command: bash -c "apt-get update && apt-get install -y ffmpeg && python main.py"
     privileged: true
     deploy:
       resources:

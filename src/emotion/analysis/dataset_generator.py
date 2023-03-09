@@ -1,21 +1,10 @@
-# import os
-# import sys
+import os
+import sys
 from pathlib import Path
 from typing import Dict
 
 import pandas as pd
 from tsfresh.feature_extraction import MinimalFCParameters, extract_features
-
-# grandparent_folder = os.path.abspath(
-#     os.path.join(
-#         os.path.dirname(os.path.abspath(__file__)),
-#         os.pardir,
-#         os.pardir,
-#         os.pardir,
-#     )
-# )
-# sys.path.append(grandparent_folder)
-
 
 from src.emotion.analysis.data_preprocessing import (
     DataPreprocessor,
@@ -25,10 +14,21 @@ from src.emotion.analysis.data_preprocessing import (
     ZeroToOneNormalizer,
 )
 
+grandparent_folder = os.path.abspath(
+    os.path.join(
+        os.path.dirname(os.path.abspath(__file__)),
+        os.pardir,
+        os.pardir,
+        os.pardir,
+    )
+)
+sys.path.append(grandparent_folder)
+
+
 IDENTITY_DIR = Path("/home/moritz/Workspace/masterthesis/data/identities")
 
 
-def compute_time_series_features(
+def time_series_features(
     df: pd.DataFrame, cols: list[str], feature_mode: Dict
 ) -> pd.DataFrame:
     feature_df = []
@@ -54,7 +54,7 @@ def compute_time_series_features(
     return feature_df
 
 
-def compute_max_emotion_features(df: pd.DataFrame, emotions: list[str]) -> pd.DataFrame:
+def max_emotion_features(df: pd.DataFrame, emotions: list[str]) -> pd.DataFrame:
     def count_max_emotion_changes(group):
         changes = sum(
             group["Max_Emotion"].iloc[i] != group["Max_Emotion"].iloc[i - 1]
@@ -75,6 +75,17 @@ def compute_max_emotion_features(df: pd.DataFrame, emotions: list[str]) -> pd.Da
         df_counts.loc[person_id] = row
 
     return df_counts
+
+
+def presence_features(df: pd.DataFrame) -> pd.Series:
+    # Count the number of frames for each ClassID
+    class_counts = df["ClassID"].value_counts()
+    frames = df["Frame"].nunique()
+
+    # Compute the presence of each ClassID relative to all frames
+    presence = class_counts / frames
+
+    return presence
 
 
 # TODO: Note, that we have to stoe the amount of frames into account
@@ -115,8 +126,12 @@ if __name__ == "__main__":
         }
     ]
 
-    feature_vectors = compute_time_series_features(pre_df, cols, feature_dict[0])
-    print(feature_vectors)
+    # feature_vectors = time_series_features(pre_df, cols, feature_dict[0])
+    # print(feature_vectors)
 
-    df_counts = compute_max_emotion_features(df, emotions)
-    print(df_counts)
+    # df_counts = max_emotion_features(df, emotions)
+    # print(df_counts)
+
+    # Count the number of frames for each ClassID
+    presence = presence_features(df)
+    print(presence)
