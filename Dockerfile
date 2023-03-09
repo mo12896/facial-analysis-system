@@ -4,7 +4,10 @@
 # sudo docker run --gpus all -v /home/moritz/Workspace/masterthesis/data:/home/data -v /home/moritz/Workspace/masterthesis/data/identities:/home/data/identities -v /home/moritz/Workspace/masterthesis/configs:/home/configs mo12896/visual-perma-tracker:0.0.8
 # Enter the container after running: docker run --rm -it --entrypoint=/bin/bash mo12896/visual-perma-tracker:0.0.8
 # Worked, but issues with CUDA
-FROM nvidia/cuda:11.5.0-base-ubuntu20.04
+#FROM nvidia/cuda:11.5.0-base-ubuntu20.04
+FROM nvcr.io/nvidia/pytorch:22.12-py3
+
+ENV DEBIAN_FRONTEND=noninteractive
 
 WORKDIR /home
 

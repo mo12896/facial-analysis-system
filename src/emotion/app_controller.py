@@ -101,7 +101,6 @@ class Runner:
                 if (
                     frame_count == 0 or not frame_count % self.detection_frequency
                 ) and reid:
-                    # if frame_count == 0:
 
                     detections = self.face_detector.detect_faces(frame)
 
