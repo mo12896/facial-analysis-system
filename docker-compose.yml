@@ -1,7 +1,7 @@
 # Run with sudo docker-compose up!!!
 services:
   visual-perma-tracker-app:
-    image: mo12896/visual-perma-tracker:0.0.33
+    image: mo12896/visual-perma-tracker:0.0.32
     volumes:
       - /home/moritz/Workspace/masterthesis/data:/home/data
       - /home/moritz/Workspace/masterthesis/data/identities:/home/data/identities

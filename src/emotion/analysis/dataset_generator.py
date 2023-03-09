@@ -1,10 +1,21 @@
-import os
-import sys
+# import os
+# import sys
 from pathlib import Path
 from typing import Dict
 
+import networkx as nx
 import pandas as pd
 from tsfresh.feature_extraction import MinimalFCParameters, extract_features
+
+# grandparent_folder = os.path.abspath(
+#     os.path.join(
+#         os.path.dirname(os.path.abspath(__file__)),
+#         os.pardir,
+#         os.pardir,
+#         os.pardir,
+#     )
+# )
+# sys.path.append(grandparent_folder)
 
 from src.emotion.analysis.data_preprocessing import (
     DataPreprocessor,
@@ -13,17 +24,6 @@ from src.emotion.analysis.data_preprocessing import (
     RollingAverageSmoother,
     ZeroToOneNormalizer,
 )
-
-grandparent_folder = os.path.abspath(
-    os.path.join(
-        os.path.dirname(os.path.abspath(__file__)),
-        os.pardir,
-        os.pardir,
-        os.pardir,
-    )
-)
-sys.path.append(grandparent_folder)
-
 
 IDENTITY_DIR = Path("/home/moritz/Workspace/masterthesis/data/identities")
 
@@ -77,15 +77,103 @@ def max_emotion_features(df: pd.DataFrame, emotions: list[str]) -> pd.DataFrame:
     return df_counts
 
 
-def presence_features(df: pd.DataFrame) -> pd.Series:
-    # Count the number of frames for each ClassID
+def presence_features(df: pd.DataFrame) -> pd.DataFrame:
     class_counts = df["ClassID"].value_counts()
     frames = df["Frame"].nunique()
 
     # Compute the presence of each ClassID relative to all frames
     presence = class_counts / frames
 
-    return presence
+    feature_df = pd.DataFrame(columns=["Presence"])
+    feature_df["Presence"] = presence
+
+    return feature_df
+
+
+def create_gaze_matrix(df: pd.DataFrame) -> pd.DataFrame:
+    # Create a dictionary to hold the counts
+    counts = {}
+
+    # Loop over the rows in the DataFrame
+    for _, row in df.iterrows():
+        # Get the GazeDetections
+        detections = row["GazeDetections"]
+        # Skip rows with empty GazeDetections
+        if detections == "[]":
+            continue
+        # Get the ClassID
+        class_id = row["ClassID"]
+        # If the ClassID is not in the counts dictionary, add it
+        if class_id not in counts:
+            counts[class_id] = {}
+        # Loop over the other ClassIDs in the GazeDetections
+        for other_id in eval(detections):
+            # If the other ClassID is not in the counts dictionary, add it
+            if other_id not in counts:
+                counts[other_id] = {}
+            # If the ClassID is not already in the other ClassID's counts, add it
+            if class_id not in counts[other_id]:
+                counts[other_id][class_id] = 0
+            # Increment the count
+            counts[other_id][class_id] += 1
+
+    # Create a list of the ClassIDs in the same order as the rows and columns of the matrix
+    class_ids = sorted(list(counts.keys()))
+
+    # Create an empty matrix
+    matrix = [[0 for _ in range(len(class_ids))] for _ in range(len(class_ids))]
+
+    # Fill in the matrix
+    for i, class_id1 in enumerate(class_ids):
+        for j, class_id2 in enumerate(class_ids):
+            if class_id1 in counts and class_id2 in counts[class_id1]:
+                matrix[j][i] = counts[class_id1][class_id2]
+
+    # Create a DataFrame from the matrix and assign the ClassIDs to the row and column indices
+    df_gaze = pd.DataFrame(matrix, index=class_ids, columns=class_ids)
+
+    return df_gaze
+
+
+def sna_gaze_features(df: pd.DataFrame) -> pd.DataFrame:
+    df_gaze = create_gaze_matrix(df)
+
+    # Compute degree centrality
+    degree_centrality = df_gaze.sum(axis=1)
+    degree_centrality_normalized = degree_centrality / df_gaze.to_numpy().sum()
+
+    # Compute in-degree centrality
+    in_degree_centrality = df_gaze.sum(axis=0).T
+    in_degree_centrality_normalized = in_degree_centrality / df_gaze.to_numpy().sum()
+
+    # Compute betweenness centrality using NetworkX
+    G = nx.from_pandas_adjacency(df_gaze)
+    betweenness_centrality = pd.Series(nx.betweenness_centrality(G))
+
+    # Compute mutual gaze
+    mutual_gaze = df_gaze / df_gaze.sum().sum()
+
+    # Create a new dataframe with all the features
+    df_features = pd.concat(
+        [
+            degree_centrality_normalized,
+            in_degree_centrality_normalized,
+            betweenness_centrality,
+            mutual_gaze,
+        ],
+        axis=1,
+    )
+    df_features.columns = [
+        "Degree Centrality",
+        "In-degree Centrality",
+        "Betweenness Centrality",
+        "Mutual Gaze_p1",
+        "Mutual Gaze_p2",
+        "Mutual Gaze_p3",
+        "Mutual Gaze_p4",
+    ]
+
+    return df_features
 
 
 # TODO: Note, that we have to stoe the amount of frames into account
@@ -132,6 +220,11 @@ if __name__ == "__main__":
     # df_counts = max_emotion_features(df, emotions)
     # print(df_counts)
 
-    # Count the number of frames for each ClassID
-    presence = presence_features(df)
-    print(presence)
+    # presence = presence_features(df)
+    # print(presence)
+
+    # gaze_matrix = sna_gaze_features(df)
+    # print(gaze_matrix)
+
+    # df_features = pd.concat([feature_vectors, df_counts, presence, gaze_matrix], axis=1)
+    # print(df_features)

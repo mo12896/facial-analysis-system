@@ -77,7 +77,7 @@ class Runner:
     @with_logging(logger)
     def run(self):
 
-        self.on_init()
+        self._on_init()
 
         frame_count: int = 0
         prev_detections = None
@@ -197,9 +197,8 @@ class Runner:
         # Release the video capture object
         self.video_loader.cap.release()
 
-    @staticmethod
-    def on_init():
+    def _on_init(self):
         """A bunch of methods which are called when the app is initialized."""
-        identities = IDENTITY_DIR / "identities.csv"
+        identities = IDENTITY_DIR / (self.filename.split(".")[0] + ".csv")
         if identities.exists():
             identities.unlink()
