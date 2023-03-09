@@ -50,7 +50,7 @@ COPY /configs /home/configs
 COPY main.py /home/main.py
 
 # Build the bytetrack package
-RUN cd /home/external/bytetrack && python3 setup.py -q develop
+#RUN cd /home/external/bytetrack && python3 setup.py -q develop
 #New, but should still work:
 RUN cd /home/external/synergy/Sim3DR && ./build_sim3dr.sh
 RUN cd /home/external/synergy/FaceBoxes && ./build_cpu_nms.sh

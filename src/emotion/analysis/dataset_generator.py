@@ -4,8 +4,6 @@ from pathlib import Path
 from typing import Dict
 
 import pandas as pd
-
-# from tsfresh import extract_features,
 from tsfresh.feature_extraction import MinimalFCParameters, extract_features
 
 # grandparent_folder = os.path.abspath(
@@ -31,15 +29,15 @@ IDENTITY_DIR = Path("/home/moritz/Workspace/masterthesis/data/identities")
 
 
 def compute_time_series_features(
-    df: pd.DataFrame, features: list[str], feature_mode: Dict
+    df: pd.DataFrame, cols: list[str], feature_mode: Dict
 ) -> pd.DataFrame:
     feature_df = []
 
-    for feature in features:
+    for col in cols:
         extracted_features = extract_features(
             df,
             column_id="ClassID",
-            column_value=feature,
+            column_value=col,
             default_fc_parameters=feature_mode["fc_params"],
         )
         extracted_features_cleaned = extracted_features.dropna(axis=1, how="all")
@@ -54,6 +52,29 @@ def compute_time_series_features(
     feature_df = pd.concat(feature_df, axis=1)
 
     return feature_df
+
+
+def compute_max_emotion_features(df: pd.DataFrame, emotions: list[str]) -> pd.DataFrame:
+    def count_max_emotion_changes(group):
+        changes = sum(
+            group["Max_Emotion"].iloc[i] != group["Max_Emotion"].iloc[i - 1]
+            for i in range(1, len(group))
+        )
+        return changes / len(group)
+
+    # Create max emotion features
+    df["Max_Emotion"] = df[emotions].idxmax(axis=1)
+    emotions_max_count = [emotion + "__max_count" for emotion in emotions]
+    df_counts = pd.DataFrame(columns=emotions_max_count + ["Freq_Emotion_Changes"])
+    grouped = df.groupby("ClassID")
+
+    for person_id, group in grouped:
+        counts = group["Max_Emotion"].value_counts(normalize=True)
+        max_emotion_changes = count_max_emotion_changes(group)
+        row = [counts.get(emotion, 0) for emotion in emotions] + [max_emotion_changes]
+        df_counts.loc[person_id] = row
+
+    return df_counts
 
 
 # TODO: Note, that we have to stoe the amount of frames into account
@@ -77,9 +98,9 @@ if __name__ == "__main__":
 
     preprocessor = DataPreprocessor(preprocessing_pipeline)
     pre_df = preprocessor.preprocess_data(df)
-    pre_df["Max_Emotion"] = pre_df[emotions].idxmax(axis=1)
 
-    features = [*emotions, "Brightness", "Derivatives"]
+    # Create time series feature
+    cols = [*emotions, "Brightness", "Derivatives"]
     feature_dict = [
         {
             "name": "MinimalFCParameters",
@@ -94,6 +115,8 @@ if __name__ == "__main__":
         }
     ]
 
-    feature_df = compute_time_series_features(pre_df, features, feature_dict[0])
+    feature_vectors = compute_time_series_features(pre_df, cols, feature_dict[0])
+    print(feature_vectors)
 
-    print(feature_df)
+    df_counts = compute_max_emotion_features(df, emotions)
+    print(df_counts)
