@@ -124,7 +124,7 @@ class Runner:
                         # frame[:] = 0
 
                         frame = self.box_annotator.annotate(frame, detections)
-                        frame = self.body_annotator.annotate(frame, detections)
+                        # frame = self.body_annotator.annotate(frame, detections)
                         frame = self.head_pose_annotator.annotate(frame, detections)
 
                         video_writer.write_frame(frame)
@@ -185,7 +185,7 @@ class Runner:
                         # frame[:] = 0
 
                         frame = self.box_annotator.annotate(frame, prev_detections)
-                        frame = self.body_annotator.annotate(frame, prev_detections)
+                        # frame = self.body_annotator.annotate(frame, prev_detections)
                         frame = self.head_pose_annotator.annotate(
                             frame, prev_detections
                         )
