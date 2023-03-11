@@ -63,7 +63,7 @@ class Runner:
         self.box_annotator = BoxAnnotator(color=Color.red())
         self.body_annotator = BodyAnnotator(color=Color.red())
         self.identities_handler = IdentityHandler(
-            IDENTITY_DIR / (self.filename.split(".")[0] + ".csv")
+            IDENTITY_DIR / (self.filename.replace("/", "_").rsplit(".", 1)[0] + ".csv")
         )
         self.head_pose_estimator = create_head_pose_detector(self.head_pose_params)
         self.head_pose_annotator = HeadPoseAnnotator()

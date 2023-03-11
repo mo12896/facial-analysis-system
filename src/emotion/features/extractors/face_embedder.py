@@ -111,7 +111,10 @@ class InsightFaceEmbedder(FaceEmbedder):
 
         for key, bbox in zip(detections.class_id, detections.bboxes):
             img = image[int(bbox[1]) : int(bbox[3]), int(bbox[0]) : int(bbox[2])]
-            face = self.model.get(img)
+            try:
+                face = self.model.get(img)
+            except Exception:
+                continue
             if len(face) == 0:
                 continue
             embedding = np.array(face[0].normed_embedding, dtype=np.float32)

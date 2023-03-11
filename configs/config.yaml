@@ -2,10 +2,10 @@
 VIDEO_CODEC: MP4V
 
 # The name of the input video file to process.
-VIDEO: "short_clip_debug.mp4"
+VIDEO: "clip_0_16597_17807.mp4"
 
 # The name of the anchor embeddings database.
-ANCHOR_EMBEDDINGS: "embeddings_test.db"
+ANCHOR_EMBEDDINGS: "embeddings_13_1.db"
 
 # Set to true if you want to create a new embedding database.
 EMBEDDB: False

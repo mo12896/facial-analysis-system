@@ -26,7 +26,7 @@ from src.emotion.utils.constants import (
     CONFIG_DIR,
     DATA_DIR,
     DATA_DIR_DATABASE,
-    DATA_DIR_TEST_IMAGES,
+    DATA_DIR_IMAGES,
 )
 from src.emotion.utils.utils import SQLite
 
@@ -46,13 +46,15 @@ class FaceClusterer:
         self.detector_params = params.get("DETECTOR", "scrfd")
         self.embedder_params = params.get("EMBEDDER", "insightface")
         self.sample_frames = params.get("SAMPLE_FRAMES", 20)
-        self.database = DATA_DIR_DATABASE / params.get("DATABASE", "embeddings_test.db")
+        self.database = DATA_DIR_DATABASE / params.get(
+            "ANCHOR_EMBEDDINGS", "embeddings.db"
+        )
         self.reducer_params = params.get("REDUCER", {"type": "pca", "n_components": 4})
         self.clusterer_params = params.get("CLUSTERER", {"type": "kmeans", "K": 4})
         self.save_embeddings = params.get("SAVE_EMBEDDINGS", True)
         self.K = params.get("K", 4)
         self.video_path = str(DATA_DIR / params.get("VIDEO", "short_clip_debug.mp4"))
-        self.output_folder = DATA_DIR_TEST_IMAGES
+        self.output_folder = DATA_DIR_IMAGES
 
     def create_database(self) -> None:
         if self.output_folder.exists():

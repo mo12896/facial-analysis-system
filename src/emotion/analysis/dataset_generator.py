@@ -2,7 +2,7 @@
 # import sys
 from typing import Dict
 
-# import matplotlib.image as mpimg
+import matplotlib.image as mpimg
 import matplotlib.pyplot as plt
 import networkx as nx
 import numpy as np
@@ -10,15 +10,6 @@ import pandas as pd
 import seaborn as sns
 from scipy.stats import gaussian_kde
 from tsfresh.feature_extraction import MinimalFCParameters, extract_features
-
-from src.emotion.analysis.data_preprocessing import (
-    DataPreprocessor,
-    DerivativesGetter,
-    LinearInterpolator,
-    RollingAverageSmoother,
-    ZeroToOneNormalizer,
-)
-from src.emotion.utils.constants import IDENTITY_DIR
 
 # grandparent_folder = os.path.abspath(
 #     os.path.join(
@@ -29,6 +20,15 @@ from src.emotion.utils.constants import IDENTITY_DIR
 #     )
 # )
 # sys.path.append(grandparent_folder)
+
+from src.emotion.analysis.data_preprocessing import (
+    DataPreprocessor,
+    DerivativesGetter,
+    LinearInterpolator,
+    RollingAverageSmoother,
+    ZeroToOneNormalizer,
+)
+from src.emotion.utils.constants import DATA_DIR, IDENTITY_DIR
 
 
 def time_series_features(
@@ -179,7 +179,9 @@ def sna_gaze_features(df: pd.DataFrame) -> pd.DataFrame:
     return df_features
 
 
-def position_features(df: pd.DataFrame, verbose: bool = True) -> pd.DataFrame:
+def position_features(
+    df: pd.DataFrame, verbose: bool = True, image: bool = False
+) -> pd.DataFrame:
     # Rotate the positions for 180 degrees around x-axis
     df["y_center"] = df["y_center"].apply(lambda y: -y) + 720
 
@@ -215,9 +217,10 @@ def position_features(df: pd.DataFrame, verbose: bool = True) -> pd.DataFrame:
         # Plot the KDEs in a single plot
         fig, ax = plt.subplots(figsize=(8, 6))
 
-        # Add an image to the plot
-        # img = mpimg.imread(str(DATA_DIR / "test_pic.png"))
-        # ax.imshow(img, extent=[0, 1280, 0, 720], aspect="auto", alpha=0.5)
+        if image:
+            # Add an image to the plot
+            img = mpimg.imread(str(DATA_DIR / "test_pic.png"))
+            ax.imshow(img, extent=[0, 1280, 0, 720], aspect="auto", alpha=0.5)
 
         sns.set_style("white")
         for class_id, kde in kdes.items():
@@ -240,7 +243,10 @@ def position_features(df: pd.DataFrame, verbose: bool = True) -> pd.DataFrame:
                 fontsize=16,
             )
 
-        fig.suptitle("Kernel Density Estimation for Different ClassIDs", fontsize=20)
+        fig.suptitle(
+            "Kernel Density Estimation for Positional Occupation of Different ClassIDs",
+            fontsize=20,
+        )
         ax.set_xlabel("X Center")
         ax.set_ylabel("Y Center")
         ax.set_xlim(0, 1280)
@@ -264,6 +270,7 @@ if __name__ == "__main__":
         LinearInterpolator(),
         DerivativesGetter(),
         RollingAverageSmoother(window_size=5, cols=["Derivatives"]),
+        # TODO: Normalization against whole cohort might be better!?
         ZeroToOneNormalizer(cols=["Derivatives", "Brightness"]),
         RollingAverageSmoother(
             window_size=150,
@@ -288,6 +295,7 @@ if __name__ == "__main__":
                 "__minimum",
                 "__median",
                 "__variance",
+                "__root_mean_square",
             ],
         }
     ]
@@ -304,7 +312,7 @@ if __name__ == "__main__":
     gaze_matrix = sna_gaze_features(df)
     print(gaze_matrix)
 
-    pos_feature = position_features(df, verbose=False)
+    pos_feature = position_features(df, verbose=True, image=True)
     print(pos_feature)
 
     df_features = pd.concat(
