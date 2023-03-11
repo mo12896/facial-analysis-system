@@ -131,12 +131,14 @@ class SCRFDFaceDetector(FaceDetector):
     @timer
     def detect_faces(self, frame: np.ndarray) -> Detections:
 
-        faces = self.face_detector.get(frame)
-        detections = Detections.from_scrfd(faces)
+        try:
+            faces = self.face_detector.get(frame)
+            detections = Detections.from_scrfd(faces)
 
-        if len(detections.bboxes) > 0:
             return detections
-        raise ValueError("No faces detected")
+
+        except Exception as e:
+            print(e)
 
 
 # class MediaPipeFaceDetector(FaceDetector):

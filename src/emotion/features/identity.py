@@ -100,7 +100,8 @@ class IdentityHandler:
     def write_states_to_csv(self) -> None:
         for identity_state in self._identities_states:
             if not self.filename.exists():
-                self.filename.touch()
+                # self.filename.touch()
+                self.filename.parent.mkdir(parents=True, exist_ok=True)
 
                 with open(self.filename, "w") as f:
                     w = DataclassWriter(f, [identity_state], IdentityState)

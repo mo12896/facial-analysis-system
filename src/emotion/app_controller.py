@@ -1,5 +1,6 @@
 from pathlib import Path
 
+import numpy as np
 from tqdm import tqdm
 
 from src.emotion.features.annotators.annotator import BoxAnnotator
@@ -63,7 +64,7 @@ class Runner:
         self.box_annotator = BoxAnnotator(color=Color.red())
         self.body_annotator = BodyAnnotator(color=Color.red())
         self.identities_handler = IdentityHandler(
-            IDENTITY_DIR / (self.filename.replace("/", "_").rsplit(".", 1)[0] + ".csv")
+            IDENTITY_DIR / (self.filename.rsplit(".", 1)[0] + ".csv")
         )
         self.head_pose_estimator = create_head_pose_detector(self.head_pose_params)
         self.head_pose_annotator = HeadPoseAnnotator()
@@ -104,7 +105,15 @@ class Runner:
 
                     detections = self.face_detector.detect_faces(frame)
 
+                    if detections is None or (
+                        detections is not None and len(detections.bboxes) == 0
+                    ):
+                        continue
+
                     detections = self.face_reid.filter(detections, frame)
+
+                    if np.any(np.char.startswith(detections.class_id, "face_")):
+                        continue
 
                     detections = self.face_emotion_detector.detect_emotions(
                         detections, frame
@@ -199,6 +208,6 @@ class Runner:
 
     def _on_init(self):
         """A bunch of methods which are called when the app is initialized."""
-        identities = IDENTITY_DIR / (self.filename.split(".")[0] + ".csv")
+        identities = IDENTITY_DIR / (self.filename.rsplit(".", 1)[0] + ".csv")
         if identities.exists():
             identities.unlink()

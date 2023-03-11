@@ -56,7 +56,7 @@ class FaceClusterer:
         self.video_path = str(DATA_DIR / params.get("VIDEO", "short_clip_debug.mp4"))
         self.output_folder = DATA_DIR_IMAGES
 
-    def create_database(self) -> None:
+    def create_database(self, verbose: bool = False) -> None:
         if self.output_folder.exists():
             response = input(f"{self.output_folder} already exists. Overwrite? [y/n] ")
             if response != "y":
@@ -93,7 +93,8 @@ class FaceClusterer:
         adapter = ClustererAdapter(reducer, clusterer)
         labels, reduced_dims = adapter.cluster_data(X_embedded)
 
-        plot_clusters(labels, reduced_dims, self.K)
+        if verbose:
+            plot_clusters(labels, reduced_dims, self.K)
 
         # Save the clusters
         if self.save_embeddings:

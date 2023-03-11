@@ -68,6 +68,10 @@ def crop_random_faces_from_n_frames(
         _, frame = cap.read()
 
         detections = detector.detect_faces(frame)
+
+        if detections is None:
+            continue
+
         bboxes = detections.bboxes
 
         for j, bbox in enumerate(bboxes):
@@ -75,7 +79,10 @@ def crop_random_faces_from_n_frames(
 
             filename = f"face_frame_{i}_bbox_{j}.png"
             path = output_folder / filename
-            cv2.imwrite(str(path), face)
+            try:
+                cv2.imwrite(str(path), face)
+            except Exception:
+                continue
 
     cap.release()
 

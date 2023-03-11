@@ -41,6 +41,9 @@ class ReIdentification:
 
         embeddings = self.embedder.get_face_embeddings(detections, image)
 
+        if embeddings is None or embeddings.empty:
+            return detections
+
         key_embeddings = self.read_anchor_embeddings_from_database(self.embeddings_path)
         # For testing purposes:
         # key_embeddings.drop("person_id4", axis=0, inplace=True)
@@ -90,6 +93,8 @@ class ReIdentification:
             list[tuple]: List of matches between df1 and df2.
         """
         if df1.shape[1] != df2.shape[1]:
+            print(f"df1: {df1.shape}")
+            print(f"df2: {df2.shape}")
             raise ValueError("Embeddings must have the same dimensionality.")
 
         # Compute the cosine similarity between all element pairs

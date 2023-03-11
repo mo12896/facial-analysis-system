@@ -11,7 +11,7 @@ def main() -> None:
 
     if args.get("EMBEDDB"):
         clusterer = FaceClusterer(args)
-        clusterer.create_database()
+        clusterer.create_database(verbose=True)
 
     runner = Runner(args)
     runner.run()

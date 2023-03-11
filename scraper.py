@@ -15,12 +15,17 @@ from dropbox.exceptions import AuthError
 
 from src.emotion.app_controller import Runner
 from src.emotion.embedder import FaceClusterer
-from src.emotion.utils.constants import CONFIG_DIR, DATA_DIR
+from src.emotion.utils.constants import (
+    CONFIG_DIR,
+    DATA_DIR,
+    DATA_DIR_IMAGES,
+    IDENTITY_DIR,
+)
 
 dropbox_folder = "/Cleaned_Team Data"
 
 teams = [
-    "team_01",
+    # "team_01",
     # "team_02",
     # "team_03",
     # "team_04",
@@ -31,7 +36,7 @@ teams = [
     # "team_09",
     # "team_10",
     # "team_11",
-    # "team_12",
+    "team_12",
     # "team_13",
     # "team_14",
     # "team_15",
@@ -45,8 +50,8 @@ teams = [
 ]
 
 days = [
-    "2023-01-10",
-    # "2023-01-12",
+    # "2023-01-10",
+    "2023-01-12",
     # "2023-01-13",
 ]
 
@@ -89,7 +94,8 @@ def dropbox_list_files(dbx: Dropbox, path: str) -> pd.DataFrame:
 if __name__ == "__main__":
     # Simulate user input for FaceClusterer
     original_stdin = sys.stdin
-    sys.stdin = StringIO("y\n")
+    user_input = "y\ny\ny\ny\n"
+    sys.stdin = StringIO(user_input)
 
     # set up Dropbox API client
     dbx = dropbox_connect()
@@ -112,6 +118,8 @@ if __name__ == "__main__":
         # extract the features
         for day in days:
             day_folder_path = local_folder_path / (team + "/" + day)
+            output_path = IDENTITY_DIR / (team + "/" + day)
+            output_path.mkdir(parents=True, exist_ok=True)
 
             try:
                 configs: Dict[str, Any] = yaml.safe_load(
@@ -131,13 +139,18 @@ if __name__ == "__main__":
                     clusterer = FaceClusterer(configs)
                     clusterer.create_database()
 
+                dest_folder = output_path / "images"
+                if not dest_folder.is_dir():
+                    src_folder = DATA_DIR_IMAGES
+                    shutil.copytree(src_folder, dest_folder)
+
                 runner = Runner(configs)
                 runner.run()
 
                 configs["EMBEDDB"] = False
 
         # delete the local folder
-        shutil.rmtree(local_folder_path + "/" + team)
+        shutil.rmtree(local_folder_path / team)
 
     # Restore the original value of sys.stdin
     sys.stdin = original_stdin
