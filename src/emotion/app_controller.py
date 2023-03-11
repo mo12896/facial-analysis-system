@@ -80,131 +80,136 @@ class Runner:
 
         self._on_init()
 
+        if self.verbose:
+            with VideoDataWriter(
+                filename=str(DATA_DIR / (self.filename.split(".")[0] + "_output")),
+                logger=logger,
+                video_info=self.video_info,
+                video_codec=VideoCodecs[self.video_codec],
+            ) as video_writer:
+
+                print("Start writing video ...")
+                self._controller(video_writer)
+        else:
+            self._controller()
+
+        # Release the video capture object
+        self.video_loader.cap.release()
+
+    def _controller(self, video_writer=None):
         frame_count: int = 0
         prev_detections = None
         reid = True
 
-        with VideoDataWriter(
-            filename=str(DATA_DIR / (self.filename.split(".")[0] + "_output")),
-            logger=logger,
-            video_info=self.video_info,
-            video_codec=VideoCodecs[self.video_codec],
-        ) as video_writer:
+        for _, frame in enumerate(
+            tqdm(
+                self.video_loader,
+                desc="Loading frames",
+                total=self.video_loader.total_frames,
+            )
+        ):
 
-            for _, frame in enumerate(
-                tqdm(
-                    self.video_loader,
-                    desc="Loading frames",
-                    total=self.video_loader.total_frames,
+            if (
+                frame_count == 0 or not frame_count % self.detection_frequency
+            ) and reid:
+
+                detections = self.face_detector.detect_faces(frame)
+
+                if detections is None or (
+                    detections is not None and len(detections.bboxes) == 0
+                ):
+                    continue
+
+                detections = self.face_reid.filter(detections, frame)
+
+                if np.any(np.char.startswith(detections.class_id, "face_")):
+                    continue
+
+                detections = self.face_emotion_detector.detect_emotions(
+                    detections, frame
                 )
-            ):
 
-                if (
-                    frame_count == 0 or not frame_count % self.detection_frequency
-                ) and reid:
+                # detections = self.pose_estimator.estimate_poses(frame, detections)
+                detections = self.head_pose_estimator.detect_head_poses(
+                    frame, detections
+                )
 
-                    detections = self.face_detector.detect_faces(frame)
+                detections = self.gaze_detector.detect_gazes(detections)
 
-                    if detections is None or (
-                        detections is not None and len(detections.bboxes) == 0
-                    ):
-                        continue
+                detections = self.brightness_estimator(frame, detections)
 
-                    detections = self.face_reid.filter(detections, frame)
+                if self.verbose:
+                    # Black background for anonymization
+                    # frame[:] = 0
 
-                    if np.any(np.char.startswith(detections.class_id, "face_")):
-                        continue
+                    frame = self.box_annotator.annotate(frame, detections)
+                    # frame = self.body_annotator.annotate(frame, detections)
+                    frame = self.head_pose_annotator.annotate(frame, detections)
 
-                    detections = self.face_emotion_detector.detect_emotions(
-                        detections, frame
-                    )
+                    video_writer.write_frame(frame)
 
-                    # detections = self.pose_estimator.estimate_poses(frame, detections)
-                    detections = self.head_pose_estimator.detect_head_poses(
-                        frame, detections
-                    )
+                self.identities_handler.set_current_state(detections, frame_count)
+                self.identities_handler.write_states_to_csv()
 
-                    detections = self.gaze_detector.detect_gazes(detections)
+                prev_detections = detections
 
-                    detections = self.brightness_estimator(frame, detections)
+                frame_count += 1
+                # reid = False
 
-                    if self.verbose:
-                        # Black background for anonymization
-                        # frame[:] = 0
+            # TODO: Add Tracker
+            # elif (
+            #     frame_count != 0 and not frame_count % self.detection_frequency
+            # ) and not reid:
+            #     # Black background for anonymization
+            #     # frame[:] = 0
 
-                        frame = self.box_annotator.annotate(frame, detections)
-                        # frame = self.body_annotator.annotate(frame, detections)
-                        frame = self.head_pose_annotator.annotate(frame, detections)
+            #     detections = self.face_detector.detect_faces(frame)
+            #     # detections.tracks = prev_detections.bboxes
 
-                        video_writer.write_frame(frame)
+            #     # No must have, since ReID-based tracking!
+            #     detections = self.face_tracker.track_faces(detections, frame)
+            #     # detections.bboxes = detections.tracks
+            #     detections.class_id = detections.tracker_id
 
-                    self.identities_handler.set_current_state(detections, frame_count)
-                    self.identities_handler.write_states_to_csv()
+            #     detections = self.face_emotion_detector.detect_emotions(
+            #         detections, frame
+            #     )
 
-                    prev_detections = detections
+            #     detections = self.pose_estimator.estimate_poses(frame, detections)
+            #     detections = self.head_pose_estimator.detect_head_poses(
+            #         frame, detections
+            #     )
 
-                    frame_count += 1
-                    # reid = False
+            #     detections = self.gaze_detector.detect_gazes(detections)
 
-                # TODO: Add Tracker
-                # elif (
-                #     frame_count != 0 and not frame_count % self.detection_frequency
-                # ) and not reid:
-                #     # Black background for anonymization
-                #     # frame[:] = 0
+            #     frame = self.box_annotator.annotate(frame, detections)
+            #     frame = self.body_annotator.annotate(frame, detections)
+            #     frame = self.head_pose_annotator.annotate(frame, detections)
 
-                #     detections = self.face_detector.detect_faces(frame)
-                #     # detections.tracks = prev_detections.bboxes
+            #     self.identities_handler.set_current_state(detections, frame_count)
+            #     self.identities_handler.write_states_to_csv()
 
-                #     # No must have, since ReID-based tracking!
-                #     detections = self.face_tracker.track_faces(detections, frame)
-                #     # detections.bboxes = detections.tracks
-                #     detections.class_id = detections.tracker_id
+            #     video_writer.write_frame(frame)
 
-                #     detections = self.face_emotion_detector.detect_emotions(
-                #         detections, frame
-                #     )
+            #     prev_detections = detections
 
-                #     detections = self.pose_estimator.estimate_poses(frame, detections)
-                #     detections = self.head_pose_estimator.detect_head_poses(
-                #         frame, detections
-                #     )
+            #     frame_count += 1
+            #     if len(detections) != self.K:
+            #         reid = True
 
-                #     detections = self.gaze_detector.detect_gazes(detections)
+            else:
 
-                #     frame = self.box_annotator.annotate(frame, detections)
-                #     frame = self.body_annotator.annotate(frame, detections)
-                #     frame = self.head_pose_annotator.annotate(frame, detections)
+                if self.verbose:
+                    # Black background for anonymization
+                    # frame[:] = 0
 
-                #     self.identities_handler.set_current_state(detections, frame_count)
-                #     self.identities_handler.write_states_to_csv()
+                    frame = self.box_annotator.annotate(frame, prev_detections)
+                    # frame = self.body_annotator.annotate(frame, prev_detections)
+                    frame = self.head_pose_annotator.annotate(frame, prev_detections)
 
-                #     video_writer.write_frame(frame)
+                    video_writer.write_frame(frame)
 
-                #     prev_detections = detections
-
-                #     frame_count += 1
-                #     if len(detections) != self.K:
-                #         reid = True
-
-                else:
-
-                    if self.verbose:
-                        # Black background for anonymization
-                        # frame[:] = 0
-
-                        frame = self.box_annotator.annotate(frame, prev_detections)
-                        # frame = self.body_annotator.annotate(frame, prev_detections)
-                        frame = self.head_pose_annotator.annotate(
-                            frame, prev_detections
-                        )
-
-                        video_writer.write_frame(frame)
-
-                    frame_count += 1
-
-        # Release the video capture object
-        self.video_loader.cap.release()
+                frame_count += 1
 
     def _on_init(self):
         """A bunch of methods which are called when the app is initialized."""

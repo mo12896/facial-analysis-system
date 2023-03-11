@@ -92,11 +92,6 @@ def dropbox_list_files(dbx: Dropbox, path: str) -> pd.DataFrame:
 
 
 if __name__ == "__main__":
-    # Simulate user input for FaceClusterer
-    original_stdin = sys.stdin
-    user_input = "y\ny\ny\ny\n"
-    sys.stdin = StringIO(user_input)
-
     # set up Dropbox API client
     dbx = dropbox_connect()
 
@@ -133,6 +128,11 @@ if __name__ == "__main__":
             configs["ANCHOR_EMBEDDINGS"] = "embeddings_" + team + "_" + day + ".db"
 
             for video in day_folder_path.glob("**/*.mp4"):
+                # Simulate user input for FaceClusterer
+                original_stdin = sys.stdin
+                user_input = "y\ny\ny\ny\n"
+                sys.stdin = StringIO(user_input)
+
                 configs["VIDEO"] = team + "/" + day + "/" + video.stem + ".mp4"
 
                 if configs["EMBEDDB"]:
@@ -149,8 +149,8 @@ if __name__ == "__main__":
 
                 configs["EMBEDDB"] = False
 
+                # Restore the original value of sys.stdin
+                sys.stdin = original_stdin
+
         # delete the local folder
         shutil.rmtree(local_folder_path / team)
-
-    # Restore the original value of sys.stdin
-    sys.stdin = original_stdin
