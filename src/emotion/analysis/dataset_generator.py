@@ -11,15 +11,6 @@ import seaborn as sns
 from scipy.stats import gaussian_kde
 from tsfresh.feature_extraction import MinimalFCParameters, extract_features
 
-from src.emotion.analysis.data_preprocessing import (
-    DataPreprocessor,
-    DerivativesGetter,
-    LinearInterpolator,
-    RollingAverageSmoother,
-    ZeroToOneNormalizer,
-)
-from src.emotion.utils.constants import DATA_DIR, IDENTITY_DIR
-
 # grandparent_folder = os.path.abspath(
 #     os.path.join(
 #         os.path.dirname(os.path.abspath(__file__)),
@@ -29,6 +20,15 @@ from src.emotion.utils.constants import DATA_DIR, IDENTITY_DIR
 #     )
 # )
 # sys.path.append(grandparent_folder)
+
+from src.emotion.analysis.data_preprocessing import (
+    DataPreprocessor,
+    DerivativesGetter,
+    LinearInterpolator,
+    RollingAverageSmoother,
+    ZeroToOneNormalizer,
+)
+from src.emotion.utils.constants import DATA_DIR, IDENTITY_DIR
 
 
 def time_series_features(
@@ -261,10 +261,15 @@ def position_features(
 # to later weight the vide-clip against all other video-clips per day!
 # (Easier: Or just concatemate all identitites.csv files :-))
 if __name__ == "__main__":
+    save: bool = False
     emotions = ["Angry", "Disgust", "Happy", "Sad", "Surprise", "Fear", "Neutral"]
 
-    filename = "short_clip_debug.csv"
-    df = pd.read_csv(IDENTITY_DIR / filename)
+    # Load the identity file
+    team = "team_15"
+    day = "2023-01-10"
+    filename = "clip_0_10425_11863.csv"
+    path = team + "/" + day + "/" + filename
+    df = pd.read_csv(IDENTITY_DIR / path)
 
     preprocessing_pipeline = [
         LinearInterpolator(),
@@ -280,6 +285,7 @@ if __name__ == "__main__":
 
     preprocessor = DataPreprocessor(preprocessing_pipeline)
     pre_df = preprocessor.preprocess_data(df)
+    pre_df["Derivatives"].fillna(0, inplace=True)
 
     # Create time series feature
     cols = [*emotions, "Brightness", "Derivatives"]
@@ -312,14 +318,16 @@ if __name__ == "__main__":
     gaze_matrix = sna_gaze_features(df)
     print(gaze_matrix)
 
-    pos_feature = position_features(df, verbose=True, image=True)
+    pos_feature = position_features(df, verbose=True, image=False)
     print(pos_feature)
 
     df_features = pd.concat(
         [feature_vectors, df_counts, presence, gaze_matrix, pos_feature], axis=1
     )
-    # save the dataframe to a CSV file
-    dataset = filename.split(".")[0] + "_dataset.csv"
-    df_features.to_csv(str(IDENTITY_DIR / dataset), index=False)
+
+    if save:
+        # save the dataframe to a CSV file
+        dataset = filename.split(".")[0] + "_dataset.csv"
+        df_features.to_csv(str(IDENTITY_DIR / dataset), index=False)
 
     print(df_features)

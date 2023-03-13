@@ -18,6 +18,7 @@ from src.emotion.embedder import FaceClusterer
 from src.emotion.utils.constants import (
     CONFIG_DIR,
     DATA_DIR,
+    DATA_DIR_DATABASE,
     DATA_DIR_IMAGES,
     IDENTITY_DIR,
 )
@@ -35,29 +36,24 @@ teams = [
     # "team_08",
     # "team_09",
     # "team_10",
-    # "team_11",
-    "team_12",
-    # "team_13",
-    # "team_14",
-    # "team_15",
-    # "team_16",
+    "team_16",
     # "team_17",
     # "team_18",
     # "team_19",
     # "team_20",
-    # "team_21",
     # "team_22",
 ]
 
 days = [
-    # "2023-01-10",
+    "2023-01-10",
     "2023-01-12",
-    # "2023-01-13",
+    "2023-01-13",
 ]
 
 
 def dropbox_connect() -> Dropbox:
     """Create a connection to Dropbox."""
+
     load_dotenv()
     DROPBOX_ACCESS_TOKEN = os.getenv("DROPBOX_ACCESS_TOKEN")
 
@@ -104,11 +100,13 @@ if __name__ == "__main__":
         # download the folder and its contents to a local directory
         local_folder_path = DATA_DIR
 
-        with tempfile.TemporaryDirectory() as temp_dir:
-            temp_zip_path = Path(temp_dir) / "temp.zip"
-            dbx.files_download_zip_to_file(str(temp_zip_path), dropbox_folder_path)
+        dest_path = local_folder_path / team
+        if not dest_path.is_dir():
+            with tempfile.TemporaryDirectory() as temp_dir:
+                temp_zip_path = Path(temp_dir) / "temp.zip"
+                dbx.files_download_zip_to_file(str(temp_zip_path), dropbox_folder_path)
 
-            shutil.unpack_archive(str(temp_zip_path), extract_dir=local_folder_path)
+                shutil.unpack_archive(str(temp_zip_path), extract_dir=local_folder_path)
 
         # extract the features
         for day in days:
@@ -134,8 +132,9 @@ if __name__ == "__main__":
                 sys.stdin = StringIO(user_input)
 
                 configs["VIDEO"] = team + "/" + day + "/" + video.stem + ".mp4"
+                database = DATA_DIR_DATABASE / configs["ANCHOR_EMBEDDINGS"]
 
-                if configs["EMBEDDB"]:
+                if configs["EMBEDDB"] and not database.is_file():
                     clusterer = FaceClusterer(configs)
                     clusterer.create_database()
 
@@ -153,4 +152,4 @@ if __name__ == "__main__":
                 sys.stdin = original_stdin
 
         # delete the local folder
-        shutil.rmtree(local_folder_path / team)
+        # shutil.rmtree(local_folder_path / team)

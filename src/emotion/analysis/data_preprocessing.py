@@ -247,6 +247,14 @@ class DerivativesGetter:
         return abs(x_diff / y_diff)
 
     def __call__(self, df: pd.DataFrame) -> pd.DataFrame:
-        derivatives = df.groupby("ClassID").apply(self._calculate_derivatives).fillna(0)
-        df["Derivatives"] = derivatives.reset_index(drop=True)
+        derivatives = (
+            df.groupby("ClassID")
+            .apply(lambda group: self._calculate_derivatives(group))
+            .fillna(0)
+            .reset_index(level=0, drop=True)
+            .rename("Derivatives")
+        )
+
+        # Concatenate the derivatives column with the original DataFrame
+        df = pd.concat([df, derivatives], axis=1)
         return df

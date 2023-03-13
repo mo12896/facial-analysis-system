@@ -6,7 +6,8 @@ from tqdm import tqdm
 from src.emotion.features.annotators.annotator import BoxAnnotator
 from src.emotion.features.annotators.body_annotator import BodyAnnotator
 from src.emotion.features.annotators.head_annotator import HeadPoseAnnotator
-from src.emotion.features.extractors.body_pose_estimator import create_pose_estimator
+
+# from src.emotion.features.extractors.body_pose_estimator import create_pose_estimator
 from src.emotion.features.extractors.face_detector import create_face_detector
 from src.emotion.features.extractors.face_embedder import create_face_embedder
 from src.emotion.features.extractors.face_emotion_detector import (
@@ -46,7 +47,7 @@ class Runner:
         # self.tracker_params = self.args.get("TRACKER", "byte")
         self.emotion_detector = self.args.get("EMOTION_DETECTOR", "deepface")
         self.embed_params = self.args.get("EMBEDDER", "insightface")
-        self.pose_params = self.args.get("POSE_ESTIMATOR", "l_openpose")
+        # self.pose_params = self.args.get("POSE_ESTIMATOR", "l_openpose")
         self.head_pose_params = self.args.get("HEAD_POSE_ESTIMATOR", "synergy")
         self.gaze_params = self.args.get("GAZE_DETECTOR")
         self.K = self.args.get("K", 4)
@@ -60,7 +61,7 @@ class Runner:
         self.face_embedder = create_face_embedder(self.embed_params)
         self.face_emotion_detector = create_emotion_detector(self.emotion_detector)
         self.face_reid = ReIdentification(self.embeddings_path, self.face_embedder)
-        self.pose_estimator = create_pose_estimator(self.pose_params)
+        # self.pose_estimator = create_pose_estimator(self.pose_params)
         self.box_annotator = BoxAnnotator(color=Color.red())
         self.body_annotator = BodyAnnotator(color=Color.red())
         self.identities_handler = IdentityHandler(
