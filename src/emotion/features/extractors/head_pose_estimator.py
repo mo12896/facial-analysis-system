@@ -73,7 +73,9 @@ class SynergyHeadPoseDetector(HeadPoseDetector):
     def __init__(self, parameters: dict = {}):
         super().__init__(parameters)
         self.model = SynergyNet()
-        self.model = self.model.cuda()
+        self.gpu = torch.cuda.is_available()
+        self.device = torch.device("cuda" if self.gpu else "cpu")
+        self.model.to(self.device)
         self.model.eval()
 
         self.img_size = 120
@@ -111,7 +113,8 @@ class SynergyHeadPoseDetector(HeadPoseDetector):
 
             input = transform(img).unsqueeze(0)
             with torch.no_grad():
-                input = input.cuda()
+                if self.gpu:
+                    input = input.cuda()
                 param = self.model.forward_test(input)
                 param = param.squeeze().cpu().numpy().flatten().astype(np.float32)
 

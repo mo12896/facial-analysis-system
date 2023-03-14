@@ -2,15 +2,12 @@
 
 # Install OS dependencies
 sudo apt-get update && \
-sudo apt-get install -y libgl1-mesa-glx cmake protobuf-compiler git
+sudo apt-get install -y libgl1-mesa-glx cmake protobuf-compiler git build-essential
 
 # Download the Conda installer script
 curl -O https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh
 bash Miniconda3-latest-Linux-x86_64.sh
 
-# Install Git LFS
-curl -s https://packagecloud.io/install/repositories/github/git-lfs/script.deb.sh | sudo bash
-sudo apt-get install git-lfs
 
 # Clone the repository
 git clone https://github.com/mo12896/emotion-recognition.git
@@ -27,9 +24,6 @@ pip3 install --upgrade pip \
 
 # Create directories
 mkdir /data /data/images /data/database /data/identities /logs /external
-
-# Download the model
-git lfs pull https://huggingface.co/liangtian/birthdayCrown/raw/main/res10_300x300_ssd_iter_140000.caffemodel
 
 # Setup the git submodules
 git submodule init
@@ -54,8 +48,8 @@ FOLDER_NAME="./external/synergy/"
 curl -L "https://drive.google.com/uc?export=download&id=${FILE_ID}" -o "${FOLDER_NAME}/${FILE_NAME}"
 unzip "${FOLDER_NAME}/${FILE_NAME}" -d "${FOLDER_NAME}"
 
-cd /external/synergy/Sim3DR && ./build_sim3dr.sh
-cd /external/synergy/FaceBoxes && ./build_cpu_nms.sh
-cd external/synergy/ && pip install -e .
+cd external/synergy/Sim3DR && ./build_sim3dr.sh
+cd ../FaceBoxes && ./build_cpu_nms.sh
+cd .. && pip install -e .
 
 

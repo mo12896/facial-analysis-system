@@ -25,7 +25,7 @@ from src.emotion.utils.constants import (
 
 dropbox_folder = "/Cleaned_Team Data"
 
-teams = [
+teams_test = [
     # "team_01",
     # "team_02",
     # "team_03",
@@ -36,7 +36,7 @@ teams = [
     # "team_08",
     # "team_09",
     # "team_10",
-    "team_16",
+    # "team_16",
     # "team_17",
     # "team_18",
     # "team_19",
@@ -87,12 +87,9 @@ def dropbox_list_files(dbx: Dropbox, path: str) -> pd.DataFrame:
         print("Error getting list of files from Dropbox: " + str(e))
 
 
-if __name__ == "__main__":
+def process_teams(teams):
     # set up Dropbox API client
     dbx = dropbox_connect()
-
-    # test_folder = dropbox_folder + "/" + teams[0] + "/" + days[0]
-    # files = dropbox_list_files(dbx, test_folder)
 
     for team in teams:
         dropbox_folder_path = dropbox_folder + "/" + team
@@ -153,3 +150,12 @@ if __name__ == "__main__":
 
         # delete the local folder
         # shutil.rmtree(local_folder_path / team)
+
+
+if __name__ == "__main__":
+
+    # test_folder = dropbox_folder + "/" + teams[0] + "/" + days[0]
+    # files = dropbox_list_files(dbx, test_folder)
+
+    teams_list = sys.argv[1:]
+    process_teams(teams_list)
