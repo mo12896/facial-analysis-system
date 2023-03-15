@@ -37,7 +37,7 @@ teams_test = [
     # "team_09",
     # "team_10",
     # "team_16",
-    # "team_17",
+    "team_17",
     # "team_18",
     # "team_19",
     # "team_20",
