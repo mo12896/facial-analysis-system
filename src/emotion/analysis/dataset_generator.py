@@ -11,6 +11,15 @@ import seaborn as sns
 from scipy.stats import gaussian_kde
 from tsfresh.feature_extraction import MinimalFCParameters, extract_features
 
+from src.emotion.analysis.data_preprocessing import (
+    DataPreprocessor,
+    DerivativesGetter,
+    LinearInterpolator,
+    RollingAverageSmoother,
+    ZeroToOneNormalizer,
+)
+from src.emotion.utils.constants import DATA_DIR, IDENTITY_DIR
+
 # grandparent_folder = os.path.abspath(
 #     os.path.join(
 #         os.path.dirname(os.path.abspath(__file__)),
@@ -20,15 +29,6 @@ from tsfresh.feature_extraction import MinimalFCParameters, extract_features
 #     )
 # )
 # sys.path.append(grandparent_folder)
-
-from src.emotion.analysis.data_preprocessing import (
-    DataPreprocessor,
-    DerivativesGetter,
-    LinearInterpolator,
-    RollingAverageSmoother,
-    ZeroToOneNormalizer,
-)
-from src.emotion.utils.constants import DATA_DIR, IDENTITY_DIR
 
 
 def time_series_features(

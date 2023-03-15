@@ -1,5 +1,6 @@
 from typing import List, Protocol
 
+import numpy as np
 import pandas as pd
 
 
@@ -39,6 +40,70 @@ class DataPreprocessor:
         return data
 
 
+# Old implementation
+# class LinearInterpolator:
+#     def __call__(self, df: pd.DataFrame) -> pd.DataFrame:
+#         """Linearly interpolate missing frames in the data.
+
+#         Args:
+#             df (pd.DataFrame): DataFrame to interpolate
+
+#         Returns:
+#             pd.DataFrame: Interpolated DataFrame
+#         """
+
+#         # create an empty DataFrame to hold the interpolated data
+#         interpolated_df = pd.DataFrame(columns=df.columns)
+
+#         # group the DataFrame by ClassID
+#         grouped = df.groupby("ClassID")
+
+#         max_length = df["Frame"].max()
+
+#         # iterate over each group and interpolate missing frames
+#         for _, group in grouped:
+#             # create a new DataFrame to hold the interpolated frames for this ClassID
+#             # Iterate over the filtered data and fill in missing frames
+#             last_frame = None
+#             new_rows = []
+#             group_length = group["Frame"].max()
+
+#             for _, row in group.iterrows():
+#                 if last_frame is None:
+#                     last_frame = row
+#                     new_rows.append(row)
+#                 elif row["Frame"] == group_length:
+#                     diff = max_length - len(new_rows)
+#                     if diff:
+#                         for j in range(diff):
+#                             new_row = row.copy()
+#                             new_row["Frame"] = row["Frame"] + j + 1
+#                             new_rows.append(new_row)
+#                 else:
+#                     while last_frame["Frame"] < row["Frame"] - 1:
+#                         missing_frame = last_frame["Frame"] + 1
+#                         interp_row = last_frame.copy()
+#                         interp_row["Frame"] = missing_frame
+#                         for col in df.columns:
+#                             if col not in ["Frame", "ClassID", "GazeDetections"]:
+#                                 interp_row[col] = (
+#                                     last_frame[col] * (row["Frame"] - missing_frame)
+#                                     + row[col] * (missing_frame - last_frame["Frame"])
+#                                 ) / (row["Frame"] - last_frame["Frame"])
+#                         new_rows.append(interp_row)
+#                         last_frame = interp_row
+#                     new_rows.append(row)
+#                     last_frame = row
+
+#             # Combine the new rows with the original data and sort by frame
+#             interpolated_df = pd.concat(
+#                 [interpolated_df, pd.DataFrame(new_rows)], ignore_index=True
+#             )
+#             interpolated_df = interpolated_df.sort_values(by=["ClassID", "Frame"])
+
+#         return interpolated_df
+
+
 class LinearInterpolator:
     def __call__(self, df: pd.DataFrame) -> pd.DataFrame:
         """Linearly interpolate missing frames in the data.
@@ -50,56 +115,35 @@ class LinearInterpolator:
             pd.DataFrame: Interpolated DataFrame
         """
 
-        # create an empty DataFrame to hold the interpolated data
-        interpolated_df = pd.DataFrame(columns=df.columns)
+        # group the DataFrame by ClassID and apply the interpolation function to each group
+        interpolated_groups = df.groupby("ClassID").apply(self.interpolate_group)
 
-        # group the DataFrame by ClassID
-        grouped = df.groupby("ClassID")
-
-        max_length = df["Frame"].max()
-
-        # iterate over each group and interpolate missing frames
-        for _, group in grouped:
-            # create a new DataFrame to hold the interpolated frames for this ClassID
-            # Iterate over the filtered data and fill in missing frames
-            last_frame = None
-            new_rows = []
-            group_length = group["Frame"].max()
-
-            for _, row in group.iterrows():
-                if last_frame is None:
-                    last_frame = row
-                    new_rows.append(row)
-                elif row["Frame"] == group_length:
-                    diff = max_length - len(new_rows)
-                    if diff:
-                        for j in range(diff):
-                            new_row = row.copy()
-                            new_row["Frame"] = row["Frame"] + j + 1
-                            new_rows.append(new_row)
-                else:
-                    while last_frame["Frame"] < row["Frame"] - 1:
-                        missing_frame = last_frame["Frame"] + 1
-                        interp_row = last_frame.copy()
-                        interp_row["Frame"] = missing_frame
-                        for col in df.columns:
-                            if col not in ["Frame", "ClassID", "GazeDetections"]:
-                                interp_row[col] = (
-                                    last_frame[col] * (row["Frame"] - missing_frame)
-                                    + row[col] * (missing_frame - last_frame["Frame"])
-                                ) / (row["Frame"] - last_frame["Frame"])
-                        new_rows.append(interp_row)
-                        last_frame = interp_row
-                    new_rows.append(row)
-                    last_frame = row
-
-            # Combine the new rows with the original data and sort by frame
-            interpolated_df = pd.concat(
-                [interpolated_df, pd.DataFrame(new_rows)], ignore_index=True
-            )
-            interpolated_df = interpolated_df.sort_values(by=["ClassID", "Frame"])
+        # reset the index and sort by ClassID and Frame
+        interpolated_df = interpolated_groups.reset_index(drop=True).sort_values(
+            by=["ClassID", "Frame"]
+        )
 
         return interpolated_df
+
+    @staticmethod
+    def interpolate_group(group):
+        step = 1
+        # create an array of frames to interpolate
+        frames = np.arange(group["Frame"].min(), group["Frame"].max() + 1, step)
+        # interpolate the missing frames using numpy.interp
+        interpolated_rows = pd.DataFrame({"Frame": frames})
+        for col in group.columns:
+            if col not in ["Frame", "ClassID", "GazeDetections"]:
+                interpolated_rows[col] = np.interp(
+                    frames,
+                    group["Frame"].values,
+                    group[col].values,
+                    left=np.nan,
+                    right=np.nan,
+                )
+        # add the ClassID column and return the interpolated rows
+        interpolated_rows["ClassID"] = group["ClassID"].iloc[0]
+        return interpolated_rows
 
 
 class RollingAverageSmoother:
@@ -231,30 +275,3 @@ class MinusOneToOneNormalizer:
             data.loc[group.index, self.cols] = norm_data
 
         return data
-
-
-class DerivativesGetter:
-    def __init__(self, negatives: bool = False):
-        self.negatives = negatives
-
-    def _calculate_derivatives(self, group: pd.DataFrame) -> pd.Series:
-        x_diff = group["x_center"].diff()
-        y_diff = group["y_center"].diff()
-
-        if self.negatives:
-            return x_diff / y_diff
-
-        return abs(x_diff / y_diff)
-
-    def __call__(self, df: pd.DataFrame) -> pd.DataFrame:
-        derivatives = (
-            df.groupby("ClassID")
-            .apply(lambda group: self._calculate_derivatives(group))
-            .fillna(0)
-            .reset_index(level=0, drop=True)
-            .rename("Derivatives")
-        )
-
-        # Concatenate the derivatives column with the original DataFrame
-        df = pd.concat([df, derivatives], axis=1)
-        return df

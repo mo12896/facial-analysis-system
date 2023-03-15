@@ -95,6 +95,7 @@ class InsightFaceEmbedder(FaceEmbedder):
 
     def __init__(self, parameters: dict = {}):
         super().__init__(parameters)
+        # TODO: Would have to be modified to only do the Face Recgnition!
         self.model = FaceAnalysis()
 
         ctx_id = parameters.get("ctx_id", 0)
