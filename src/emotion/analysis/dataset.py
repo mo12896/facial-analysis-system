@@ -1,8 +1,7 @@
-import csv
-
+# import csv
 # import os
 # import sys
-from datetime import datetime
+# from datetime import datetime
 from pathlib import Path
 
 import pandas as pd
@@ -17,12 +16,16 @@ import pandas as pd
 # )
 # sys.path.append(grandparent_folder)
 
-from src.emotion.utils.constants import IDENTITY_DIR
+from src.emotion.utils.constants import DATA_DIR, IDENTITY_DIR
 
 
 def concatenate_csv_files(folder_path: Path):
 
-    files = [file_path for file_path in folder_path.glob("*.csv")]
+    files = [
+        file_path
+        for file_path in folder_path.glob("*.csv")
+        if file_path.name != "matches.csv"
+    ]
     df_concat = pd.DataFrame()
 
     # Loop over each file
@@ -52,9 +55,10 @@ def concatenate_csv_files(folder_path: Path):
 
 if __name__ == "__main__":
     # List of input CSV files
+    save: bool = True
 
     teams = [
-        # "team_01",
+        "team_01",
         # "team_02",
         # "team_03",
         # "team_04",
@@ -78,22 +82,37 @@ if __name__ == "__main__":
 
     days = ["2023-01-10", "2023-01-12", "2023-01-13"]
 
+    final_dataset = pd.DataFrame()
+
     for team in teams:
         for day in days:
             folder_path = IDENTITY_DIR / team / day
-            concatenate_csv_files(folder_path)
-            # Check if the folder exists
-            if folder_path.exists():
-                # Create a new matches.csv file in the folder
-                if not folder_path.joinpath("matches.csv").exists():
-                    with folder_path.joinpath("matches.csv").open(
-                        mode="w", newline=""
-                    ) as csvfile:
-                        # Create a CSV writer object
-                        writer = csv.writer(csvfile)
-                        # Write the header row to the CSV file
-                        writer.writerow(["E-Mail-Adresse", "ClassID", "Day"])
-                        day_obj = datetime.strptime(day, "%Y-%m-%d")
+            # concatenate_csv_files(folder_path)
+            # # Check if the folder exists
+            # if folder_path.exists():
+            #     # Create a new matches.csv file in the folder
+            #     if not folder_path.joinpath("matches.csv").exists():
+            #         with folder_path.joinpath("matches.csv").open(
+            #             mode="w", newline=""
+            #         ) as csvfile:
+            #             # Create a CSV writer object
+            #             writer = csv.writer(csvfile)
+            #             # Write the header row to the CSV file
+            #             writer.writerow(["E-Mail-Adresse", "ClassID", "Day"])
+            #             day_obj = datetime.strptime(day, "%Y-%m-%d")
 
-                        for i in range(4):
-                            writer.writerow([0, 0, day_obj.day])
+            #             for i in range(4):
+            #                 writer.writerow([0, 0, day_obj.day])
+
+            matches_df = pd.read_csv(folder_path / "matches.csv")
+            dataset = team + "_" + day + "_dataset.csv"
+            dataset_df = pd.read_csv(folder_path / dataset)
+
+            dataset_df_final = dataset_df.merge(matches_df, on=["ClassID"])
+            final_dataset = pd.concat(
+                [final_dataset, dataset_df_final], ignore_index=True
+            )
+    if save:
+        filename = DATA_DIR / "features_dataset.csv"
+        final_dataset.to_csv(filename, index=False)
+        print(final_dataset)

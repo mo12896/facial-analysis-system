@@ -412,14 +412,15 @@ def process(
 
     if save:
         # save the dataframe to a CSV file
-        dataset = str(path).split(".")[0] + "_dataset.csv"
-        df_features.to_csv(dataset, index=False)
+        filename = str(path).split(".")[0] + "_dataset.csv"
+        df_features = df_features.reset_index().rename(columns={"index": "ClassID"})
+        df_features.to_csv(filename, index=False)
 
-    print(df_features)
+    # print(df_features)
 
 
 if __name__ == "__main__":
-    save: bool = False
+    save: bool = True
 
     ts_feature_dict = [
         {
@@ -449,32 +450,28 @@ if __name__ == "__main__":
     ]
 
     # Load the identity file
-    # team = "team_15"
-    # day = "2023-01-10"
-    # filename = "clip_0_10425_11863.csv"
-    # path = team + "/" + day + "/" + filename
 
     teams = [
-        "team_01",
-        # "team_02",
-        # "team_03",
-        # "team_04",
-        # "team_05",
-        # "team_06",
-        # "team_07",
-        # "team_08",
-        # "team_09",
-        # "team_10",
-        # "team_11",
-        # "team_12",
-        # "team_13",
-        # "team_15",
-        # "team_16",
-        # "team_17",
-        # "team_18",
-        # "team_19",
-        # "team_20",
-        # "team_22",
+        # "team_01",
+        "team_02",
+        "team_03",
+        "team_04",
+        "team_05",
+        "team_06",
+        "team_07",
+        "team_08",
+        "team_09",
+        "team_10",
+        "team_11",
+        "team_12",
+        "team_13",
+        "team_15",
+        "team_16",
+        "team_17",
+        "team_18",
+        "team_19",
+        "team_20",
+        "team_22",
     ]
 
     days = ["2023-01-10", "2023-01-12", "2023-01-13"]
@@ -486,3 +483,4 @@ if __name__ == "__main__":
             df = pd.read_csv(path)
 
             process(df, ts_feature_dict[2], path=path, save=save)
+            print("Finished processing: " + filename)
