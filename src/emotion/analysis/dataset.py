@@ -1,5 +1,8 @@
+import csv
+
 # import os
 # import sys
+from datetime import datetime
 from pathlib import Path
 
 import pandas as pd
@@ -49,31 +52,28 @@ def concatenate_csv_files(folder_path: Path):
 
 if __name__ == "__main__":
     # List of input CSV files
-    folder_path = IDENTITY_DIR / "team_20" / "2023-01-10"
-
-    concatenate_csv_files(folder_path)
 
     teams = [
-        "team_01",
-        "team_02",
-        "team_03",
-        "team_04",
-        "team_05",
-        "team_06",
-        "team_07",
-        "team_08",
-        "team_09",
-        "team_10",
-        "team_11",
-        "team_12",
-        "team_13",
-        "team_15",
-        "team_16",
-        "team_17",
-        "team_18",
-        "team_19",
-        "team_20",
-        "team_22",
+        # "team_01",
+        # "team_02",
+        # "team_03",
+        # "team_04",
+        # "team_05",
+        # "team_06",
+        # "team_07",
+        # "team_08",
+        # "team_09",
+        # "team_10",
+        # "team_11",
+        # "team_12",
+        # "team_13",
+        # "team_15",
+        # "team_16",
+        # "team_17",
+        # "team_18",
+        # "team_19",
+        # "team_20",
+        # "team_22",
     ]
 
     days = ["2023-01-10", "2023-01-12", "2023-01-13"]
@@ -82,3 +82,18 @@ if __name__ == "__main__":
         for day in days:
             folder_path = IDENTITY_DIR / team / day
             concatenate_csv_files(folder_path)
+            # Check if the folder exists
+            if folder_path.exists():
+                # Create a new matches.csv file in the folder
+                if not folder_path.joinpath("matches.csv").exists():
+                    with folder_path.joinpath("matches.csv").open(
+                        mode="w", newline=""
+                    ) as csvfile:
+                        # Create a CSV writer object
+                        writer = csv.writer(csvfile)
+                        # Write the header row to the CSV file
+                        writer.writerow(["E-Mail-Adresse", "ClassID", "Day"])
+                        day_obj = datetime.strptime(day, "%Y-%m-%d")
+
+                        for i in range(4):
+                            writer.writerow([0, 0, day_obj.day])

@@ -1,6 +1,7 @@
 # import os
 # import sys
-from typing import Dict
+from pathlib import Path
+from typing import Dict, Union
 
 import matplotlib.image as mpimg
 import matplotlib.pyplot as plt
@@ -9,16 +10,12 @@ import numpy as np
 import pandas as pd
 import seaborn as sns
 from scipy.stats import gaussian_kde
-from tsfresh.feature_extraction import MinimalFCParameters, extract_features
-
-from src.emotion.analysis.data_preprocessing import (
-    DataPreprocessor,
-    DerivativesGetter,
-    LinearInterpolator,
-    RollingAverageSmoother,
-    ZeroToOneNormalizer,
+from tsfresh.feature_extraction import (
+    ComprehensiveFCParameters,
+    EfficientFCParameters,
+    MinimalFCParameters,
+    extract_features,
 )
-from src.emotion.utils.constants import DATA_DIR, IDENTITY_DIR
 
 # grandparent_folder = os.path.abspath(
 #     os.path.join(
@@ -29,6 +26,20 @@ from src.emotion.utils.constants import DATA_DIR, IDENTITY_DIR
 #     )
 # )
 # sys.path.append(grandparent_folder)
+
+
+from src.emotion.analysis.data_preprocessing import (
+    DataPreprocessor,
+    LinearInterpolator,
+    RollingAverageSmoother,
+)
+from src.emotion.analysis.feature_generator import (
+    FeatureGenerator,
+    MaxEmotionGenerator,
+    VADGenerator,
+    VelocityGenerator,
+)
+from src.emotion.utils.constants import DATA_DIR, IDENTITY_DIR
 
 
 def time_series_features(
@@ -44,12 +55,12 @@ def time_series_features(
             default_fc_parameters=feature_mode["fc_params"],
         )
         extracted_features_cleaned = extracted_features.dropna(axis=1, how="all")
-        extracted_features_cleaned = extracted_features_cleaned.drop(
-            extracted_features_cleaned.filter(
-                regex="(" + "|".join(feature_mode["drop"]) + ")"
-            ).columns,
-            axis=1,
-        )
+        # extracted_features_cleaned = extracted_features_cleaned.drop(
+        #     extracted_features_cleaned.filter(
+        #         regex="(" + "|".join(feature_mode["drop"]) + ")"
+        #     ).columns,
+        #     axis=1,
+        # )
         feature_df.append(extracted_features_cleaned)
 
     feature_df = pd.concat(feature_df, axis=1)
@@ -138,8 +149,61 @@ def create_gaze_matrix(df: pd.DataFrame) -> pd.DataFrame:
     return df_gaze
 
 
-def sna_gaze_features(df: pd.DataFrame) -> pd.DataFrame:
-    df_gaze = create_gaze_matrix(df)
+def calculate_difference_matrix(df: pd.DataFrame) -> pd.DataFrame:
+    # Compute the difference matrix
+    diff_df = df.sub(df.T).abs()
+
+    # Scale the difference matrix to the range 0 to 1 using pandas
+    diff_df = (diff_df - diff_df.min(axis=1).min(axis=0)) / (
+        diff_df.max(axis=1).max(axis=0) - diff_df.min(axis=1).min(axis=0)
+    )
+    # diff_df = diff_scaled_df.round(decimals=2)
+
+    return diff_df
+
+
+def calculate_mutual_gaze_matrix(df: pd.DataFrame) -> Union[pd.DataFrame, pd.Series]:
+    # Create a dictionary to store the mutual gaze detections
+    mutual_gaze_dict = {}
+
+    # Loop through each frame in the dataframe
+    for frame in df["Frame"].unique():
+
+        # Get the rows corresponding to the current frame
+        frame_rows = df[df["Frame"] == frame]
+
+        # Get the ClassIDs and GazeDetections for the current frame
+        class_ids = list(frame_rows["ClassID"])
+        gaze_detections = [
+            eval(detections) for detections in frame_rows["GazeDetections"]
+        ]
+
+        # Loop through each pair of ClassIDs in the current frame
+        for i, class_id_x in enumerate(class_ids):
+            for class_id_y in gaze_detections[i]:
+                if (class_id_y in class_ids) and (
+                    class_id_x in gaze_detections[class_ids.index(class_id_y)]
+                ):
+                    mutual_gaze_key = (class_id_x, class_id_y)
+                    mutual_gaze_dict[mutual_gaze_key] = (
+                        mutual_gaze_dict.get(mutual_gaze_key, 0) + 1
+                    )
+
+    # Create a pivot table of mutual gazes
+    mutual_gaze_matrix = pd.DataFrame(
+        mutual_gaze_dict.values(),
+        index=pd.MultiIndex.from_tuples(mutual_gaze_dict.keys()),
+        columns=["Count"],
+    ).unstack(fill_value=0)
+
+    min_val = np.min(mutual_gaze_matrix)
+    max_val = np.max(mutual_gaze_matrix)
+    mutual_gaze_matrix = (mutual_gaze_matrix - min_val) / (max_val - min_val)
+
+    return mutual_gaze_matrix
+
+
+def sna_gaze_features(df_gaze: pd.DataFrame) -> pd.DataFrame:
 
     # Compute degree centrality
     degree_centrality = df_gaze.sum(axis=1)
@@ -149,12 +213,9 @@ def sna_gaze_features(df: pd.DataFrame) -> pd.DataFrame:
     in_degree_centrality = df_gaze.sum(axis=0).T
     in_degree_centrality_normalized = in_degree_centrality / df_gaze.to_numpy().sum()
 
-    # Compute betweenness centrality using NetworkX
+    # Compute betweenness centrality
     G = nx.from_pandas_adjacency(df_gaze)
     betweenness_centrality = pd.Series(nx.betweenness_centrality(G))
-
-    # Compute mutual gaze
-    mutual_gaze = df_gaze / df_gaze.sum().sum()
 
     # Create a new dataframe with all the features
     df_features = pd.concat(
@@ -162,7 +223,6 @@ def sna_gaze_features(df: pd.DataFrame) -> pd.DataFrame:
             degree_centrality_normalized,
             in_degree_centrality_normalized,
             betweenness_centrality,
-            mutual_gaze,
         ],
         axis=1,
     )
@@ -170,20 +230,65 @@ def sna_gaze_features(df: pd.DataFrame) -> pd.DataFrame:
         "Degree Centrality",
         "In-degree Centrality",
         "Betweenness Centrality",
-        "Mutual Gaze_p1",
-        "Mutual Gaze_p2",
-        "Mutual Gaze_p3",
-        "Mutual Gaze_p4",
     ]
 
     return df_features
 
 
+def simple_sna_features(df: pd.DataFrame, feature_name: str) -> pd.DataFrame:
+
+    df = df.replace(0, np.nan)
+
+    # Compute various features for each row
+    mean = df.mean(axis=1)
+    std_dev = df.std(axis=1)
+    min_val = df.min(axis=1)
+    max_val = df.max(axis=1)
+    range_val = max_val - min_val
+
+    df_features = pd.concat([mean, std_dev, min_val, max_val, range_val], axis=1)
+    df_features.columns = [
+        feature_name + "_" + feat for feat in ["Mean", "StdDev", "Min", "Max", "Range"]
+    ]
+
+    return df_features
+
+
+def gaze_feature_pipeline(df: pd.DataFrame) -> pd.DataFrame:
+    df_gaze = create_gaze_matrix(df)
+
+    # Compute the SNA features
+    gaze_sna_features = sna_gaze_features(df_gaze)
+
+    # Compute the gaze features
+    df_gaze_scaled = (df_gaze - df_gaze.min(axis=1).min(axis=0)) / (
+        df_gaze.max(axis=1).max(axis=0) - df_gaze.min(axis=1).min(axis=0)
+    )
+    gaze_features = simple_sna_features(df_gaze_scaled, feature_name="Gazes")
+    # print(gaze_features)
+
+    # Compute the difference features
+    diff_df = calculate_difference_matrix(df_gaze)
+    diff_features = simple_sna_features(diff_df, feature_name="GazeDifference")
+    # print(diff_features)
+
+    # Compute the mutual gaze features
+    mutual_df = calculate_mutual_gaze_matrix(df)
+    mutual_gaze_features = simple_sna_features(mutual_df, feature_name="MutualGaze")
+    # print(mutual_gaze_features)
+
+    # Concatenate the features
+    df_features = pd.concat(
+        [gaze_sna_features, gaze_features, diff_features, mutual_gaze_features], axis=1
+    )
+    return df_features
+
+
 def position_features(
-    df: pd.DataFrame, verbose: bool = True, image: bool = False
+    df: pd.DataFrame, verbose: bool = False, image: bool = False
 ) -> pd.DataFrame:
     # Rotate the positions for 180 degrees around x-axis
-    df["y_center"] = df["y_center"].apply(lambda y: -y) + 720
+    df["y_center"] = -df["y_center"] + 720
 
     stds = pd.DataFrame(columns=["Std_X_Center", "Std_Y_Center"])
     kdes = {}
@@ -231,11 +336,10 @@ def position_features(
                 y="y_center",
                 cmap="Blues",
                 alpha=0.5,
-                shade=True,
                 thresh=0.05,
                 fill=True,
             )
-            ax.contour(x, y, kde, levels=5, colors="k", linewidths=0.5)
+            # ax.contour(x, y, kde, levels=5, colors="k", linewidths=0.5)
             ax.text(
                 x=df[df["ClassID"] == class_id]["x_center"].mean(),
                 y=df[df["ClassID"] == class_id]["y_center"].mean(),
@@ -257,26 +361,23 @@ def position_features(
     return stds
 
 
-# TODO: Note, that we have to stoe the amount of frames into account
-# to later weight the vide-clip against all other video-clips per day!
-# (Easier: Or just concatemate all identitites.csv files :-))
-if __name__ == "__main__":
-    save: bool = False
+def process(
+    df: pd.DataFrame, ts_feature_dict: dict, path: Path, save: bool = True
+) -> None:
+
     emotions = ["Angry", "Disgust", "Happy", "Sad", "Surprise", "Fear", "Neutral"]
+    vad = ["Valence", "Arousal", "Dominance"]
 
-    # Load the identity file
-    team = "team_15"
-    day = "2023-01-10"
-    filename = "clip_0_10425_11863.csv"
-    path = team + "/" + day + "/" + filename
-    df = pd.read_csv(IDENTITY_DIR / path)
+    # Generate features
+    feature_pipeline = [MaxEmotionGenerator(), VADGenerator(), VelocityGenerator()]
 
+    feature_generator = FeatureGenerator(feature_pipeline)
+    pre_df = feature_generator.generate_features(df)
+
+    # Preprocess data
     preprocessing_pipeline = [
         LinearInterpolator(),
-        DerivativesGetter(),
-        RollingAverageSmoother(window_size=5, cols=["Derivatives"]),
-        # TODO: Normalization against whole cohort might be better!?
-        ZeroToOneNormalizer(cols=["Derivatives", "Brightness"]),
+        RollingAverageSmoother(window_size=5, cols=["Velocity"]),
         RollingAverageSmoother(
             window_size=150,
             cols=emotions,
@@ -284,12 +385,43 @@ if __name__ == "__main__":
     ]
 
     preprocessor = DataPreprocessor(preprocessing_pipeline)
-    pre_df = preprocessor.preprocess_data(df)
-    pre_df["Derivatives"].fillna(0, inplace=True)
+    pre_df = preprocessor.preprocess_data(pre_df)
+    pre_df["Velocity"].fillna(0, inplace=True)
 
-    # Create time series feature
-    cols = [*emotions, "Brightness", "Derivatives"]
-    feature_dict = [
+    cols = [*emotions, *vad, "Brightness", "Velocity"]
+    ts_feature_vectors = time_series_features(pre_df, cols, ts_feature_dict)
+    print(ts_feature_vectors)
+
+    max_emotions = max_emotion_features(pre_df, emotions)
+    print(max_emotions)
+
+    presence = presence_features(df)
+    print(presence)
+
+    # gaze_matrix = sna_gaze_features(df)
+    gaze_features = gaze_feature_pipeline(df)
+    print(gaze_features)
+
+    pos_features = position_features(pre_df)
+    print(pos_features)
+
+    df_features = pd.concat(
+        [ts_feature_vectors, max_emotions, presence, gaze_features, pos_features],
+        axis=1,
+    )
+
+    if save:
+        # save the dataframe to a CSV file
+        dataset = str(path).split(".")[0] + "_dataset.csv"
+        df_features.to_csv(dataset, index=False)
+
+    print(df_features)
+
+
+if __name__ == "__main__":
+    save: bool = False
+
+    ts_feature_dict = [
         {
             "name": "MinimalFCParameters",
             "fc_params": MinimalFCParameters(),
@@ -303,31 +435,54 @@ if __name__ == "__main__":
                 "__variance",
                 "__root_mean_square",
             ],
-        }
+        },
+        {
+            "name": "ComprehensiveFCParameters",
+            "fc_params": ComprehensiveFCParameters(),
+            "drop": [],
+        },
+        {
+            "name": "EfficientFCParameters",
+            "fc_params": EfficientFCParameters(),
+            "drop": [],
+        },
     ]
 
-    feature_vectors = time_series_features(pre_df, cols, feature_dict[0])
-    print(feature_vectors)
+    # Load the identity file
+    # team = "team_15"
+    # day = "2023-01-10"
+    # filename = "clip_0_10425_11863.csv"
+    # path = team + "/" + day + "/" + filename
 
-    df_counts = max_emotion_features(df, emotions)
-    print(df_counts)
+    teams = [
+        "team_01",
+        # "team_02",
+        # "team_03",
+        # "team_04",
+        # "team_05",
+        # "team_06",
+        # "team_07",
+        # "team_08",
+        # "team_09",
+        # "team_10",
+        # "team_11",
+        # "team_12",
+        # "team_13",
+        # "team_15",
+        # "team_16",
+        # "team_17",
+        # "team_18",
+        # "team_19",
+        # "team_20",
+        # "team_22",
+    ]
 
-    presence = presence_features(df)
-    print(presence)
+    days = ["2023-01-10", "2023-01-12", "2023-01-13"]
 
-    gaze_matrix = sna_gaze_features(df)
-    print(gaze_matrix)
+    for team in teams:
+        for day in days:
+            filename = team + "_" + day + ".csv"
+            path = IDENTITY_DIR / team / day / filename
+            df = pd.read_csv(path)
 
-    pos_feature = position_features(df, verbose=True, image=False)
-    print(pos_feature)
-
-    df_features = pd.concat(
-        [feature_vectors, df_counts, presence, gaze_matrix, pos_feature], axis=1
-    )
-
-    if save:
-        # save the dataframe to a CSV file
-        dataset = filename.split(".")[0] + "_dataset.csv"
-        df_features.to_csv(str(IDENTITY_DIR / dataset), index=False)
-
-    print(df_features)
+            process(df, ts_feature_dict[2], path=path, save=save)

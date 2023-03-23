@@ -105,6 +105,14 @@ class DataPreprocessor:
 
 
 class LinearInterpolator:
+    def __init__(self, step_size: int = 5) -> None:
+        """Constructor for the LinearInterpolator class.
+
+        Args:
+            step (int, optional): Step size to use for interpolation. Defaults to 5.
+        """
+        self.step_size = step_size
+
     def __call__(self, df: pd.DataFrame) -> pd.DataFrame:
         """Linearly interpolate missing frames in the data.
 
@@ -125,15 +133,15 @@ class LinearInterpolator:
 
         return interpolated_df
 
-    @staticmethod
-    def interpolate_group(group):
-        step = 1
+    def interpolate_group(self, group):
         # create an array of frames to interpolate
-        frames = np.arange(group["Frame"].min(), group["Frame"].max() + 1, step)
+        frames = np.arange(
+            group["Frame"].min(), group["Frame"].max() + 1, self.step_size
+        )
         # interpolate the missing frames using numpy.interp
         interpolated_rows = pd.DataFrame({"Frame": frames})
         for col in group.columns:
-            if col not in ["Frame", "ClassID", "GazeDetections"]:
+            if col not in ["Frame", "ClassID", "GazeDetections", "Max_Emotion"]:
                 interpolated_rows[col] = np.interp(
                     frames,
                     group["Frame"].values,
