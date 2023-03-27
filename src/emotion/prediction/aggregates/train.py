@@ -1,6 +1,6 @@
 # import os
 # import sys
-from abc import ABC
+from abc import ABC, abstractmethod
 from pathlib import Path
 from typing import Dict, List
 
@@ -9,6 +9,9 @@ import numpy as np
 from joblib import Parallel, delayed, dump
 from sklearn.model_selection import GridSearchCV, KFold, RandomizedSearchCV
 from sklearn.multioutput import MultiOutputRegressor
+
+from src.emotion.prediction.aggregates.models import MODELS
+from src.emotion.utils.constants import CUSTOM_MODEL_DIR
 
 # parent_folder = os.path.abspath(
 #     os.path.join(
@@ -21,15 +24,13 @@ from sklearn.multioutput import MultiOutputRegressor
 # )
 # sys.path.append(parent_folder)
 
-from src.emotion.prediction.aggregates.models import MODELS
-from src.emotion.utils.constants import CUSTOM_MODEL_DIR
 
-
-class MultiVariateRegressor(ABC):
+class Regressor(ABC):
     def __init__(self, model, params):
         self.model = model
         self.params = params
 
+    @abstractmethod
     def grid_search(self, X_train, y_train, kf, metric_name) -> GridSearchCV:
         """Grid search for hyperparameters
 
@@ -43,6 +44,7 @@ class MultiVariateRegressor(ABC):
             GridSearchCV: Grid Search object
         """
 
+    @abstractmethod
     def random_search(
         self, X_train, y_train, n_iter, kf, metric_name
     ) -> RandomizedSearchCV:
@@ -60,7 +62,7 @@ class MultiVariateRegressor(ABC):
         """
 
 
-class DefaultMultiVariateRegressor(MultiVariateRegressor):
+class UnivariateRegressor(Regressor):
     def grid_search(self, X_train, y_train, kf, metric_name) -> GridSearchCV:
         random_search = GridSearchCV(
             self.model, self.params, cv=kf, scoring=f"neg_{metric_name}"
@@ -78,7 +80,25 @@ class DefaultMultiVariateRegressor(MultiVariateRegressor):
         return random_search
 
 
-class CustomMultiVariateRegressor(MultiVariateRegressor):
+class DefaultMultiVariateRegressor(Regressor):
+    def grid_search(self, X_train, y_train, kf, metric_name) -> GridSearchCV:
+        random_search = GridSearchCV(
+            self.model, self.params, cv=kf, scoring=f"neg_{metric_name}"
+        )
+        random_search.fit(X_train, y_train)
+        return random_search
+
+    def random_search(
+        self, X_train, y_train, n_iter, kf, metric_name
+    ) -> RandomizedSearchCV:
+        random_search = RandomizedSearchCV(
+            self.model, self.params, n_iter=n_iter, cv=kf, scoring=f"neg_{metric_name}"
+        )
+        random_search.fit(X_train, y_train)
+        return random_search
+
+
+class CustomMultiVariateRegressor(Regressor):
     def grid_search(self, X_train, y_train, kf, metric_name) -> GridSearchCV:
         multi_model = MultiOutputRegressor(self.model, n_jobs=-1)
         random_search = GridSearchCV(
@@ -98,16 +118,26 @@ class CustomMultiVariateRegressor(MultiVariateRegressor):
         return random_search
 
 
-def create_multivariate_regressor(model_name, model, params) -> MultiVariateRegressor:
-    if model_name in [
-        "GradientBoostingRegressor",
-        "SVR",
-        "AdaBoostRegressor",
-        "CatBoostRegressor",
-    ]:
+def create_regressor(model_name, model, params, mode: str = "multi") -> Regressor:
+    # TODO: Add estimator__ at runtime for "multi" mode!
+    if (
+        model_name
+        in [
+            "GradientBoostingRegressor",
+            "SVR",
+            "AdaBoostRegressor",
+            "CatBoostRegressor",
+            "BayesianRidge",
+        ]
+        and mode == "multi"
+    ):
         return CustomMultiVariateRegressor(model, params)
-    else:
+    elif mode == "multi":
         return DefaultMultiVariateRegressor(model, params)
+    elif mode == "uni":
+        return UnivariateRegressor(model, params)
+    else:
+        raise ValueError("Invalid mode")
 
 
 # TODO: Use random search instead of grid search!
@@ -118,14 +148,23 @@ class HyperparaSearch:
         models_path: Path = CUSTOM_MODEL_DIR / "aggregates",
         n_folds: int = 5,
         metrics: List = ["mean_squared_error", "mean_absolute_error"],
+        n_jobs: int = -1,
+        mode: str = "multi",
     ):
         self.models = models
         self.models_path = models_path
         self._n_folds = n_folds
         self._metrics = metrics
+        self.n_jobs = n_jobs
+        self.mode = mode
 
     # Define a helper function for parallelizing hyperparameter search
-    def _search_model(self, model_dict, X_train, y_train):
+    def _search_model(
+        self,
+        model_dict,
+        X_train,
+        y_train,
+    ):
         results = []
         model_name = model_dict["name"]
         model = model_dict["model"]
@@ -135,8 +174,9 @@ class HyperparaSearch:
         kf = KFold(n_splits=self._n_folds, shuffle=True)
 
         for metric_name in self._metrics:
-            regressor = create_multivariate_regressor(model_name, model, params)
+            regressor = create_regressor(model_name, model, params, mode=self.mode)
 
+            # TODO: Check this interface, to see if feature importance is there!
             result = regressor.grid_search(X_train, y_train, kf, metric_name)
 
             result_dict = {
@@ -145,6 +185,7 @@ class HyperparaSearch:
                 "metric": metric_name,
                 "score": -result.best_score_,
                 "model": result,
+                # "best_feats": result.best_estimator_.feature_importances_,
             }
             results.append(result_dict)
             print(f"{metric_name}: {-result.best_score_:.3f}")
@@ -161,9 +202,9 @@ class HyperparaSearch:
             dump(model, model_path)
             print(f"Models for {model_name} saved to {model_path}")
 
-    def run(self, X, y, save: bool = False):
-        results = Parallel(n_jobs=-1)(
-            delayed(self._search_model)(model_dict, X, y) for model_dict in self.models
+    def run(self, X, Y, save: bool = False):
+        results = Parallel(n_jobs=self.n_jobs)(
+            delayed(self._search_model)(model_dict, X, Y) for model_dict in self.models
         )
         if save:
             self._save_models(results)
