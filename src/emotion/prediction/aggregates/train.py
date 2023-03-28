@@ -64,10 +64,21 @@ class Regressor(ABC):
 
 class UnivariateRegressor(Regressor):
     def grid_search(self, X_train, y_train, kf, metric_name) -> GridSearchCV:
-        random_search = GridSearchCV(
-            self.model, self.params, cv=kf, scoring=f"neg_{metric_name}"
-        )
-        random_search.fit(X_train, y_train)
+        if y_train.ndim == 1:
+            # If y_train has only one output, fit a single model
+            random_search = GridSearchCV(
+                self.model, self.params, cv=kf, scoring=f"neg_{metric_name}"
+            )
+            random_search.fit(X_train, y_train)
+        else:
+            # Fit multiple models for each output
+            random_search = GridSearchCV(
+                MultiOutputRegressor(self.model),
+                self.params,
+                cv=kf,
+                scoring=f"neg_{metric_name}",
+            )
+            random_search.fit(X_train, y_train)
         return random_search
 
     def random_search(
@@ -119,7 +130,6 @@ class CustomMultiVariateRegressor(Regressor):
 
 
 def create_regressor(model_name, model, params, mode: str = "multi") -> Regressor:
-    # TODO: Add estimator__ at runtime for "multi" mode!
     if (
         model_name
         in [
@@ -131,6 +141,8 @@ def create_regressor(model_name, model, params, mode: str = "multi") -> Regresso
         ]
         and mode == "multi"
     ):
+        # Add estimator__ prefix to params
+        params = {"estimator__" + key: value for key, value in params.items()}
         return CustomMultiVariateRegressor(model, params)
     elif mode == "multi":
         return DefaultMultiVariateRegressor(model, params)
@@ -150,6 +162,7 @@ class HyperparaSearch:
         metrics: List = ["mean_squared_error", "mean_absolute_error"],
         n_jobs: int = -1,
         mode: str = "multi",
+        verbose: bool = False,
     ):
         self.models = models
         self.models_path = models_path
@@ -157,6 +170,7 @@ class HyperparaSearch:
         self._metrics = metrics
         self.n_jobs = n_jobs
         self.mode = mode
+        self.verbose = verbose
 
     # Define a helper function for parallelizing hyperparameter search
     def _search_model(
@@ -169,15 +183,60 @@ class HyperparaSearch:
         model_name = model_dict["name"]
         model = model_dict["model"]
         params = model_dict["params"]
-        print(f"Model: {model_name}")
+        if self.verbose:
+            print(f"Model: {model_name}")
 
         kf = KFold(n_splits=self._n_folds, shuffle=True)
 
         for metric_name in self._metrics:
             regressor = create_regressor(model_name, model, params, mode=self.mode)
 
-            # TODO: Check this interface, to see if feature importance is there!
             result = regressor.grid_search(X_train, y_train, kf, metric_name)
+
+            # Compute the feature importances
+            if self.mode == "multi":
+                if model_name in ["CatBoostRegressor"]:
+                    importances = []
+                    for i in range(y_train.shape[1]):
+                        importances.append(
+                            result.best_estimator_.estimators_[
+                                i
+                            ].get_feature_importance()
+                        )
+                    feat_importance = np.mean(importances, axis=0)
+                elif model_name in ["AdaBoostRegressor"]:
+                    importances = []
+                    for i in range(y_train.shape[1]):
+                        importances.append(
+                            result.best_estimator_.estimators_[i].feature_importances_
+                        )
+                    feat_importance = np.mean(importances, axis=0)
+                elif model_name in ["LinearRegression", "Ridge", "Lasso", "ElasticNet"]:
+                    feat_importance = result.best_estimator_.coef_
+                elif model_name in ["BayesianRidge"]:
+                    importances = []
+                    for i in range(y_train.shape[1]):
+                        importances.append(result.best_estimator_.estimators_[i].coef_)
+                    feat_importance = np.mean(importances, axis=0)
+                elif model_name in ["SVR", "KNeighborsRegressor", "MLPRegressor"]:
+                    feat_importance = None
+                else:
+                    feat_importance = result.best_estimator_.feature_importances_
+            else:
+                if model_name in ["CatBoostRegressor"]:
+                    feat_importance = result.best_estimator_.get_feature_importance()
+                elif model_name in [
+                    "LinearRegression",
+                    "Ridge",
+                    "Lasso",
+                    "ElasticNet",
+                    "BayesianRidge",
+                ]:
+                    feat_importance = result.best_estimator_.coef_
+                elif model_name in ["SVR", "KNeighborsRegressor", "MLPRegressor"]:
+                    feat_importance = None
+                else:
+                    feat_importance = result.best_estimator_.feature_importances_
 
             result_dict = {
                 "name": model_name,
@@ -185,10 +244,11 @@ class HyperparaSearch:
                 "metric": metric_name,
                 "score": -result.best_score_,
                 "model": result,
-                # "best_feats": result.best_estimator_.feature_importances_,
+                "best_feats": feat_importance,
             }
             results.append(result_dict)
-            print(f"{metric_name}: {-result.best_score_:.3f}")
+            if self.verbose:
+                print(f"{metric_name}: {-result.best_score_:.3f}")
 
         return results
 
@@ -220,9 +280,9 @@ if __name__ == "__main__":
     X = np.random.rand(100, 20)
     y = np.random.rand(100, 5)
 
-    hyper_search = HyperparaSearch(models=MODELS)
+    search = HyperparaSearch(models=MODELS)
 
-    results = hyper_search.run(X, y, save=True)
+    results = search.run(X, y, save=True)
 
     # Plot the results
     mae_scores = [
