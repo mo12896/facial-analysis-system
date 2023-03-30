@@ -64,21 +64,10 @@ class Regressor(ABC):
 
 class UnivariateRegressor(Regressor):
     def grid_search(self, X_train, y_train, kf, metric_name) -> GridSearchCV:
-        if y_train.ndim == 1:
-            # If y_train has only one output, fit a single model
-            random_search = GridSearchCV(
-                self.model, self.params, cv=kf, scoring=f"neg_{metric_name}"
-            )
-            random_search.fit(X_train, y_train)
-        else:
-            # Fit multiple models for each output
-            random_search = GridSearchCV(
-                MultiOutputRegressor(self.model),
-                self.params,
-                cv=kf,
-                scoring=f"neg_{metric_name}",
-            )
-            random_search.fit(X_train, y_train)
+        random_search = GridSearchCV(
+            self.model, self.params, cv=kf, scoring=f"neg_{metric_name}"
+        )
+        random_search.fit(X_train, y_train)
         return random_search
 
     def random_search(
@@ -162,7 +151,6 @@ class HyperparaSearch:
         metrics: List = ["mean_squared_error", "mean_absolute_error"],
         n_jobs: int = -1,
         mode: str = "multi",
-        verbose: bool = False,
     ):
         self.models = models
         self.models_path = models_path
@@ -170,7 +158,6 @@ class HyperparaSearch:
         self._metrics = metrics
         self.n_jobs = n_jobs
         self.mode = mode
-        self.verbose = verbose
 
     # Define a helper function for parallelizing hyperparameter search
     def _search_model(
@@ -183,8 +170,8 @@ class HyperparaSearch:
         model_name = model_dict["name"]
         model = model_dict["model"]
         params = model_dict["params"]
-        if self.verbose:
-            print(f"Model: {model_name}")
+        # if self.verbose:
+        #     print(f"Model: {model_name}")
 
         kf = KFold(n_splits=self._n_folds, shuffle=True)
 
@@ -247,8 +234,8 @@ class HyperparaSearch:
                 "best_feats": feat_importance,
             }
             results.append(result_dict)
-            if self.verbose:
-                print(f"{metric_name}: {-result.best_score_:.3f}")
+            # if self.verbose:
+            #     print(f"{metric_name}: {-result.best_score_:.3f}")
 
         return results
 

@@ -1,6 +1,7 @@
 # import csv
 # import os
 # import sys
+
 # from datetime import datetime
 from pathlib import Path
 
@@ -105,7 +106,7 @@ if __name__ == "__main__":
             #                 writer.writerow([0, 0, day_obj.day])
 
             matches_df = pd.read_csv(folder_path / "matches.csv")
-            dataset = team + "_" + day + "_dataset.csv"
+            dataset = team + "_" + day + "_dataset_small.csv"
             dataset_df = pd.read_csv(folder_path / dataset)
 
             dataset_df_final = dataset_df.merge(matches_df, on=["ClassID"])
@@ -113,6 +114,6 @@ if __name__ == "__main__":
                 [final_dataset, dataset_df_final], ignore_index=True
             )
     if save:
-        filename = DATA_DIR / "features_dataset.csv"
+        filename = DATA_DIR / "features_dataset_small.csv"
         final_dataset.to_csv(filename, index=False)
         print(final_dataset)

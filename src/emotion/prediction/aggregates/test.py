@@ -39,9 +39,9 @@ def load_models(folder_path: Path = CUSTOM_MODEL_DIR / "aggregates") -> Dict:
 def generate_predictions(models, X, y):
     # Generate and return a dictionary of mean absolute error (MAE) scores and prediction arrays for each model
     results = {}
-    for model_name, [_, mae_grid_search] in models.items():
+    for model_name, mae_grid_search in models.items():
         # Fit the model
-        model = mae_grid_search.best_estimator_
+        model = mae_grid_search[0].best_estimator_
         # Make predictions
         y_pred = model.predict(X)
         # Calculate mean squared error and mean absolute error

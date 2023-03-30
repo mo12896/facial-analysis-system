@@ -11,7 +11,6 @@ import pandas as pd
 import seaborn as sns
 from scipy.stats import gaussian_kde
 from tsfresh.feature_extraction import (
-    ComprehensiveFCParameters,
     EfficientFCParameters,
     MinimalFCParameters,
     extract_features,
@@ -27,7 +26,6 @@ from tsfresh.feature_extraction import (
 # )
 # sys.path.append(grandparent_folder)
 
-
 from src.emotion.analysis.data_preprocessing import (
     DataPreprocessor,
     LinearInterpolator,
@@ -40,6 +38,32 @@ from src.emotion.analysis.feature_generator import (
     VelocityGenerator,
 )
 from src.emotion.utils.constants import DATA_DIR, IDENTITY_DIR
+
+
+def compute_custom_ts_features(df: pd.DataFrame, col: str) -> pd.DataFrame:
+    groups = df.groupby("ClassID")
+    features = []
+
+    # Compute the slope, p50, p25, and p75 for each time series in each group
+    for name, group in groups:
+        x = group["Frame"]
+        y = group[col]
+        slope, _ = np.polyfit(x, y, 1)
+        p25 = y.quantile(0.25)
+        p75 = y.quantile(0.75)
+        features.append(
+            {
+                "ClassID": name,
+                col + "__Slope": slope,
+                col + "__P_25": p25,
+                col + "__P_75": p75,
+            }
+        )
+
+    # Create a dataframe from the features list
+    feature_df = pd.DataFrame(features).set_index("ClassID")
+
+    return feature_df
 
 
 def time_series_features(
@@ -55,12 +79,18 @@ def time_series_features(
             default_fc_parameters=feature_mode["fc_params"],
         )
         extracted_features_cleaned = extracted_features.dropna(axis=1, how="all")
-        # extracted_features_cleaned = extracted_features_cleaned.drop(
-        #     extracted_features_cleaned.filter(
-        #         regex="(" + "|".join(feature_mode["drop"]) + ")"
-        #     ).columns,
-        #     axis=1,
-        # )
+        if feature_mode["fc_params"] == MinimalFCParameters():
+            extracted_features_cleaned = extracted_features_cleaned.drop(
+                extracted_features_cleaned.filter(
+                    regex="(" + "|".join(feature_mode["drop"]) + ")"
+                ).columns,
+                axis=1,
+            )
+            custom_features = compute_custom_ts_features(df, col)
+            extracted_features_cleaned = pd.concat(
+                [extracted_features_cleaned, custom_features], axis=1
+            )
+
         feature_df.append(extracted_features_cleaned)
 
     feature_df = pd.concat(feature_df, axis=1)
@@ -412,11 +442,11 @@ def process(
 
     if save:
         # save the dataframe to a CSV file
-        filename = str(path).split(".")[0] + "_dataset.csv"
+        filename = str(path).split(".")[0] + "_dataset_small.csv"
         df_features = df_features.reset_index().rename(columns={"index": "ClassID"})
         df_features.to_csv(filename, index=False)
 
-    # print(df_features)
+    print(df_features)
 
 
 if __name__ == "__main__":
@@ -429,18 +459,10 @@ if __name__ == "__main__":
             "drop": [
                 "__sum_values",
                 "__length",
-                "__maximum",
                 "__absolute_maximum",
-                "__minimum",
-                "__median",
                 "__variance",
                 "__root_mean_square",
             ],
-        },
-        {
-            "name": "ComprehensiveFCParameters",
-            "fc_params": ComprehensiveFCParameters(),
-            "drop": [],
         },
         {
             "name": "EfficientFCParameters",
@@ -452,7 +474,7 @@ if __name__ == "__main__":
     # Load the identity file
 
     teams = [
-        # "team_01",
+        "team_01",
         "team_02",
         "team_03",
         "team_04",
@@ -482,5 +504,5 @@ if __name__ == "__main__":
             path = IDENTITY_DIR / team / day / filename
             df = pd.read_csv(path)
 
-            process(df, ts_feature_dict[2], path=path, save=save)
+            process(df, ts_feature_dict[0], path=path, save=save)
             print("Finished processing: " + filename)
