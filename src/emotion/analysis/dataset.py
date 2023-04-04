@@ -1,5 +1,7 @@
 # import csv
 # import os
+import re
+
 # import sys
 
 # from datetime import datetime
@@ -21,12 +23,21 @@ from src.emotion.utils.constants import DATA_DIR, IDENTITY_DIR
 
 
 def concatenate_csv_files(folder_path: Path):
+    def get_sort_key(file_path):
+        # Extract x, start, and end from the file name using regex
+        match = re.match(r"clip_(\d+)_(\d+)_(\d+)\.csv", file_path.name)
+        x = int(match.group(1))
+        start = int(match.group(2))
+        end = int(match.group(3))
+        return (x, start, end)
 
     files = [
         file_path
         for file_path in folder_path.glob("*.csv")
-        if file_path.name != "matches.csv"
+        if file_path.name.startswith("clip")
     ]
+    files = sorted(files, key=get_sort_key)
+
     df_concat = pd.DataFrame()
 
     # Loop over each file
@@ -59,7 +70,7 @@ if __name__ == "__main__":
     save: bool = True
 
     teams = [
-        # "team_01",
+        "team_01",
         "team_02",
         "team_03",
         "team_04",
@@ -89,7 +100,7 @@ if __name__ == "__main__":
         for day in days:
             folder_path = IDENTITY_DIR / team / day
             # concatenate_csv_files(folder_path)
-            # # Check if the folder exists
+            # Check if the folder exists
             # if folder_path.exists():
             #     # Create a new matches.csv file in the folder
             #     if not folder_path.joinpath("matches.csv").exists():
@@ -105,8 +116,9 @@ if __name__ == "__main__":
             #             for i in range(4):
             #                 writer.writerow([0, 0, day_obj.day])
 
+            # Dataset matching
             matches_df = pd.read_csv(folder_path / "matches.csv")
-            dataset = team + "_" + day + "_dataset_small.csv"
+            dataset = team + "_" + day + "_dataset_big.csv"
             dataset_df = pd.read_csv(folder_path / dataset)
 
             dataset_df_final = dataset_df.merge(matches_df, on=["ClassID"])
@@ -114,6 +126,6 @@ if __name__ == "__main__":
                 [final_dataset, dataset_df_final], ignore_index=True
             )
     if save:
-        filename = DATA_DIR / "features_dataset_small.csv"
+        filename = DATA_DIR / "features_dataset_big.csv"
         final_dataset.to_csv(filename, index=False)
         print(final_dataset)

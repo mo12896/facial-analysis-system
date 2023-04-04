@@ -219,18 +219,21 @@ def calculate_mutual_gaze_matrix(df: pd.DataFrame) -> Union[pd.DataFrame, pd.Ser
                         mutual_gaze_dict.get(mutual_gaze_key, 0) + 1
                     )
 
-    # Create a pivot table of mutual gazes
-    mutual_gaze_matrix = pd.DataFrame(
-        mutual_gaze_dict.values(),
-        index=pd.MultiIndex.from_tuples(mutual_gaze_dict.keys()),
-        columns=["Count"],
-    ).unstack(fill_value=0)
+    if mutual_gaze_dict:
+        # Create a pivot table of mutual gazes
+        mutual_gaze_matrix = pd.DataFrame(
+            mutual_gaze_dict.values(),
+            index=pd.MultiIndex.from_tuples(mutual_gaze_dict.keys()),
+            columns=["Count"],
+        ).unstack(fill_value=0)
 
-    min_val = np.min(mutual_gaze_matrix)
-    max_val = np.max(mutual_gaze_matrix)
-    mutual_gaze_matrix = (mutual_gaze_matrix - min_val) / (max_val - min_val)
+        min_val = np.min(mutual_gaze_matrix)
+        max_val = np.max(mutual_gaze_matrix)
+        mutual_gaze_matrix = (mutual_gaze_matrix - min_val) / (max_val - min_val)
 
-    return mutual_gaze_matrix
+        return mutual_gaze_matrix
+    else:
+        return pd.DataFrame()
 
 
 def sna_gaze_features(df_gaze: pd.DataFrame) -> pd.DataFrame:
@@ -304,13 +307,28 @@ def gaze_feature_pipeline(df: pd.DataFrame) -> pd.DataFrame:
 
     # Compute the mutual gaze features
     mutual_df = calculate_mutual_gaze_matrix(df)
-    mutual_gaze_features = simple_sna_features(mutual_df, feature_name="MutualGaze")
-    # print(mutual_gaze_features)
+    if not mutual_df.empty:
+        mutual_gaze_features = simple_sna_features(mutual_df, feature_name="MutualGaze")
+    else:
+        mutual_gaze_features = pd.DataFrame(
+            columns=[
+                "MutualGaze_Mean",
+                "MutualGaze_StdDev",
+                "MutualGaze_Min",
+                "MutualGaze_Max",
+                "MutualGaze_Range",
+            ]
+        )
+        for class_id in df["ClassID"].unique():
+            mutual_gaze_features.loc[class_id] = [0, 0, 0, 0, 0]
 
-    # Concatenate the features
+        print(mutual_gaze_features)
+
     df_features = pd.concat(
-        [gaze_sna_features, gaze_features, diff_features, mutual_gaze_features], axis=1
+        [gaze_sna_features, gaze_features, diff_features, mutual_gaze_features],
+        axis=1,
     )
+
     return df_features
 
 
@@ -442,7 +460,7 @@ def process(
 
     if save:
         # save the dataframe to a CSV file
-        filename = str(path).split(".")[0] + "_dataset_small.csv"
+        filename = str(path).split(".")[0] + "_dataset_big.csv"
         df_features = df_features.reset_index().rename(columns={"index": "ClassID"})
         df_features.to_csv(filename, index=False)
 
@@ -504,5 +522,5 @@ if __name__ == "__main__":
             path = IDENTITY_DIR / team / day / filename
             df = pd.read_csv(path)
 
-            process(df, ts_feature_dict[0], path=path, save=save)
+            process(df, ts_feature_dict[1], path=path, save=save)
             print("Finished processing: " + filename)
