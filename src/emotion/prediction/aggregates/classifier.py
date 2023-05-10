@@ -116,7 +116,7 @@ CLASSIFIER = [
         "name": "XGBClassifier",
         "model": XGBClassifier(),
         "params": {
-            "n_estimators": [50, 100, 500, 1000],
+            "n_estimators": [50, 100, 200, 400],
             "max_depth": range(2, 6),
             "learning_rate": [0.001, 0.01, 0.1],
             "scale_pos_weight": [1, 50, 99, 1000],
