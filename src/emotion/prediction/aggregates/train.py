@@ -150,7 +150,7 @@ class HyperparaSearch:
         n_folds: int = 5,
         metrics: List = ["mean_squared_error", "mean_absolute_error"],
         n_jobs: int = -1,
-        mode: str = "multi",
+        mode: str = "uni",
     ):
         self.models = models
         self.models_path = models_path
@@ -173,7 +173,7 @@ class HyperparaSearch:
         # if self.verbose:
         #     print(f"Model: {model_name}")
 
-        kf = KFold(n_splits=self._n_folds, shuffle=True)
+        kf = KFold(n_splits=self._n_folds, shuffle=True, random_state=42)
 
         for metric_name in self._metrics:
             regressor = create_regressor(model_name, model, params, mode=self.mode)
@@ -260,7 +260,6 @@ class HyperparaSearch:
 
 
 if __name__ == "__main__":
-
     eval_metric = "mean_absolute_error"
 
     # Define the input and target vectors

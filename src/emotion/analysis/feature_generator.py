@@ -48,10 +48,13 @@ class VelocityGenerator:
         x_diff = group["x_center"].diff()
         y_diff = group["y_center"].diff()
 
-        if self.negatives:
-            return x_diff / y_diff
+        # Calculate the velocity magnitude
+        velocity = (x_diff**2 + y_diff**2) ** 0.5
 
-        return abs(x_diff / y_diff)
+        if self.negatives:
+            return velocity
+
+        return abs(velocity)
 
     def __call__(self, df: pd.DataFrame) -> pd.DataFrame:
         velocities = (
