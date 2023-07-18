@@ -9,7 +9,7 @@ from joblib import load
 from src.emotion.utils.constants import DATA_DIR_OUTPUT, MODEL_DIR
 
 
-def preprocess(df: pd.DataFrame, scalers_dict: Dict, path: Path):
+def preprocess(df: pd.DataFrame, scalers_dict: Dict, selected_features: Dict):
     # Assume you have new data in a DataFrame called `new_data`
     df = df.drop(
         columns=[
@@ -27,9 +27,6 @@ def preprocess(df: pd.DataFrame, scalers_dict: Dict, path: Path):
 
     # Concatenate scaled features into new DataFrame
     scaled_data = pd.concat(scaled_data, axis=1)
-
-    # Load the selected features from the joblib file
-    selected_features = load(path / "selected_features.joblib")
 
     feature_sets = {}
 
@@ -106,6 +103,28 @@ def radar_plot(df: pd.DataFrame):
     plt.tight_layout()
 
 
+def bar_plot(df):
+    data = df.drop(columns=["ClassID"])
+    # Create a subplot for each row
+    num_cols = len(data)
+    fig, axs = plt.subplots(1, num_cols, figsize=(5 * num_cols, 5), sharey=True)
+
+    # Handle case with only one row
+    if num_cols == 1:
+        axs = [axs]
+
+    for row_id, ax in enumerate(axs):
+        # Extract the data for the current row
+        row_data = data.loc[row_id]
+        row_data.plot(kind="bar", ax=ax)
+        ax.set_xticklabels(data.columns, rotation=0)
+        ax.set_yticks([0, 1])
+        ax.set_yticklabels(["Low", "High"])
+        ax.set_title(df["ClassID"][row_id])
+
+    plt.tight_layout()
+
+
 def perma_inference(prediction: str, dataset: str, filename: str):
     if dataset not in ["small", "big"]:
         raise ValueError("Invalid dataset. Please choose from 'small' or 'big'")
@@ -120,8 +139,10 @@ def perma_inference(prediction: str, dataset: str, filename: str):
         / f"custom_models/{'univariate' if prediction == 'regression' else 'classifier'}/{dataset}/"
     )
 
-    # Load the dictionary
+    # Load the scalers, selected features and dataset
     scalers_dict = load(path / "scalers_dict.joblib")
+
+    selected_features = load(path / "selected_features.joblib")
 
     df = pd.read_csv(
         DATA_DIR_OUTPUT
@@ -135,17 +156,9 @@ def perma_inference(prediction: str, dataset: str, filename: str):
         )
     )
 
-    df_preproc, features = preprocess(df, scalers_dict, path)
+    df_preproc, features = preprocess(df, scalers_dict, selected_features)
 
     perma = predict(df_preproc, features, path)
-
-    # Assume you have new target data in a DataFrame called `new_target`
-    target_scaler = scalers_dict["target_scaler"]
-    scaled_predicts = pd.DataFrame(
-        target_scaler.inverse_transform(perma), columns=["P", "E", "R", "M", "A"]
-    )
-    scaled_predicts = scaled_predicts.clip(lower=0)
-    scaled_predicts = pd.concat([df["ClassID"], scaled_predicts], axis=1)
 
     # Save the plot to the defined path
     save_path = DATA_DIR_OUTPUT / ("short_clip/prediction_results/")
@@ -153,10 +166,25 @@ def perma_inference(prediction: str, dataset: str, filename: str):
         save_path.mkdir(parents=True, exist_ok=True)
 
     if prediction == "regression":
+        # Assume you have new target data in a DataFrame called `new_target`
+        target_scaler = scalers_dict["target_scaler"]
+        scaled_perma = pd.DataFrame(
+            target_scaler.inverse_transform(perma), columns=["P", "E", "R", "M", "A"]
+        )
+        scaled_predicts = scaled_perma.clip(lower=0)
+        scaled_predicts = pd.concat([df["ClassID"], scaled_predicts], axis=1)
+
         radar_plot(scaled_predicts)
         plt.savefig(save_path / ("perma_radar_" + dataset + ".png"))
+
+        scaled_predicts.to_csv(
+            save_path / ("perma_" + prediction + "_" + dataset + ".csv"), index=False
+        )
     else:
-        raise NotImplementedError
-    scaled_predicts.to_csv(
-        save_path / ("perma_" + prediction + "_" + dataset + ".csv"), index=False
-    )
+        perma = pd.concat([df["ClassID"], perma], axis=1)
+        bar_plot(perma)
+        plt.savefig(save_path / ("perma_bar_" + dataset + ".png"))
+
+        perma.to_csv(
+            save_path / ("perma_" + prediction + "_" + dataset + ".csv"), index=False
+        )

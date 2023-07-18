@@ -152,11 +152,11 @@ Set the relevant parameters in the config file `config/config.yaml` and run the 
    - CSV file: The CSV-file contains the facial features of each frame in the video file.
    - MP4 file (optionally): The MP4 file can be generated optionally and contains the video with the extracted facial features for visual verficiation. Can be invoked by setting the `-o` flag in the command.
 2. **Feature Extraction [2]**: Extracts features from the facial features stored in the database. The extracted features are stored in the folder `data/output/<video_name>/extraction_results/`.
-    - CSV file: The CSV-file contains the final features of each team member, visible in the video file.
+    - CSV file: The CSV-file contains the final features of each team member, visible in the video file. The feature can be extracted using the handcrafted approach for generating a small dataset and/or the brute force approach for generating a big dataset.
     - PNG files (optionally): The PNG files can be generated optionally and contain the extracted features for visual verficiation.
 3. **PERMA Prediction [3]**: Predicts the PERMA score of each team member based on the extracted features. The final predictions are stored in the folder `data/output/<video_name>/prediction_results/`.
     - CSV file: The CSV-file contains the predicted PERMA score of each team member.
-    - PNG files (optionally): The PNG files can be generated optionally and contain the predicted PERMA score for visual verficiation.
+    - PNG files (optionally): The PNG files can be generated optionally and contains the predicted PERMA scores as radar plots (regression) or bar plots (binary classification) for visual verficiation.
 
 As an exmaple, running all three analysis steps [1, 2, 3] in sequence (assuming that 0 has already been executed) can be done by running the following command:
 

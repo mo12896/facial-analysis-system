@@ -8,7 +8,9 @@ deploy.prototxt.txt
 pretrained_ckpt
 res10_300x300_ssd_iter_140000.caffemodel
 emotion_venv/
-model/
+model/body_pose_model.pth
+model/checkpoint_iter_370000.pth
+model/hand_pose_model.pth
 pytop
 catboost_info/
 .env

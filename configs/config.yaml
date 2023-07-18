@@ -91,4 +91,4 @@ GAZE_DETECTOR:
 DATASET: small
 
 # Prediction mode. Can be either set to "regression" or "classification"
-PREDICTION: regression
+PREDICTION: classification
