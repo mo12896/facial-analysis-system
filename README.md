@@ -107,19 +107,19 @@ To harness the full power of CUDA GPU acceleration during inference, ensure that
    git clone https://github.com/mo12896/facial-analysis-system.git
    cd facial-analysis-system
    ```
-2. Go into working directory and create virtual environment using conda
+2. Go into working directory and create a virtual environment using conda:
     ```sh
     cd facial-analysis-system
     conda create -n facesys python=3.8
     conda activate facesys
     ```
-    ... or create virtual environment using venv
+    ... or create a virtual environment using venv:
     ```sh
     cd facial-analysis-system
     python3.8 -m venv facesys
     source facesys/bin/activate
     ```
-3. Run the setup script to install all dependencies:
+3. Run the provided setup script to install all necessary dependencies:
    ```sh
    chmod +x setup.sh
    bash setup.sh
@@ -131,11 +131,11 @@ To harness the full power of CUDA GPU acceleration during inference, ensure that
 
 <!-- USAGE EXAMPLES -->
 ## How to Use it
-Place the video file in the folder `data/input` and write the full name of the video file alongside the video format in the the config file `config/config.yaml`. The video file must be in the correct format, i.e. .mp4 or .avi and contain video recordings of team collaboration. To enable the 3D gaze pattern estimation framework, the video must be captured with a 360° camera in the "two 180° images" mode.
+Place the video file in the folder `data/input` and write the full `<video_name>`, e.g. `video.mp4` of the video file alongside the video format in the the config file `config/config.yaml`. The video file must be in the correct format, i.e. .mp4 or .avi and contain video recordings of team collaboration. To enable the 3D gaze pattern estimation framework, the video must be captured with a 360° camera of j5create in the "two 180° images" mode.
 
 
-### Pre-Processing
-Set the relevant parameters in the config file `config/config.yaml` and run the following command, which starts the pre-processing script to generate the template embedding database for the relevant team members. The pre-processing step is optional and can be skipped if the database already exists. Different approaches to generate the template embeddings are imaginable and can be exchanged with the proposed approach. The following script runs the template generation process outlined in the master thesis and stores the images and templates database under `data/<video_name>/utils/`:
+### Pre-Processing [0]
+Set the relevant parameters in the config file `config/config.yaml` and run the following command, which starts the pre-processing script to generate the template embedding database for the relevant team members. The pre-processing step is optional and can be skipped if the database already exists. Different approaches to generate the template embeddings are imaginable and can be exchanged with the proposed approach. The following script runs the template generation process outlined in the master thesis and stores the images and templates database under `data/output/<video_name>/utils/`:
 
 ```sh
 python main.py --mode 0
@@ -146,15 +146,15 @@ python main.py --mode 0
 
 Set the relevant parameters in the config file `config/config.yaml` and run the facial analysis pipeline. The pipeline can be used in three main steps, which can be run in sequences of different length. Each downstream step depends on the previous step. The steps can each be run seperately - if the previous steps have already been run - or directly in sequences, i.e. one of these combinations: ["0", "1", "2", "3", "01", "012", "0123", "12", "23", "123"], where 0 is the preprocessing step. The single steps are defined as follows:
 
-1. **Facial Analysis [1]**: Extracts facial features from a .mp4 or .avi video file. The extracted features are stored in the folder `data/<video_name>/analysis_results/`:
+1. **Facial Analysis [1]**: Extracts facial features from a .mp4 or .avi video file. The extracted features are stored in the folder `data/output/<video_name>/analysis_results/`:
    - CSV file: The CSV-file contains the facial features of each frame in the video file.
-   - MP4 file (optinally): The MP4 file can be generated optionally and contains the video with the extracted facial features for visual verficiation. Can be invoked by setting the `-o` flag in the command.
-2. **Feature Extraction [2]**: Extracts features from the facial features stored in the database. The extracted features are stored in the folder `data/<video_name>/extraction_results/`.
+   - MP4 file (optionally): The MP4 file can be generated optionally and contains the video with the extracted facial features for visual verficiation. Can be invoked by setting the `-o` flag in the command.
+2. **Feature Extraction [2]**: Extracts features from the facial features stored in the database. The extracted features are stored in the folder `data/output/<video_name>/extraction_results/`.
     - CSV file: The CSV-file contains the final features of each team member, visible in the video file.
-    - PNG files (optinally): The PNG files can be generated optionally and contain the extracted features for visual verficiation.
-3. **PERMA Prediction [3]**: Predicts the PERMA score of each team member based on the extracted features. The final predictions are stored in the folder `data/<video_name>/prediction_results/`.
+    - PNG files (optionally): The PNG files can be generated optionally and contain the extracted features for visual verficiation.
+3. **PERMA Prediction [3]**: Predicts the PERMA score of each team member based on the extracted features. The final predictions are stored in the folder `data/output/<video_name>/prediction_results/`.
     - CSV file: The CSV-file contains the predicted PERMA score of each team member.
-    - PNG files (optinally): The PNG files can be generated optionally and contain the predicted PERMA score for visual verficiation.
+    - PNG files (optionally): The PNG files can be generated optionally and contain the predicted PERMA score for visual verficiation.
 
 As an exmaple, running all three steps in sequence can be done by running the following command:
 

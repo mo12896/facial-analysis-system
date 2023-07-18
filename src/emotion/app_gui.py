@@ -6,7 +6,7 @@ import yaml
 from src.emotion.utils.constants import CONFIG_DIR
 
 
-def parse_arguments() -> Dict:
+def parse_arguments() -> Dict[str, Any]:
     """Parse command line arguments.
 
     Returns:
@@ -77,13 +77,14 @@ def parse_arguments() -> Dict:
 
     args = parser.parse_args()
 
+    # Load config file
     try:
         configs: Dict[str, Any] = yaml.safe_load(args.config.read_text())
         print("Loaded config file into python dict!")
     except yaml.YAMLError as exc:
         print(exc)
 
-    # configs["VIDEO"] = args.video
+    # Set command line arguments
     configs["MODE"] = args.mode
     configs["DASHBOARD"] = args.dashboard
     configs["OUTPUT_VIDEO"] = args.output_video
