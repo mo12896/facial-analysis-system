@@ -1,7 +1,7 @@
 # import os
 # import sys
 from pathlib import Path
-from typing import Dict, Union
+from typing import Dict, List, Union
 
 import matplotlib.image as mpimg
 import matplotlib.pyplot as plt
@@ -16,16 +16,6 @@ from tsfresh.feature_extraction import (
     extract_features,
 )
 
-# grandparent_folder = os.path.abspath(
-#     os.path.join(
-#         os.path.dirname(os.path.abspath(__file__)),
-#         os.pardir,
-#         os.pardir,
-#         os.pardir,
-#     )
-# )
-# sys.path.append(grandparent_folder)
-
 from src.emotion.analysis.data_preprocessing import (
     DataPreprocessor,
     LinearInterpolator,
@@ -38,6 +28,16 @@ from src.emotion.analysis.feature_generator import (
     VelocityGenerator,
 )
 from src.emotion.utils.constants import DATA_DIR, IDENTITY_DIR
+
+# grandparent_folder = os.path.abspath(
+#     os.path.join(
+#         os.path.dirname(os.path.abspath(__file__)),
+#         os.pardir,
+#         os.pardir,
+#         os.pardir,
+#     )
+# )
+# sys.path.append(grandparent_folder)
 
 
 def compute_custom_ts_features(df: pd.DataFrame, col: str) -> pd.DataFrame:
@@ -67,7 +67,7 @@ def compute_custom_ts_features(df: pd.DataFrame, col: str) -> pd.DataFrame:
 
 
 def time_series_features(
-    df: pd.DataFrame, cols: list[str], feature_mode: Dict
+    df: pd.DataFrame, cols: List[str], feature_mode: Dict
 ) -> pd.DataFrame:
     feature_df = []
 
@@ -98,7 +98,7 @@ def time_series_features(
     return feature_df
 
 
-def max_emotion_features(df: pd.DataFrame, emotions: list[str]) -> pd.DataFrame:
+def max_emotion_features(df: pd.DataFrame, emotions: List[str]) -> pd.DataFrame:
     def count_max_emotion_changes(group):
         changes = sum(
             group["Max_Emotion"].iloc[i] != group["Max_Emotion"].iloc[i - 1]
@@ -198,7 +198,6 @@ def calculate_mutual_gaze_matrix(df: pd.DataFrame) -> Union[pd.DataFrame, pd.Ser
 
     # Loop through each frame in the dataframe
     for frame in df["Frame"].unique():
-
         # Get the rows corresponding to the current frame
         frame_rows = df[df["Frame"] == frame]
 
@@ -237,7 +236,6 @@ def calculate_mutual_gaze_matrix(df: pd.DataFrame) -> Union[pd.DataFrame, pd.Ser
 
 
 def sna_gaze_features(df_gaze: pd.DataFrame) -> pd.DataFrame:
-
     # Compute degree centrality
     degree_centrality = df_gaze.sum(axis=1)
     degree_centrality_normalized = degree_centrality / df_gaze.to_numpy().sum()
@@ -269,7 +267,6 @@ def sna_gaze_features(df_gaze: pd.DataFrame) -> pd.DataFrame:
 
 
 def simple_sna_features(df: pd.DataFrame, feature_name: str) -> pd.DataFrame:
-
     df = df.replace(0, np.nan)
 
     # Compute various features for each row
@@ -412,7 +409,6 @@ def position_features(
 def process(
     df: pd.DataFrame, ts_feature_dict: dict, path: Path, save: bool = True
 ) -> None:
-
     emotions = ["Angry", "Disgust", "Happy", "Sad", "Surprise", "Fear", "Neutral"]
     vad = ["Valence", "Arousal", "Dominance"]
 
@@ -467,27 +463,28 @@ def process(
     print(df_features)
 
 
+ts_feature_dict = [
+    {
+        "name": "MinimalFCParameters",
+        "fc_params": MinimalFCParameters(),
+        "drop": [
+            "__sum_values",
+            "__length",
+            "__absolute_maximum",
+            "__variance",
+            "__root_mean_square",
+        ],
+    },
+    {
+        "name": "EfficientFCParameters",
+        "fc_params": EfficientFCParameters(),
+        "drop": [],
+    },
+]
+
+
 if __name__ == "__main__":
     save: bool = True
-
-    ts_feature_dict = [
-        {
-            "name": "MinimalFCParameters",
-            "fc_params": MinimalFCParameters(),
-            "drop": [
-                "__sum_values",
-                "__length",
-                "__absolute_maximum",
-                "__variance",
-                "__root_mean_square",
-            ],
-        },
-        {
-            "name": "EfficientFCParameters",
-            "fc_params": EfficientFCParameters(),
-            "drop": [],
-        },
-    ]
 
     # Load the identity file
 

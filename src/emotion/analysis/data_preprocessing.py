@@ -18,7 +18,7 @@ class PreProcessor(Protocol):
 
 
 class DataPreprocessor:
-    def __init__(self, steps: list[PreProcessor]):
+    def __init__(self, steps: List[PreProcessor]):
         """Constructor for the DataPreprocessor class.
 
         Args:
@@ -178,7 +178,6 @@ class RollingAverageSmoother:
         grouped = data.groupby("ClassID")
 
         for _, group in grouped:
-
             emotions_rolling = (
                 group[self.cols]
                 .rolling(window=self.window_size, min_periods=1, center=True)
@@ -211,7 +210,6 @@ class StandardDeviationNormalizer:
         data_copy = data.copy()
 
         for _, group in grouped:
-
             norm_data = (group[self.cols] - data_copy[self.cols].mean()) / data_copy[
                 self.cols
             ].std()
@@ -243,7 +241,6 @@ class ZeroToOneNormalizer:
         data_copy = data.copy()
 
         for _, group in grouped:
-
             norm_data = (group[self.cols] - data_copy[self.cols].min()) / (
                 data_copy[self.cols].max() - data_copy[self.cols].min()
             )
@@ -275,7 +272,6 @@ class MinusOneToOneNormalizer:
         data_copy = data.copy()
 
         for _, group in grouped:
-
             norm_data = (group[self.cols] - data_copy[self.cols].mean()) / (
                 data_copy[self.cols].max() - data_copy[self.cols].min()
             )

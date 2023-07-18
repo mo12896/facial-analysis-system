@@ -41,7 +41,7 @@
 
 <img src="./docs/animation.gif" widt="920" height="500" alt="animated" />
 
-<!-- TABLE OF CONTENTS -->
+<!-- TABLE OF CONTENTS
 <details>
   <summary>Table of Contents</summary>
   <ol>
@@ -63,15 +63,15 @@
     <li><a href="#contact">Contact</a></li>
     <li><a href="#acknowledgments">Acknowledgments</a></li>
   </ol>
-</details>
+</details> -->
 
 
 <!-- ABOUT THE PROJECT -->
 ## About The Project
 
-This repository is dedicated to my master thesis, which focuses on predicting team performance from visual data. The objective of this research is to extract meaningful features such as emotions, engagement, and synchronization from individual team members using novel AI tools for Face Detection, Tracking, Re-Identification, Emotion Estimation and Body Pose Estimation for example. The generated features will then be used to calculate the PERMA score of the overall team and to determine if there is a correlation between the PERMA score and the team's performance.
+This repository is dedicated to my master thesis, which focuses on predicting individual well-being, as defined by the PERMA framework, in team collaboration. The objective of this research is to extract non-verbal cues such as facial emotions, gaze and head motion patterns from individual team members using novel AI tools for face detection, tracking, re-identification, facial emotion recognition and head pose estimation for example. The generated features will then be used to predict the PERMA scores of each team member.
 
-PERMA is a metric that measures subjective happiness, and it is an essential part of this research. The overall goal is to increase the happiness of individuals and teams by better understanding the factors that contribute to happiness in a team setting.
+PERMA is a metric that measures subjective well-being, and it is an essential part of this research. The overall goal is to increase the well-being of individuals and teams by better understanding the factors that contribute to well-being in a team setting.
 
 Feel free to explore the repository and ask any questions or share ideas. Your feedback and collaboration are always welcome. I am looking forward to sharing my research with you and making a positive impact in the field of team dynamics.
 
@@ -81,23 +81,23 @@ If you have any questions or ideas, please don't hesitate to get in touch. I am 
 
 
 
-### Built With
+<!-- ### Built With
 
 * [Python][Python-url]
 
 
-<p align="right">(<a href="#readme-top">back to top</a>)</p>
+<p align="right">(<a href="#readme-top">back to top</a>)</p> -->
 
 
 
 <!-- GETTING STARTED -->
 ## Getting Started
 
-To get a local copy up and running follow these simple example steps.
+To get a local copy up and running follow the following steps.
 
 ### Prerequisites
 
-Ensure that [onnxruntime-gpu][ONNXGPU-url]  is installed in your virtual environment if you want to harness the full power of CUDA GPU acceleration during inference. Note that this is only possible if your machine is equipped with a NVIDIA Graphics Card.
+To harness the full power of CUDA GPU acceleration during inference, ensure that your machine is equipped with a NVIDIA Graphics Card (GPU).
 
 ### Installation
 
@@ -107,7 +107,19 @@ Ensure that [onnxruntime-gpu][ONNXGPU-url]  is installed in your virtual environ
    git clone https://github.com/mo12896/facial-analysis-system.git
    cd facial-analysis-system
    ```
-2. Run the setup script to install a virtual environment and all dependencies:
+2. Go into working directory and create virtual environment using conda
+    ```sh
+    cd facial-analysis-system
+    conda create -n facesys python=3.8
+    conda activate facesys
+    ```
+    ... or create virtual environment using venv
+    ```sh
+    cd facial-analysis-system
+    python3.8 -m venv facesys
+    source facesys/bin/activate
+    ```
+3. Run the setup script to install all dependencies:
    ```sh
    chmod +x setup.sh
    bash setup.sh
@@ -118,34 +130,36 @@ Ensure that [onnxruntime-gpu][ONNXGPU-url]  is installed in your virtual environ
 
 
 <!-- USAGE EXAMPLES -->
-## Usage
-
+## How to Use it
+Place the video file in the folder `data/input` and write the full name of the video file alongside the video format in the the config file `config/config.yaml`. The video file must be in the correct format, i.e. .mp4 or .avi and contain video recordings of team collaboration. To enable the 3D gaze pattern estimation framework, the video must be captured with a 360° camera in the "two 180° images" mode.
 
 
 ### Pre-Processing
+Set the relevant parameters in the config file `config/config.yaml` and run the following command, which starts the pre-processing script to generate the template embedding database for the relevant team members. The pre-processing step is optional and can be skipped if the database already exists. Different approaches to generate the template embeddings are imaginable and can be exchanged with the proposed approach. The following script runs the template generation process outlined in the master thesis and stores the images and templates database under `data/<video_name>/utils/`:
 
 ```sh
-python3 main.py --step 1 --video <path_to_video_file>
+python main.py --mode 0
 ```
-
 
 
 ### Analysis Pipeline
 
-This repository can be used in three main steps, which can be run in sequences of different length. Each downstream step depends on the previous step. The steps can each be run seperately - if the previous steps have already been run - or directly in sequences, i.e. 12 or 123. The steps are as follows:
+Set the relevant parameters in the config file `config/config.yaml` and run the facial analysis pipeline. The pipeline can be used in three main steps, which can be run in sequences of different length. Each downstream step depends on the previous step. The steps can each be run seperately - if the previous steps have already been run - or directly in sequences, i.e. one of these combinations: ["0", "1", "2", "3", "01", "012", "0123", "12", "23", "123"], where 0 is the preprocessing step. The single steps are defined as follows:
 
-1. **Facial Analysis**: Extracts facial features from a .mp4 or .avi video file. The extracted features are stored in the folder 'data/identities'.
-   - CSV file: The CSV-file contains the facial features of each frame in the video file. The CSV-file is stored in the folder `data/database`.
-   - MP4 file: The MP4 file can be generated optionally and contains the video with the extracted facial features for visual verficiation. The MP4 file is stored in the folder 'data/images'.
-2. **Feature Extraction**: Extracts features from the facial features stored in the database. The extracted features are stored in a database for later use.
-    - CSV file: The CSV-file contains the extracted features of each frame in the video file. The CSV-file is stored in the folder `data/database`.
-    - PNG files: The PNG files can be generated optionally and contain the extracted features for visual verficiation. The PNG files are stored in the folder 'data/images'.
-3. **PERMA Prediction**: Predicts the PERMA score of the team based on the extracted features.
-    - CSV file: The CSV-file contains the predicted PERMA score of each team member. The CSV-file is stored in the folder 'data/database'.
-    - PNG files: The PNG files can be generated optionally and contain the predicted PERMA score for visual verficiation. The PNG files are stored in the folder 'data/images'.
+1. **Facial Analysis [1]**: Extracts facial features from a .mp4 or .avi video file. The extracted features are stored in the folder `data/<video_name>/analysis_results/`:
+   - CSV file: The CSV-file contains the facial features of each frame in the video file.
+   - MP4 file (optinally): The MP4 file can be generated optionally and contains the video with the extracted facial features for visual verficiation. Can be invoked by setting the `-o` flag in the command.
+2. **Feature Extraction [2]**: Extracts features from the facial features stored in the database. The extracted features are stored in the folder `data/<video_name>/extraction_results/`.
+    - CSV file: The CSV-file contains the final features of each team member, visible in the video file.
+    - PNG files (optinally): The PNG files can be generated optionally and contain the extracted features for visual verficiation.
+3. **PERMA Prediction [3]**: Predicts the PERMA score of each team member based on the extracted features. The final predictions are stored in the folder `data/<video_name>/prediction_results/`.
+    - CSV file: The CSV-file contains the predicted PERMA score of each team member.
+    - PNG files (optinally): The PNG files can be generated optionally and contain the predicted PERMA score for visual verficiation.
+
+As an exmaple, running all three steps in sequence can be done by running the following command:
 
 ```sh
-python3 main.py --step 123 --video <path_to_video_file>
+python main.py --mode 123
 ```
 
 
@@ -170,7 +184,7 @@ Distributed under the MIT License. See `LICENSE.txt` for more information.
 
 Moritz Müller - moritz1996.mueller@gmail.com
 
-Project Link: [Emotion Recognition](https://github.com/mo12896/facial-analysis-system)
+Project Link: [Facial Analysis System](https://github.com/mo12896/facial-analysis-system)
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 

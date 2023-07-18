@@ -1,3 +1,4 @@
+# import argparse
 from typing import Any, Dict
 
 import numpy as np
@@ -10,6 +11,7 @@ from src.emotion.embeddb.cluster_person_ids import (
     create_dimensionality_reducer,
     plot_clusters,
     save_clusters,
+    scree_plot,
 )
 from src.emotion.embeddb.crop_random_faces import (
     cleanup,
@@ -22,18 +24,13 @@ from src.emotion.embeddb.save_embeddings import (
 )
 from src.emotion.features.extractors.face_detector import create_face_detector
 from src.emotion.features.extractors.face_embedder import create_face_embedder
-from src.emotion.utils.constants import (
-    CONFIG_DIR,
-    DATA_DIR,
-    DATA_DIR_DATABASE,
-    DATA_DIR_IMAGES,
-)
+from src.emotion.utils.constants import CONFIG_DIR, DATA_DIR_INPUT, DATA_DIR_OUTPUT
 from src.emotion.utils.utils import SQLite
 
 
-def load_configs() -> Dict[str, Any]:
+def load_configs(config_file: str = "config.yaml") -> Dict[str, Any]:
     try:
-        configs_dir = CONFIG_DIR / "config.yaml"
+        configs_dir = CONFIG_DIR / config_file
         configs: Dict[str, Any] = yaml.safe_load(configs_dir.read_text())
         print("Loaded config file into python dict!")
         return configs
@@ -43,18 +40,27 @@ def load_configs() -> Dict[str, Any]:
 
 class FaceClusterer:
     def __init__(self, params: Dict[str, Any]) -> None:
+        video = params.get("VIDEO")
+
+        if video is not None:
+            self.database = DATA_DIR_OUTPUT / (
+                str(video).split(".")[0]
+                + "/utils/identity_templates_database/"
+                + (str(video).split(".")[0] + ".db")
+            )
+            self.output_folder = DATA_DIR_OUTPUT / (
+                str(video).split(".")[0] + "/utils/identity_images"
+            )
+            self.video_path = str(DATA_DIR_INPUT / video)
+
         self.detector_params = params.get("DETECTOR", "scrfd")
         self.embedder_params = params.get("EMBEDDER", "insightface")
         self.sample_frames = params.get("SAMPLE_FRAMES", 20)
-        self.database = DATA_DIR_DATABASE / params.get(
-            "ANCHOR_EMBEDDINGS", "embeddings.db"
-        )
+
         self.reducer_params = params.get("REDUCER", {"type": "pca", "n_components": 4})
         self.clusterer_params = params.get("CLUSTERER", {"type": "kmeans", "K": 4})
         self.save_embeddings = params.get("SAVE_EMBEDDINGS", True)
         self.K = params.get("K", 4)
-        self.video_path = str(DATA_DIR / params.get("VIDEO", "short_clip_debug.mp4"))
-        self.output_folder = DATA_DIR_IMAGES
 
     def create_database(self, verbose: bool = False) -> None:
         if self.output_folder.exists():
@@ -63,6 +69,8 @@ class FaceClusterer:
                 print("Script stopped by user.")
                 exit()
             cleanup(self.output_folder)
+        else:
+            self.output_folder.mkdir(parents=True, exist_ok=True)
 
         detector = create_face_detector(self.detector_params)
 
@@ -77,7 +85,12 @@ class FaceClusterer:
         X_embedded = np.array([embedding["embedding"] for embedding in embeddings])
 
         # Compute and plot the PCA metrics
-        _, _, _, elbow = compute_pca_metrics(X_embedded)
+        explained_variances, bs, cumulative_variances, elbow = compute_pca_metrics(
+            X_embedded
+        )
+
+        if verbose:
+            scree_plot(explained_variances, bs, cumulative_variances, elbow)
 
         use_elbow = input(
             f"Do you want to use the detected elbow point: {elbow}? [y/n] "
@@ -102,7 +115,10 @@ class FaceClusterer:
 
             # Note that we have to track all persons, to get the gaze feature. Later we will then discard the
             # persons that do not want to be tracked.
-            input("Have you checked all generated person IDs? Press Enter to confirm: ")
+            input(
+                f"Have you validated all generated IDs under {self.output_folder}? Press Enter to confirm: "
+            )
+            input("Are you really sure? Press Enter to confirm: ")
 
             images_paths = [
                 item for item in self.output_folder.iterdir() if item.is_dir()
@@ -114,6 +130,8 @@ class FaceClusterer:
                 if response != "y":
                     exit()
                 self.database.unlink()
+            else:
+                self.database.parent.mkdir(parents=True, exist_ok=True)
 
             embeddings = generate_face_embeddings(
                 images_path=images_paths, embedder=embedder
@@ -133,7 +151,19 @@ class FaceClusterer:
                 print(data)
 
 
-if __name__ == "__main__":
-    configs = load_configs()
-    face_clusterer = FaceClusterer(configs)
-    face_clusterer.create_database()
+# if __name__ == "__main__":
+#     # Initialize the parser
+#     parser = argparse.ArgumentParser(description="A script for face clustering")
+
+#     # Add the arguments
+#     parser.add_argument("config_file", type=str, help="Name of the configuration file")
+#     parser.add_argument(
+#         "-v", "--verbose", action="store_true", help="Enable verbose output"
+#     )
+
+#     # Parse the arguments
+#     args = parser.parse_args()
+
+#     configs = load_configs(args.config_file)
+#     face_clusterer = FaceClusterer(configs)
+#     face_clusterer.create_database(verbose=args.verbose)

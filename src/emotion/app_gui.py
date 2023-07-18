@@ -25,22 +25,47 @@ def parse_arguments() -> Dict:
         "-i",
         "--input_video",
         dest="input_video",
-        default="test_video.mp4",
         help="Name of the video to process.",
     )
     parser.add_argument(
-        "-e",
-        "--embeddb",
-        dest="embeddb",
-        action="store_true",
-        help="Set this flag to create a new embedding database.",
+        "-m",
+        "--mode",
+        default="0123",
+        help="""
+        Specifies which processes to run. The argument is a string that can contain any combination of the
+        following digits, in increasing order:
+
+        '0': Run the automatic template embedding generator.
+        '1': Run the facial analysis pipeline.
+        '2': Run the feature extractor.
+        '3': Run the PERMA predictor.
+
+        The possible combinations are:
+
+        '0': Only runs the automatic template embedding generator.
+        '1': Only runs the facial analysis pipeline.
+        '2': Only runs the feature extractor.
+        '3': Only runs the PERMA predictor.
+        '01': Runs the automatic template embedding generator, then the facial analysis pipeline.
+        '012': Runs the automatic template embedding generator, then the facial analysis pipeline, and finally the feature extractor.
+        '0123': Runs all processes: template generator, facial analysis pipeline, feature extractor, and PERMA predictor.
+
+        The processes are run in the order they are specified in the 'MODE' string.
+        """,
     )
     parser.add_argument(
         "-d",
         "--dashboard",
         dest="dashboard",
         action="store_true",
-        help="Set this flag to run the dashboard.",
+        help="Include this flag to run the dashboard.",
+    )
+    parser.add_argument(
+        "-o",
+        "--output_video",
+        dest="output_video",
+        action="store_true",
+        help="Include this flag to output a video with the results of the facial analysis pipeline. ",
     )
     parser.add_argument(
         "-v",
@@ -59,8 +84,8 @@ def parse_arguments() -> Dict:
         print(exc)
 
     # configs["VIDEO"] = args.video
-    configs["EMBEDDB"] = args.embeddb
+    configs["MODE"] = args.mode
     configs["DASHBOARD"] = args.dashboard
-    configs["VERBOSE"] = args.verbose
+    configs["OUTPUT_VIDEO"] = args.output_video
 
     return configs

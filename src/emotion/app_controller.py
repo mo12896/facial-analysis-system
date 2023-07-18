@@ -27,7 +27,7 @@ from src.emotion.features.video.video_loader import VideoDataLoader
 from src.emotion.features.video.video_writer import VideoDataWriter
 from src.emotion.utils.app_enums import VideoCodecs
 from src.emotion.utils.color import Color
-from src.emotion.utils.constants import DATA_DIR, IDENTITY_DIR
+from src.emotion.utils.constants import DATA_DIR_INPUT, DATA_DIR_OUTPUT
 from src.emotion.utils.logger import setup_logger, with_logging
 
 logger = setup_logger("runner_logger", file_logger=True)
@@ -36,14 +36,24 @@ logger = setup_logger("runner_logger", file_logger=True)
 class Runner:
     def __init__(self, args):
         self.args = args
-        self.verbose = self.args.get("VERBOSE", False)
+        self.filename = self.args.get("VIDEO")
+        self.output_video = self.args.get("OUTPUT_VIDEO", False)
+
+        self.embeddings_path = DATA_DIR_OUTPUT / (
+            str(self.filename).split(".")[0]
+            + "/utils/identity_templates_database/"
+            + (str(self.filename).split(".")[0] + ".db")
+        )
+        output_folder = DATA_DIR_OUTPUT / (
+            self.filename.split(".")[0] + "/analysis_results/"
+        )
+        self.output_csv = output_folder / (self.filename.split(".")[0] + ".csv")
+        self.output_video = output_folder / (self.filename.split(".")[0] + "_output")
 
         self.detection_frequency = self.args.get("DETECTION_FREQUENCY", 5)
-        self.filename = self.args.get("VIDEO", "short_clip.mp4")
-        self.video_path = str(DATA_DIR / self.filename)
+        self.video_path = str(DATA_DIR_INPUT / self.filename)
         self.video_codec = self.args.get("VIDEO_CODEC", "MP4V")
         self.detector = self.args.get("DETECTOR", "scrfd")
-        self.embeddings_path = self.args.get("ANCHOR_EMBEDDINGS", "embeddings.db")
         # self.tracker_params = self.args.get("TRACKER", "byte")
         self.emotion_detector = self.args.get("EMOTION_DETECTOR", "deepface")
         self.embed_params = self.args.get("EMBEDDER", "insightface")
@@ -60,13 +70,11 @@ class Runner:
         # self.face_tracker = create_tracker(self.tracker_params)
         self.face_embedder = create_face_embedder(self.embed_params)
         self.face_emotion_detector = create_emotion_detector(self.emotion_detector)
-        self.face_reid = ReIdentification(self.embeddings_path, self.face_embedder)
+        self.face_reid = ReIdentification(str(self.embeddings_path), self.face_embedder)
         # self.pose_estimator = create_pose_estimator(self.pose_params)
         self.box_annotator = BoxAnnotator(color=Color.red())
         self.body_annotator = BodyAnnotator(color=Color.red())
-        self.identities_handler = IdentityHandler(
-            IDENTITY_DIR / (self.filename.rsplit(".", 1)[0] + ".csv")
-        )
+        self.identities_handler = IdentityHandler(self.output_csv)
         self.head_pose_estimator = create_head_pose_detector(self.head_pose_params)
         self.head_pose_annotator = HeadPoseAnnotator()
         self.gaze_detector = GazeDetector(
@@ -78,17 +86,15 @@ class Runner:
 
     @with_logging(logger)
     def run(self):
-
         self._on_init()
 
-        if self.verbose:
+        if self.output_video:
             with VideoDataWriter(
-                filename=str(DATA_DIR / (self.filename.split(".")[0] + "_output")),
+                filename=str(self.output_video),
                 logger=logger,
                 video_info=self.video_info,
                 video_codec=VideoCodecs[self.video_codec],
             ) as video_writer:
-
                 print("Start writing video ...")
                 self._controller(video_writer)
         else:
@@ -109,11 +115,9 @@ class Runner:
                 total=self.video_loader.total_frames,
             )
         ):
-
             if (
                 frame_count == 0 or not frame_count % self.detection_frequency
             ) and reid:
-
                 detections = self.face_detector.detect_faces(frame)
 
                 if detections is None or (
@@ -139,7 +143,7 @@ class Runner:
 
                 detections = self.brightness_estimator(frame, detections)
 
-                if self.verbose:
+                if self.output_video:
                     # Black background for anonymization
                     # frame[:] = 0
 
@@ -199,8 +203,7 @@ class Runner:
             #         reid = True
 
             else:
-
-                if self.verbose:
+                if self.output_video:
                     # Black background for anonymization
                     # frame[:] = 0
 
@@ -214,6 +217,6 @@ class Runner:
 
     def _on_init(self):
         """A bunch of methods which are called when the app is initialized."""
-        identities = IDENTITY_DIR / (self.filename.rsplit(".", 1)[0] + ".csv")
+        identities = self.output_csv
         if identities.exists():
             identities.unlink()

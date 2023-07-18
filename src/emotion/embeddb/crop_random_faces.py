@@ -82,7 +82,7 @@ def crop_random_faces_from_n_frames(
             try:
                 cv2.imwrite(str(path), face)
             except Exception:
-                continue
+                raise Exception(f"Could not write image to {path}")
 
     cap.release()
 

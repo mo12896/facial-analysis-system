@@ -15,6 +15,7 @@ pandas==1.5.3
 rmn==3.1.1
 dataclass-csv==1.4.0
 numpy==1.23.4
+seaborn==0.12.2
 #protobuf==3.19.6
 streamlit==1.19.0
 tsfresh==0.20.1

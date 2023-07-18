@@ -199,19 +199,19 @@ def scree_plot(
 
     # Plot elbow point
     ax.plot(
-        elbow_point + 1,
+        elbow_point,
         explained_variances[elbow_point],
         marker="*",
         color="red",
         markersize=15,
-        label=f"Elbow Point ({elbow_point+1})",
+        label=f"Elbow Point ({elbow_point})",
     )
 
     # Add text annotation for elbow count
     ax.text(
-        elbow_point + 1,
+        elbow_point,
         explained_variances[elbow_point],
-        f" Elbow Point ({elbow_point+1})",
+        f" Elbow Point ({elbow_point})",
         fontsize=12,
     )
 

@@ -18,7 +18,7 @@ class Generator(Protocol):
 
 
 class FeatureGenerator:
-    def __init__(self, steps: list[Generator]):
+    def __init__(self, steps: List[Generator]):
         """Constructor for the DataPreprocessor class.
 
         Args:

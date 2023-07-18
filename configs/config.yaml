@@ -2,19 +2,23 @@
 VIDEO_CODEC: MP4V
 
 # The name of the input video file to process.
-VIDEO: "clip_0_16597_17807.mp4"
+VIDEO: "short_clip.mp4"
 
-# The name of the anchor embeddings database.
-ANCHOR_EMBEDDINGS: "embeddings_13_1.db"
+# The device for analysis
+DEVICE: GPU
 
-# Set to true if you want to create a new embedding database.
-EMBEDDB: False
 
-# Whether to save the anchor face embeddings to the database after creation.
+
+### OFFLINE ###
+
+# Whether to save the template embeddings to the database after creation.
 SAVE_EMBEDDINGS: True
 
 # The number of frames to sample from the input video to create the database.
 SAMPLE_FRAMES: 20
+
+# PLot the elbow curve and identified clusters
+VERBOSE: True
 
 # The dimensionality reduction method to use for the anchor face embeddings.
 REDUCER:
@@ -30,6 +34,10 @@ CLUSTERER:
 
 # The number of person ids to cluster and folders to create.
 K: 4
+
+
+
+### ONLINE ###
 
 # The number of frames between face detections.
 DETECTION_FREQUENCY: 5
@@ -78,3 +86,6 @@ GAZE_DETECTOR:
   true_thresh: 0.9
   # The length of the gaze detection axis.
   axis_length: 2000
+
+# Small feature datatset (0) or big feature dataset (1)
+DATASET: 0
