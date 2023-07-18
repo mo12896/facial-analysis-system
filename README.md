@@ -102,44 +102,16 @@ Ensure that [onnxruntime-gpu][ONNXGPU-url]  is installed in your virtual environ
 ### Installation
 
 
-1. Clone the repo
+1. Clone the repo and change into the directory:
    ```sh
    git clone https://github.com/mo12896/facial-analysis-system.git
+   cd facial-analysis-system
    ```
-2. Go into working directory and create virtual environment using conda
-    ```sh
-    cd facial-analysis-system
-    conda create -n emorec python=3.8
-    conda activate emorec
-    ```
-3. Install OS tools
+2. Run the setup script to install a virtual environment and all dependencies:
    ```sh
-   sudo apt-get update && \
-   sudo apt-get install -y libgl1-mesa-glx cmake protobuf-compiler
-   ```
-4. Install required packages
-   ```sh
-   pip3 install --default-timeout=10000000 torch torchvision --extra-index-url https://download.pytorch.org/whl/cu116
-   pip3 install -p -r requirements.txt
-   ```
-5. Setup the SynergyNet API
-    ```sh
-    cd external/synergy/Sim3DR/
-
-    chmod +x build_sim3dr.sh
-    ./build_sim3dr.sh
-
-    cd ../FaceBoxes
-
-    chmod +x build_cpu_nms.sh
-    ./build_cpu_nms.sh
-
-    cd ../../..
+   chmod +x setup.sh
+   bash setup.sh
     ```
-6. Setup the directory structure
-   ```
-   mkdir data data/images data/database data/identities
-   ```
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
@@ -153,7 +125,7 @@ Ensure that [onnxruntime-gpu][ONNXGPU-url]  is installed in your virtual environ
 ### Pre-Processing
 
 ```sh
-python3 src/emotion/main.py --step 1 --video <path_to_video_file>
+python3 main.py --step 1 --video <path_to_video_file>
 ```
 
 
@@ -173,7 +145,7 @@ This repository can be used in three main steps, which can be run in sequences o
     - PNG files: The PNG files can be generated optionally and contain the predicted PERMA score for visual verficiation. The PNG files are stored in the folder 'data/images'.
 
 ```sh
-python3 src/emotion/main.py --step 123 --video <path_to_video_file>
+python3 main.py --step 123 --video <path_to_video_file>
 ```
 
 

@@ -1,55 +1,55 @@
 #!/bin/bash
 
-# Install OS dependencies
+echo "Virtual Environment: Enter 1 to use conda, 2 to use venv: "
+read choice
+
+# Setting up the working directory and creating a virtual environment
+if [ $choice -eq 1 ]
+then
+    echo "Setting up conda environment..."
+    cd facial-analysis-system
+    conda create -n facesys python=3.8
+    conda activate facesys
+elif [ $choice -eq 2 ]
+then
+    echo "Setting up venv environment..."
+    cd facial-analysis-system
+    python3.8 -m venv emorec
+    source emorec/bin/activate
+else
+    echo "Invalid choice, exiting setup script..."
+    exit 1
+fi
+
+# Installing OS tools
+echo "Installing OS tools..."
 sudo apt-get update && \
-sudo apt-get install -y libgl1-mesa-glx cmake protobuf-compiler git build-essential
+sudo apt-get install -y libgl1-mesa-glx cmake protobuf-compiler
 
-# Download the Conda installer script
-curl -O https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh
-bash Miniconda3-latest-Linux-x86_64.sh
+# Installing required packages
+echo "Installing required packages..."
+pip3 install --default-timeout=10000000 torch torchvision --extra-index-url https://download.pytorch.org/whl/cu116
+pip3 install -p -r requirements.txt
 
+# Setting up the SynergyNet API
+echo "Setting up the SynergyNet API..."
+cd external/synergy/Sim3DR/
 
-# Clone the repository
-git clone https://github.com/mo12896/emotion-recognition.git
-cd emotion-recognition
+chmod +x build_sim3dr.sh
+./build_sim3dr.sh
 
-# Create a Conda environment with Python 3.10
-conda create -n venv python=3.10
-conda activate venv
+cd ../FaceBoxes
 
-# Install Python dependencies
-pip3 install --upgrade pip \
-    && pip3 install --default-timeout=10000000 torch torchvision --extra-index-url https://download.pytorch.org/whl/cu116 \
-    && pip3 install --default-timeout=10000000 -r requirements.txt
+chmod +x build_cpu_nms.sh
+./build_cpu_nms.sh
 
-# Create directories
-mkdir /data /data/images /data/database /data/identities /logs /external
+cd ../../..
 
-# Setup the git submodules
-git submodule init
-git submodule update
+# Setting up the directory structure
+echo "Setting up the directory structure..."
+mkdir data data/output data/input
 
-# Build the bytetrack package
-#cd /home/external/bytetrack && python setup.py -q develop
-#New, but should still work:
-# Define variables
-FILE_ID="1BVHbiLTfX6iTeJcNbh-jgHjWDoemfrzG"
-FILE_NAME="best.pth.tar"
-FOLDER_NAME="./external/synergy/pretrained"
-# Download the file to the specified folder
-curl -L "https://drive.google.com/uc?export=download&id=${FILE_ID}" -o "${FOLDER_NAME}/${FILE_NAME}"
+echo "Setup completed."
 
-
-# Define variables
-FILE_ID="1SQsMhvAmpD1O8Hm0yEGom0C0rXtA0qs8"
-FILE_NAME="3dmm_data.zip"
-FOLDER_NAME="./external/synergy/"
-# Download the file to the specified folder
-curl -L "https://drive.google.com/uc?export=download&id=${FILE_ID}" -o "${FOLDER_NAME}/${FILE_NAME}"
-unzip "${FOLDER_NAME}/${FILE_NAME}" -d "${FOLDER_NAME}"
-
-cd external/synergy/Sim3DR && ./build_sim3dr.sh
-cd ../FaceBoxes && ./build_cpu_nms.sh
-cd .. && pip install -e .
 
 
