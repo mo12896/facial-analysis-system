@@ -87,5 +87,8 @@ GAZE_DETECTOR:
   # The length of the gaze detection axis.
   axis_length: 2000
 
-# Small feature datatset (0) or big feature dataset (1)
-DATASET: 0
+# Small feature datatset or big feature dataset
+DATASET: small
+
+# Prediction mode. Can be either set to "regression" or "classification"
+PREDICTION: regression

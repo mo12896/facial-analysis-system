@@ -455,8 +455,12 @@ def process(
     )
 
     if save:
+        if ts_feature_dict["name"] == "MinimalFCParameters":
+            dataset = "small"
+        else:
+            dataset = "big"
         # save the dataframe to a CSV file
-        filename = str(path).split(".")[0] + "_dataset_big.csv"
+        filename = str(path).split(".")[0] + "_dataset_" + dataset + ".csv"
         df_features = df_features.reset_index().rename(columns={"index": "ClassID"})
         df_features.to_csv(filename, index=False)
 

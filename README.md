@@ -69,9 +69,11 @@
 <!-- ABOUT THE PROJECT -->
 ## About The Project
 
-This repository is dedicated to my master thesis, which focuses on predicting individual well-being, as defined by the PERMA framework, in team collaboration. The objective of this research is to extract non-verbal cues such as facial emotions, gaze and head motion patterns from individual team members using novel AI tools for face detection, tracking, re-identification, facial emotion recognition and head pose estimation for example. The generated features will then be used to predict the PERMA scores of each team member.
+This repository is dedicated to my master thesis, which focuses on predicting individual well-being, as defined by the PERMA framework, in team collaboration. The objective of this research is to extract non-verbal cues such as facial emotions, gaze and head motion patterns from individual team members using novel AI tools for face detection, tracking, re-identification, facial emotion recognition and head pose estimation for example. The generated features will then be used to predict the PERMA scores of each team member using both regression and binary classification.
 
 PERMA is a metric that measures subjective well-being, and it is an essential part of this research. The overall goal is to increase the well-being of individuals and teams by better understanding the factors that contribute to well-being in a team setting.
+
+The best performing model for binary classification outperform a naive basline by 5.1% and for regression by 1.5% on the small feature dataset.
 
 Feel free to explore the repository and ask any questions or share ideas. Your feedback and collaboration are always welcome. I am looking forward to sharing my research with you and making a positive impact in the field of team dynamics.
 
@@ -97,7 +99,7 @@ To get a local copy up and running follow the following steps.
 
 ### Prerequisites
 
-To harness the full power of CUDA GPU acceleration during inference, ensure that your machine is equipped with a NVIDIA Graphics Card (GPU).
+To harness the full power of CUDA GPU acceleration during inference, ensure that your machine is equipped with an NVIDIA Graphics Card (GPU).
 
 ### Installation
 
@@ -142,7 +144,7 @@ python main.py --mode 0
 ```
 
 
-### Analysis Pipeline
+### Analysis Pipeline [1, 2, 3]
 
 Set the relevant parameters in the config file `config/config.yaml` and run the facial analysis pipeline. The pipeline can be used in three main steps, which can be run in sequences of different length. Each downstream step depends on the previous step. The steps can each be run seperately - if the previous steps have already been run - or directly in sequences, i.e. one of these combinations: ["0", "1", "2", "3", "01", "012", "0123", "12", "23", "123"], where 0 is the preprocessing step. The single steps are defined as follows:
 
@@ -156,7 +158,7 @@ Set the relevant parameters in the config file `config/config.yaml` and run the 
     - CSV file: The CSV-file contains the predicted PERMA score of each team member.
     - PNG files (optionally): The PNG files can be generated optionally and contain the predicted PERMA score for visual verficiation.
 
-As an exmaple, running all three steps in sequence can be done by running the following command:
+As an exmaple, running all three analysis steps [1, 2, 3] in sequence (assuming that 0 has already been executed) can be done by running the following command:
 
 ```sh
 python main.py --mode 123
