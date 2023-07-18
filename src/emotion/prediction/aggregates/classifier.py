@@ -21,6 +21,7 @@ CLASSIFIER = [
             "hidden_layer_sizes": [(64, 32), (128, 64)],
             "alpha": [0.001, 0.01, 0.1],
             "learning_rate_init": [0.001, 0.01, 0.1],
+            "random_state": [42],
         },
     },
     {
@@ -32,6 +33,7 @@ CLASSIFIER = [
         "name": "DecisionTreeClassifier",
         "model": DecisionTreeClassifier(),
         "params": {"max_depth": range(2, 11)},
+        "random_state": [42],
     },
     {
         "name": "RandomForestClassifier",
@@ -40,6 +42,7 @@ CLASSIFIER = [
             "n_estimators": [50, 100, 200, 400],
             "max_depth": range(2, 6),
             "class_weight": ["balanced", "balanced_subsample"],
+            "random_state": [42],
         },
     },
     {
@@ -49,6 +52,7 @@ CLASSIFIER = [
             "n_estimators": [50, 100, 200, 400],
             "max_depth": range(2, 6),
             "class_weight": ["balanced", "balanced_subsample"],
+            "random_state": [42],
         },
     },
     {
@@ -58,6 +62,7 @@ CLASSIFIER = [
             "n_estimators": [50, 100, 200, 400],
             "max_depth": range(2, 6),
             "learning_rate": [0.001, 0.01, 0.1],
+            "random_state": [42],
         },
     },
     {
@@ -66,6 +71,7 @@ CLASSIFIER = [
         "params": {
             "n_estimators": [50, 100, 200, 400],
             "learning_rate": [0.001, 0.01, 0.1],
+            "random_state": [42],
         },
     },
     {
@@ -76,6 +82,7 @@ CLASSIFIER = [
             "C": [0.1, 1.0, 10.0],
             "shrinking": [True, False],
             "class_weight": ["balanced"],
+            "random_state": [42],
         },
     },
     # 160/300 fits fails, because the grid search is exhaustive!
@@ -87,6 +94,7 @@ CLASSIFIER = [
             "penalty": ["l1", "l2", "elasticnet"],
             "solver": ["newton-cg", "lbfgs", "liblinear", "sag", "saga"],
             "class_weight": ["balanced"],
+            "random_state": [42],
         },
     },
     {
@@ -95,6 +103,7 @@ CLASSIFIER = [
         "params": {
             "alpha": [0.001, 0.01, 0.1, 1.0],
             "class_weight": ["balanced"],
+            "random_state": [42],
         },
     },
     {
@@ -110,6 +119,7 @@ CLASSIFIER = [
             "depth": range(2, 6),
             "learning_rate": [0.001, 0.01, 0.1, 1.0],
             "auto_class_weights": ["Balanced", "SqrtBalanced"],
+            "random_state": [42],
         },
     },
     {
@@ -120,6 +130,7 @@ CLASSIFIER = [
             "max_depth": range(2, 6),
             "learning_rate": [0.001, 0.01, 0.1],
             "scale_pos_weight": [1, 50, 99, 1000],
+            "random_state": [42],
         },
     },
 ]

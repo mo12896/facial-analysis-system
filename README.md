@@ -30,7 +30,7 @@
   <a href="https://github.com/othneildrew/Best-README-Template">
   </a>
 
-  <h2 align="center">Visual Tracking System for PERMA Estimation using State-of-the-Art Deep Neural Networks and Frameworks</h2>
+  <h2 align="center">Prediciting Well-Being in Team Collaboration from Video Data Using Machine Learning</h2>
 
   <p align="center">
     The main repository for my master thesis.
@@ -104,19 +104,39 @@ Ensure that [onnxruntime-gpu][ONNXGPU-url]  is installed in your virtual environ
 
 1. Clone the repo
    ```sh
-   git clone https://github.com/mo12896/emotion-recognition.git
+   git clone https://github.com/mo12896/facial-analysis-system.git
    ```
 2. Go into working directory and create virtual environment using conda
     ```sh
-    cd emotion-recognition
+    cd facial-analysis-system
     conda create -n emorec python=3.8
     conda activate emorec
     ```
-3. Install required packages
+3. Install OS tools
    ```sh
+   sudo apt-get update && \
+   sudo apt-get install -y libgl1-mesa-glx cmake protobuf-compiler
+   ```
+4. Install required packages
+   ```sh
+   pip3 install --default-timeout=10000000 torch torchvision --extra-index-url https://download.pytorch.org/whl/cu116
    pip3 install -p -r requirements.txt
    ```
-4. Setup the directory structure
+5. Setup the SynergyNet API
+    ```sh
+    cd external/synergy/Sim3DR/
+
+    chmod +x build_sim3dr.sh
+    ./build_sim3dr.sh
+
+    cd ../FaceBoxes
+
+    chmod +x build_cpu_nms.sh
+    ./build_cpu_nms.sh
+
+    cd ../../..
+    ```
+6. Setup the directory structure
    ```
    mkdir data data/images data/database data/identities
    ```
@@ -128,10 +148,35 @@ Ensure that [onnxruntime-gpu][ONNXGPU-url]  is installed in your virtual environ
 <!-- USAGE EXAMPLES -->
 ## Usage
 
-Use this space to show useful examples of how a project can be used. Additional screenshots, code examples
-and demos work well in this space. You may also link to more resources.
 
-_For more examples, please refer to the [Documentation](https://example.com)_
+
+### Pre-Processing
+
+```sh
+python3 src/emotion/main.py --step 1 --video <path_to_video_file>
+```
+
+
+
+### Analysis Pipeline
+
+This repository can be used in three main steps, which can be run in sequences of different length. Each downstream step depends on the previous step. The steps can each be run seperately - if the previous steps have already been run - or directly in sequences, i.e. 12 or 123. The steps are as follows:
+
+1. **Facial Analysis**: Extracts facial features from a .mp4 or .avi video file. The extracted features are stored in the folder 'data/identities'.
+   - CSV file: The CSV-file contains the facial features of each frame in the video file. The CSV-file is stored in the folder `data/database`.
+   - MP4 file: The MP4 file can be generated optionally and contains the video with the extracted facial features for visual verficiation. The MP4 file is stored in the folder 'data/images'.
+2. **Feature Extraction**: Extracts features from the facial features stored in the database. The extracted features are stored in a database for later use.
+    - CSV file: The CSV-file contains the extracted features of each frame in the video file. The CSV-file is stored in the folder `data/database`.
+    - PNG files: The PNG files can be generated optionally and contain the extracted features for visual verficiation. The PNG files are stored in the folder 'data/images'.
+3. **PERMA Prediction**: Predicts the PERMA score of the team based on the extracted features.
+    - CSV file: The CSV-file contains the predicted PERMA score of each team member. The CSV-file is stored in the folder 'data/database'.
+    - PNG files: The PNG files can be generated optionally and contain the predicted PERMA score for visual verficiation. The PNG files are stored in the folder 'data/images'.
+
+```sh
+python3 src/emotion/main.py --step 123 --video <path_to_video_file>
+```
+
+
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
@@ -153,7 +198,7 @@ Distributed under the MIT License. See `LICENSE.txt` for more information.
 
 Moritz Müller - moritz1996.mueller@gmail.com
 
-Project Link: [Emotion Recognition](https://github.com/mo12896/emotion-recognition)
+Project Link: [Emotion Recognition](https://github.com/mo12896/facial-analysis-system)
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 

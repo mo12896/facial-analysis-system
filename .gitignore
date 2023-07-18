@@ -12,6 +12,9 @@ model/
 pytop
 catboost_info/
 .env
+names.csv
+sdm_plot.ipynb
+src/emotion/prediction/facial_features.csv
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

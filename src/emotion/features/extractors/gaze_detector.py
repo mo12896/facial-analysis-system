@@ -6,13 +6,6 @@ from typing import List, Tuple
 import cv2
 import numpy as np
 
-from src.emotion.features.detections import Detections
-from src.emotion.features.extractors.face_detector import create_face_detector
-from src.emotion.features.extractors.head_pose_estimator import (
-    create_head_pose_detector,
-)
-from src.emotion.utils.utils import timer
-
 # grandparent_folder = os.path.abspath(
 #     os.path.join(
 #         os.path.dirname(os.path.abspath(__file__)),
@@ -23,6 +16,13 @@ from src.emotion.utils.utils import timer
 #     )
 # )
 # sys.path.append(grandparent_folder)
+
+from src.emotion.features.detections import Detections
+from src.emotion.features.extractors.face_detector import create_face_detector
+from src.emotion.features.extractors.head_pose_estimator import (
+    create_head_pose_detector,
+)
+from src.emotion.utils.utils import timer
 
 
 @dataclass
@@ -113,7 +113,6 @@ class GazeDetector:
         roll = roll * np.pi / 180
 
         if tdy > int(1053 / 2):
-
             if pts68 is not None:
                 tdx = pts68[0][30]
                 tdy = pts68[1][30]
@@ -212,7 +211,7 @@ class GazeDetector:
         radius = np.tan(np.deg2rad(self.fov)) * height
 
         # Verification plots
-        # ax.plot(
+        # plt.plot(
         #     [tip_cone[0], base_cone[0]],
         #     [tip_cone[1], base_cone[1]],
         #     [tip_cone[2], base_cone[2]],
@@ -220,11 +219,17 @@ class GazeDetector:
         #     linewidth=2,
         # )
 
-        # ax.text(
-        #     tip_cone[0], tip_cone[1], tip_cone[2], person, color="black", fontsize=12, fontweight="bold"
+        # plt.text(
+        #     tip_cone[0],
+        #     tip_cone[1],
+        #     tip_cone[2],
+        #     person,
+        #     color="black",
+        #     fontsize=12,
+        #     fontweight="bold",
         # )
 
-        # ax.scatter(
+        # plt.scatter(
         #     points[:, 0],
         #     points[:, 1],
         #     points[:, 2],
@@ -263,7 +268,7 @@ if __name__ == "__main__":
 
     head_pose_detector = create_head_pose_detector({"type": "synergy"})
 
-    detections = head_pose_detector.detect_head_pose(image, detections)
+    detections = head_pose_detector.detect_head_poses(image, detections)
 
     gaze_detector = GazeDetector()
 

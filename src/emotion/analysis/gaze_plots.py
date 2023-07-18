@@ -6,11 +6,6 @@ import matplotlib.pyplot as plt
 import numpy as np
 from scipy.linalg import norm
 
-from src.emotion.features.extractors.face_detector import create_face_detector
-from src.emotion.features.extractors.head_pose_estimator import (
-    create_head_pose_detector,
-)
-
 # grandparent_folder = os.path.abspath(
 #     os.path.join(
 #         os.path.dirname(os.path.abspath(__file__)),
@@ -20,6 +15,11 @@ from src.emotion.features.extractors.head_pose_estimator import (
 #     )
 # )
 # sys.path.append(grandparent_folder)
+
+from src.emotion.features.extractors.face_detector import create_face_detector
+from src.emotion.features.extractors.head_pose_estimator import (
+    create_head_pose_detector,
+)
 
 
 def plot_truncated_cone(p0, p1, R0, R1):
@@ -90,33 +90,33 @@ def draw_3d_axis(
             points[:, 0],
             points[:, 1],
             points[:, 2],
-            color="black",
+            color="red",
             s=1,
         )
 
     # X-Axis pointing to right. drawn in red
-    x1 = size * (np.cos(yaw) * np.cos(roll)) + tdx
-    y1 = (
-        size
-        * (np.cos(pitch) * np.sin(roll) + np.cos(roll) * np.sin(pitch) * np.sin(yaw))
-        + tdy
-    )
-    z1 = size * (
-        -np.cos(pitch) * np.cos(roll) * np.sin(yaw) + np.sin(pitch) * np.sin(roll)
-    )
+    # x1 = size * (np.cos(yaw) * np.cos(roll)) + tdx
+    # y1 = (
+    #     size
+    #     * (np.cos(pitch) * np.sin(roll) + np.cos(roll) * np.sin(pitch) * np.sin(yaw))
+    #     + tdy
+    # )
+    # z1 = size * (
+    #     -np.cos(pitch) * np.cos(roll) * np.sin(yaw) + np.sin(pitch) * np.sin(roll)
+    # )
 
-    # Y-Axis pointing down. drawn in green
-    x2 = size * (-np.cos(yaw) * np.sin(roll)) + tdx
-    y2 = (
-        size
-        * (np.cos(pitch) * np.cos(roll) - np.sin(pitch) * np.sin(yaw) * np.sin(roll))
-        + tdy
-    )
-    z2 = size * (
-        np.cos(pitch) * np.sin(yaw) * np.sin(roll) + np.cos(roll) * np.sin(pitch)
-    )
+    # # Y-Axis pointing down. drawn in green
+    # x2 = size * (-np.cos(yaw) * np.sin(roll)) + tdx
+    # y2 = (
+    #     size
+    #     * (np.cos(pitch) * np.cos(roll) - np.sin(pitch) * np.sin(yaw) * np.sin(roll))
+    #     + tdy
+    # )
+    # z2 = size * (
+    #     np.cos(pitch) * np.sin(yaw) * np.sin(roll) + np.cos(roll) * np.sin(pitch)
+    # )
 
-    size = 2000
+    size = 1000
     b_r = np.tan(np.deg2rad(30)) * size
     # Z-Axis pointing out of the screen. drawn in blue
     x3 = size * (np.sin(yaw)) + tdx
@@ -125,22 +125,26 @@ def draw_3d_axis(
 
     # Correct for 3D radial distortion ...
 
-    ax.plot([tdx, x1], [tdy, y1], [0, z1], "r-", linewidth=2)
-    ax.plot([tdx, x2], [tdy, y2], [0, z2], "g-", linewidth=2)
+    # ax.plot([tdx, x1], [tdy, y1], [0, z1], "r-", linewidth=2)
+    # ax.plot([tdx, x2], [tdy, y2], [0, z2], "g-", linewidth=2)
     ax.plot([tdx, x3], [tdy, y3], [0, z3], "b-", linewidth=2)
 
     p0 = np.array([tdx, tdy, 0])
     p1 = np.array([x3, y3, z3])
     plot_truncated_cone(p0, p1, 0, b_r)
 
-    ax.text(tdx, tdy, 0, person, color="black", fontsize=12, fontweight="bold")
-    ax.text(x1, y1, z1, "X", color="red")
-    ax.set_xlim3d([200, 1600])
-    ax.set_ylim3d([200, 1200])
-    ax.set_zlim3d([-1000, 0])
+    ax.text(tdx, tdy, 0, person, color="black", fontsize=15, fontweight="bold")
+    # ax.text(x1, y1, z1, "X", color="red")
+    # ax.set_xlim3d([200, 1600])
+    # ax.set_ylim3d([200, 1200])
+    # ax.set_zlim3d([-1000, 0])
+    ax.set_xlim3d([200, 2000])
+    ax.set_ylim3d([200, 1500])
+    ax.set_zlim3d([-1250, 0])
     ax.set_xlabel("X")
     ax.set_ylabel("Y")
     ax.set_zlabel("Z")
+    ax.tick_params(axis="both", which="major", labelsize=7)
 
     return ax
 
@@ -210,58 +214,58 @@ def new_draw_3d_axis(
         points[:, 0],
         points[:, 1],
         points[:, 2],
-        color="black",
+        color="red",
         s=1,
     )
 
     # Define axis endpoints
     size = 100
     # X-Axis pointing to right. drawn in red
-    x1 = size * (np.cos(yaw + np.pi) * np.cos(roll)) + tdx
-    y1 = (
-        size
-        * (
-            np.cos(pitch) * np.sin(roll)
-            + np.cos(roll) * np.sin(pitch) * np.sin(yaw + np.pi)
-        )
-        + tdy
-    )
-    z1 = (
-        size
-        * (
-            -np.cos(pitch) * np.cos(roll) * np.sin(yaw + np.pi)
-            + np.sin(pitch) * np.sin(roll)
-        )
-        + tdz
-    )
+    # x1 = size * (np.cos(yaw + np.pi) * np.cos(roll)) + tdx
+    # y1 = (
+    #     size
+    #     * (
+    #         np.cos(pitch) * np.sin(roll)
+    #         + np.cos(roll) * np.sin(pitch) * np.sin(yaw + np.pi)
+    #     )
+    #     + tdy
+    # )
+    # z1 = (
+    #     size
+    #     * (
+    #         -np.cos(pitch) * np.cos(roll) * np.sin(yaw + np.pi)
+    #         + np.sin(pitch) * np.sin(roll)
+    #     )
+    #     + tdz
+    # )
 
-    # Y-Axis pointing down. drawn in green
-    x2 = size * (-np.cos(yaw + np.pi) * np.sin(roll)) + tdx
-    y2 = (
-        size
-        * (
-            np.cos(pitch) * np.cos(roll)
-            - np.sin(pitch) * np.sin(yaw + np.pi) * np.sin(roll)
-        )
-        + tdy
-    )
-    z2 = (
-        size
-        * (
-            np.cos(pitch) * np.sin(yaw + np.pi) * np.sin(roll)
-            + np.cos(roll) * np.sin(pitch)
-        )
-        + tdz
-    )
+    # # Y-Axis pointing down. drawn in green
+    # x2 = size * (-np.cos(yaw + np.pi) * np.sin(roll)) + tdx
+    # y2 = (
+    #     size
+    #     * (
+    #         np.cos(pitch) * np.cos(roll)
+    #         - np.sin(pitch) * np.sin(yaw + np.pi) * np.sin(roll)
+    #     )
+    #     + tdy
+    # )
+    # z2 = (
+    #     size
+    #     * (
+    #         np.cos(pitch) * np.sin(yaw + np.pi) * np.sin(roll)
+    #         + np.cos(roll) * np.sin(pitch)
+    #     )
+    #     + tdz
+    # )
 
-    size = 2000
+    size = 1000
     # Z-Axis pointing out of the screen. drawn in blue
     x3 = size * (np.sin(yaw + np.pi)) + tdx
     y3 = size * (-np.cos(yaw + np.pi) * np.sin(pitch)) + tdy
     z3 = -size * (np.cos(pitch) * np.cos(yaw + np.pi)) + tdz
 
-    ax.plot([tdx, x1], [tdy, y1], [tdz, z1], "r-", linewidth=2)
-    ax.plot([tdx, x2], [tdy, y2], [tdz, z2], "g-", linewidth=2)
+    # ax.plot([tdx, x1], [tdy, y1], [tdz, z1], "r-", linewidth=2)
+    # ax.plot([tdx, x2], [tdy, y2], [tdz, z2], "g-", linewidth=2)
     ax.plot([tdx, x3], [tdy, y3], [tdz, z3], "b-", linewidth=2)
 
     p0 = np.array([tdx, tdy, tdz])
@@ -269,10 +273,15 @@ def new_draw_3d_axis(
     plot_truncated_cone(p0, p1, 0, np.tan(np.deg2rad(30)) * size)
 
     # Set axis limits and labels
-    ax.text(tdx, tdy, tdz, person, color="black", fontsize=12, fontweight="bold")
-    ax.set_xlim3d([200, 1600])
-    ax.set_ylim3d([200, 1200])
-    ax.set_zlim3d([-1000, 0])
+    ax.text(tdx, tdy, tdz, person, color="black", fontsize=15, fontweight="bold")
+    # ax.set_xlim3d([200, 1600])
+    # ax.set_ylim3d([200, 1200])
+    # ax.set_zlim3d([-1000, 0])
+    ax.set_xlim3d(
+        [200, 3200],
+    )
+    ax.set_ylim3d([200, 2400])
+    ax.set_zlim3d([-2000, 0])
     ax.set_xlabel("X")
     ax.set_ylabel("Y")
     ax.set_zlabel("Z")
@@ -294,6 +303,7 @@ if __name__ == "__main__":
     detections = head_pose_detector.detect_head_poses(image, detections)
 
     persons = detections.class_id
+    persons = ["id1", "id2", "id3", "id4"]
     poses = detections.head_pose_keypoints
     pts_res = detections.facial_landmarks
 
@@ -306,7 +316,7 @@ if __name__ == "__main__":
                 angles[2],
                 translation[0],
                 translation[1],
-                size=10,
+                size=20,
                 pts68=lmks,
                 person=person,
             )
@@ -318,11 +328,15 @@ if __name__ == "__main__":
                 angles[2],
                 translation[0],
                 translation[1],
-                size=10,
+                size=20,
                 pts68=lmks,
                 person=person,
             )
 
     # Add camera center point
     ax.scatter(1848 / 2, (3 * 1054) / 4, -600, c="r", marker="o")
+    ax.view_init(elev=-31.395492515413213, azim=-90.11854349812732)
+    path = "/home/moritz/Dropbox (Personal)/Dropbox/Apps/Overleaf/tum-thesis-latex/data/03_methodology"
+    image = path + "/gaze_inter.pdf"
+    plt.savefig(image, bbox_inches="tight", dpi=300)
     plt.show()
