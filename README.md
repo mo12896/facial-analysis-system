@@ -103,22 +103,20 @@ To harness the full power of CUDA GPU acceleration during inference, ensure that
 
 ### Installation
 
-
-1. Clone the repo and change into the directory:
+1. Clone the repo and the utilized submodules:
    ```sh
-   git clone https://github.com/mo12896/facial-analysis-system.git
-   cd facial-analysis-system
+   git clone --recurse-submodules https://github.com/mo12896/facial-analysis-system.git
    ```
 2. Go into working directory and create a virtual environment using conda:
     ```sh
     cd facial-analysis-system
-    conda create -n facesys python=3.8
+    conda create -n facesys python=3.10.6
     conda activate facesys
     ```
     ... or create a virtual environment using venv:
     ```sh
     cd facial-analysis-system
-    python3.8 -m venv facesys
+    python3.10 -m venv facesys
     source facesys/bin/activate
     ```
 3. Run the provided setup script to install all necessary dependencies:
@@ -133,11 +131,13 @@ To harness the full power of CUDA GPU acceleration during inference, ensure that
 
 <!-- USAGE EXAMPLES -->
 ## How to Use it
+
 Place the video file in the folder `data/input` and write the full `<video_name>`, e.g. `video.mp4` of the video file alongside the video format in the the config file `config/config.yaml`. The video file must be in the correct format, i.e. .mp4 or .avi and contain video recordings of team collaboration. To enable the 3D gaze pattern estimation framework, the video must be captured with a 360° camera of j5create in the "two 180° images" mode.
 
 
 ### Pre-Processing [0]
-Set the relevant parameters in the config file `config/config.yaml` and run the following command, which starts the pre-processing script to generate the template embedding database for the relevant team members. The pre-processing step is optional and can be skipped if the database already exists. Different approaches to generate the template embeddings are imaginable and can be exchanged with the proposed approach. The following script runs the template generation process outlined in the master thesis and stores the images and templates database under `data/output/<video_name>/utils/`:
+
+Set the relevant parameters in the config file `config/config.yaml` and run the following command, which starts the pre-processing script to generate the template embedding database for the relevant team members. The pre-processing step is optional and can be skipped if the database already exists. Different approaches to generate the template embeddings are imaginable and can be exchanged with the proposed approach. The following script runs the template generation process outlined in the master thesis and stores the images and templates database under `data/output/<video_name>/utils/`. Note, that the first setup takes a while, since pretrained checkpoints for the deep learning models have to be downloaded.
 
 ```sh
 python main.py --mode 0
@@ -165,6 +165,7 @@ python main.py --mode 123
 ```
 
 ### Data Visualization
+
 After running all pipeline steps, the resulting features and perma prediction plots can be rendered unified using a streamlit dashboard by simply providing the `-d` flag in the command. By running this command, the script will automatically generate the feature visualizations as PNG-files into the `data/output/<video_name>/extraction_results/` folder and fetch the generated PERMA prediction PNG files from `data/output/<video_name>/prediction_results/`. Both sources will be rendered in the streamlit app. Note, that the flag can be combined with running the full pipeline.
 
 ```sh
@@ -176,6 +177,8 @@ python main.py -d
 
 
 ## Known Problems
+
+- If there are problems with the setup.sh script, conduct the steps manually. For the Synergy setup refer to the SynergyNet [README](https://github.com/choyingw/SynergyNet)
 - The feature_vector.py script might generate less than 776 features per time series for shorter videos. This is known and is due to the script automatically filtering columns with NaN values. By providing longer videos, the problem should be resolved.
 
 
