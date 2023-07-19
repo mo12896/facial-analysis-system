@@ -1,45 +1,51 @@
 import glob
 import os
+import sys
 
 import matplotlib.image as mpimg
 import matplotlib.pyplot as plt
 import pandas as pd
 import streamlit as st
 
-from src.emotion.analysis.data_preprocessing import (
+st.set_option("deprecation.showPyplotGlobalUse", False)
+
+grandparent_folder = os.path.abspath(
+    os.path.join(
+        os.path.dirname(os.path.abspath(__file__)),
+        os.pardir,
+        os.pardir,
+    )
+)
+sys.path.append(grandparent_folder)
+
+from src.emotion.analysis.data_preprocessing import (  # noqa: E402
     DataPreprocessor,
     LinearInterpolator,
     MinusOneToOneNormalizer,
     RollingAverageSmoother,
     ZeroToOneNormalizer,
 )
-from src.emotion.analysis.feature_generator import VelocityGenerator
-from src.emotion.analysis.statistics.plot_emotions_over_time import (
+from src.emotion.analysis.feature_generator import VelocityGenerator  # noqa: E402
+from src.emotion.analysis.statistics.plot_emotions_over_time import (  # noqa: E402
+    plot_max_emotions_over_time,
     plot_smoothed_emotions_over_time,
+    plot_smoothed_vad_values,
 )
-from src.emotion.analysis.statistics.plot_emotions_statistics import (
+from src.emotion.analysis.statistics.plot_emotions_statistics import (  # noqa: E402
     plot_max_emotion_distribution,
 )
-from src.emotion.analysis.statistics.plot_gaze_statistics import plot_gaze_statistics
-from src.emotion.analysis.statistics.plot_motion_over_time import (
+from src.emotion.analysis.statistics.plot_gaze_statistics import (  # noqa: E402
+    plot_gaze_difference,
+    plot_gaze_matrix,
+    plot_mutual_gaze,
+)
+from src.emotion.analysis.statistics.plot_motion_over_time import (  # noqa: E402
     plot_smoothed_motion_over_time,
 )
-from src.emotion.analysis.statistics.plot_motion_statistics import (
+from src.emotion.analysis.statistics.plot_motion_statistics import (  # noqa: E402
     plot_point_derivatives,
 )
-from src.emotion.utils.constants import DATA_DIR_OUTPUT
-
-# import sys
-
-
-# grandparent_folder = os.path.abspath(
-#     os.path.join(
-#         os.path.dirname(os.path.abspath(__file__)),
-#         os.pardir,
-#         os.pardir,
-#     )
-# )
-# sys.path.append(grandparent_folder)
+from src.emotion.utils.constants import DATA_DIR_OUTPUT  # noqa: E402
 
 
 def run_app(filename: str, emo_window: int = 150):
@@ -133,6 +139,8 @@ def run_app(filename: str, emo_window: int = 150):
         lambda: plot_smoothed_emotions_over_time(
             preprocessed_data["emo_time"], filename, plot=False
         ),
+        lambda: plot_smoothed_vad_values(df, filename, emo_window, plot=False),
+        lambda: plot_max_emotions_over_time(df, filename, plot=False),
         lambda: plot_max_emotion_distribution(
             preprocessed_data["emo_stat"], filename, plot=False
         ),
@@ -142,16 +150,22 @@ def run_app(filename: str, emo_window: int = 150):
         lambda: plot_point_derivatives(
             preprocessed_data["motion_stat"], filename, 250, plot=False
         ),
-        lambda: plot_gaze_statistics(df, filename, plot=False),
+        lambda: plot_gaze_matrix(df, filename, plot=False),
+        lambda: plot_gaze_difference(df, filename, plot=False),
+        lambda: plot_mutual_gaze(df, filename, plot=False),
     ]
 
     # Define a list of explanation strings
     explanations = [
         "These plots show time series of the 6 Ekman Emotions + Neutral Emotion for the different team members.",
+        "These plots show time series of the 3 VAD values for the different team members.",
+        "These plots show time series of the maximum emotions expressed by each team member.",
         "These plots show categorical distributions of the maximum emotions expressed by each team member.",
         "These plots show time series of the point derivatives and thus velocities of the team members face center point",
         "These plots show kernel density estimations of the face center point velocities for the different team members.",
-        "This is plot show the inbound to outbound gaze directions between the different team members",
+        "This is plot show the outbound and inbound gazes between the team members",
+        "This is plot shows the gaze differences between the team members",
+        "This is plot shows the mutual gaze between the team members",
     ]
 
     # Create a list of columns
@@ -185,9 +199,10 @@ def run_app(filename: str, emo_window: int = 150):
     # Now that all .png figures are rendered, create the rest of the columns for your plots
     col1, col2 = st.columns(2)
     col3, col4 = st.columns(2)
-    col5, _ = st.columns(2)
+    col5, col6 = st.columns(2)
+    col7, co8, col9 = st.columns(3)
 
-    cols = [col1, col2, col3, col4, col5]
+    cols = [col1, col2, col3, col4, col5, col6, col7, co8, col9]
 
     # Your existing code
     for i, (col, explanation) in enumerate(zip(cols, explanations)):
