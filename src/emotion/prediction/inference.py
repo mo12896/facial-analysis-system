@@ -11,19 +11,27 @@ from src.emotion.utils.constants import DATA_DIR_OUTPUT, MODEL_DIR
 
 def preprocess(df: pd.DataFrame, scalers_dict: Dict, selected_features: Dict):
     # Assume you have new data in a DataFrame called `new_data`
-    df = df.drop(
-        columns=[
-            "ClassID",
-            "Gazes_StdDev",
-            "GazeDifference_StdDev",
-            "MutualGaze_StdDev",
-        ]
-    )
+    # df = df.drop(
+    #     columns=[
+    #         "ClassID",
+    #         "Gazes_StdDev",
+    #         "GazeDifference_StdDev",
+    #         "MutualGaze_StdDev",
+    #     ]
+    # )
+    drop_features = []
     scaled_data = []
     for feat in df.columns:
-        scaler = scalers_dict[feat]
-        scaled_feat = scaler.inverse_transform(df[feat].values.reshape(-1, 1)).flatten()
-        scaled_data.append(pd.Series(scaled_feat, name=feat))
+        if feat in scalers_dict.keys():
+            scaler = scalers_dict[feat]
+            scaled_feat = scaler.inverse_transform(
+                df[feat].values.reshape(-1, 1)
+            ).flatten()
+            scaled_data.append(pd.Series(scaled_feat, name=feat))
+        else:
+            drop_features.append(feat)
+
+    df = df.drop(columns=drop_features)
 
     # Concatenate scaled features into new DataFrame
     scaled_data = pd.concat(scaled_data, axis=1)

@@ -156,7 +156,7 @@ Set the relevant parameters in the config file `config/config.yaml` and run the 
     - PNG files (optionally): The PNG files can be generated optionally and contain the extracted features for visual verficiation.
 3. **PERMA Prediction [3]**: Predicts the PERMA score of each team member based on the extracted features. The final predictions are stored in the folder `data/output/<video_name>/prediction_results/`.
     - CSV file: The CSV-file contains the predicted PERMA score of each team member.
-    - PNG files (optionally): The PNG files can be generated optionally and contains the predicted PERMA scores as radar plots (regression) or bar plots (binary classification) for visual verficiation.
+    - PNG files: The PNG files can be generated optionally and contains the predicted PERMA scores as radar plots (regression) or bar plots (binary classification) for visual verficiation.
 
 As an exmaple, running all three analysis steps [1, 2, 3] in sequence (assuming that 0 has already been executed) can be done by running the following command:
 
