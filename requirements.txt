@@ -19,7 +19,7 @@ dataclass-csv==1.4.0
 numpy==1.23.4
 seaborn==0.12.2
 #protobuf==3.19.6
-streamlit==1.19.0
+streamlit==1.24.1
 tsfresh==0.20.0
 ipython==8.11.0
 python-dotenv==1.0.0

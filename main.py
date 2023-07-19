@@ -1,3 +1,4 @@
+import os
 import subprocess
 
 import pandas as pd
@@ -64,18 +65,23 @@ def main() -> None:
         )
         print("Finished with feature extraction ...")
 
-    # Feature visualization
-    if args.get("DASHBOARD"):
-        subprocess.run(
-            ["streamlit", "run", "src/emotion/dashboard.py"], capture_output=True
-        )
-
     # PERMA prediction
     if args.get("MODE") in ["3", "23", "123", "0123"]:
         perma_inference(
             args.get("PREDICTION"), args.get("DATASET"), str(video).split(".")[0]
         )
         print("Finished with PERMA prediction ...")
+
+    # Feature visualization
+    if args.get("DASHBOARD"):
+        print("Running feature visualization ...")
+
+        os.environ["PROTOCOL_BUFFERS_PYTHON_IMPLEMENTATION"] = "python"
+        os.environ["EMO_WINDOW"] = "150"
+        os.environ["FILE"] = str(video).split(".")[0]
+        subprocess.run(
+            ["streamlit", "run", "src/emotion/dashboard.py"], capture_output=True
+        )
 
 
 if __name__ == "__main__":

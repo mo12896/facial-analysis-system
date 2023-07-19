@@ -11,6 +11,7 @@ from src.emotion.analysis.data_preprocessing import (
     LinearInterpolator,
     RollingAverageSmoother,
 )
+from src.emotion.utils.constants import DATA_DIR_OUTPUT
 
 # grandparent_folder = os.path.abspath(
 #     os.path.join(
@@ -27,7 +28,9 @@ from src.emotion.analysis.data_preprocessing import (
 IDENTITY_DIR = Path("/home/moritz/Workspace/masterthesis/data/identities")
 
 
-def plot_smoothed_emotions_over_time(df: pd.DataFrame, plot: bool = True) -> Figure:
+def plot_smoothed_emotions_over_time(
+    df: pd.DataFrame, filename: str, plot: bool = True
+) -> Figure:
     """Plot the emotions over time for each person."""
 
     grouped = df.groupby("ClassID")
@@ -64,7 +67,8 @@ def plot_smoothed_emotions_over_time(df: pd.DataFrame, plot: bool = True) -> Fig
 
     if plot:
         plt.show()
-    fig.savefig(IDENTITY_DIR / "emotions_over_time.png")
+    path = DATA_DIR_OUTPUT / (filename + "/extraction_results/")
+    fig.savefig(path / "emotions_over_time.png")
 
     return fig
 

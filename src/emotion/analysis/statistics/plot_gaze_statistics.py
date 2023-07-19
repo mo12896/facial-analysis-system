@@ -5,11 +5,12 @@ import numpy as np
 import pandas as pd
 from matplotlib.figure import Figure
 
+from src.emotion.utils.constants import DATA_DIR_OUTPUT
+
 IDENTITY_DIR = Path("/home/moritz/Workspace/masterthesis/data/identities")
 
 
-def plot_gaze_statistics(df: pd.DataFrame, plot: bool = True) -> Figure:
-
+def plot_gaze_statistics(df: pd.DataFrame, filename: str, plot: bool = True) -> Figure:
     # Create a dictionary to hold the counts
     counts = {}
 
@@ -73,10 +74,13 @@ def plot_gaze_statistics(df: pd.DataFrame, plot: bool = True) -> Figure:
     if plot:
         plt.show()
 
+    path = DATA_DIR_OUTPUT / (filename + "/extraction_results/")
+    fig.savefig(path / "gaze_matrix.png")
+
     return fig
 
 
 if __name__ == "__main__":
     df = pd.read_csv(IDENTITY_DIR / "identities.csv")
 
-    plot_gaze_statistics(df)
+    plot_gaze_statistics(df, str(IDENTITY_DIR))

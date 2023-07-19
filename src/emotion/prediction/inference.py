@@ -61,7 +61,7 @@ def predict(df: pd.DataFrame, features: Dict, path: Path) -> pd.DataFrame:
     return perma
 
 
-def radar_plot(df: pd.DataFrame):
+def radar_plot(df: pd.DataFrame, dataset: str):
     data = df.drop(columns=["ClassID"])
     categories = data.columns.tolist()
     num_vars = len(categories)
@@ -89,15 +89,17 @@ def radar_plot(df: pd.DataFrame):
         # Set the x-ticks for the current subplot
         ax.set_xticks(angles[:-1])
         ax.set_xticklabels(categories)
+        ax.tick_params(axis="x", labelsize=15)
 
         # Draw ylabels
         ax.set_rlabel_position(0)
         ax.yaxis.grid(True)
+        ax.tick_params(axis="y", labelsize=15)
 
         # Part 1: Draw the line
         values = row.values.flatten().tolist()
         values += values[:1]  # repeat the first value to close the circular graph
-        ax.plot(angles, values, linewidth=1, linestyle="solid", label=df["ClassID"][i])
+        ax.plot(angles, values, linewidth=1, linestyle="solid")
 
         # Part 2: Fill area
         ax.fill(angles, values, "b", alpha=0.1)
@@ -105,13 +107,24 @@ def radar_plot(df: pd.DataFrame):
         # Set the range of y values
         ax.set_ylim(0, 7)
 
-        # Add a legend
-        ax.legend(loc="upper right", bbox_to_anchor=(0.1, 0.1))
+        # Add a title (ClassID) to each subplot at the center
+        ax.text(
+            0.5,
+            0.5,
+            df["ClassID"][i],
+            transform=ax.transAxes,
+            ha="center",
+            va="center",
+            fontsize=20,
+        )
 
+    fig.suptitle(
+        f"PERMA prediction through regression on the {dataset} dataset", fontsize=20
+    )
     plt.tight_layout()
 
 
-def bar_plot(df):
+def bar_plot(df: pd.DataFrame, dataset: str):
     data = df.drop(columns=["ClassID"])
     # Create a subplot for each row
     num_cols = len(data)
@@ -126,10 +139,16 @@ def bar_plot(df):
         row_data = data.loc[row_id]
         row_data.plot(kind="bar", ax=ax)
         ax.set_xticklabels(data.columns, rotation=0)
+        ax.tick_params(axis="x", labelsize=15)
+        ax.tick_params(axis="y", labelsize=15)
         ax.set_yticks([0, 1])
         ax.set_yticklabels(["Low", "High"])
-        ax.set_title(df["ClassID"][row_id])
+        ax.set_title(df["ClassID"][row_id], fontsize=20)
 
+    fig.suptitle(
+        f"PERMA prediction through binary classification on the {dataset} dataset",
+        fontsize=20,
+    )
     plt.tight_layout()
 
 
@@ -182,7 +201,7 @@ def perma_inference(prediction: str, dataset: str, filename: str):
         scaled_predicts = scaled_perma.clip(lower=0)
         scaled_predicts = pd.concat([df["ClassID"], scaled_predicts], axis=1)
 
-        radar_plot(scaled_predicts)
+        radar_plot(scaled_predicts, dataset)
         plt.savefig(save_path / ("perma_radar_" + dataset + ".png"))
 
         scaled_predicts.to_csv(
@@ -190,7 +209,7 @@ def perma_inference(prediction: str, dataset: str, filename: str):
         )
     else:
         perma = pd.concat([df["ClassID"], perma], axis=1)
-        bar_plot(perma)
+        bar_plot(perma, dataset)
         plt.savefig(save_path / ("perma_bar_" + dataset + ".png"))
 
         perma.to_csv(

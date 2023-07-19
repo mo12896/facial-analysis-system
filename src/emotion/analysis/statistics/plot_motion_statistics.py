@@ -1,6 +1,7 @@
 # import os
 # import sys
 from pathlib import Path
+from typing import List
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -10,11 +11,12 @@ from scipy.stats import gaussian_kde
 
 from src.emotion.analysis.data_preprocessing import (
     DataPreprocessor,
-    DerivativesGetter,
     LinearInterpolator,
     MinusOneToOneNormalizer,
     RollingAverageSmoother,
 )
+from src.emotion.analysis.feature_generator import VelocityGenerator
+from src.emotion.utils.constants import DATA_DIR_OUTPUT
 
 # grandparent_folder = os.path.abspath(
 #     os.path.join(
@@ -31,11 +33,10 @@ from src.emotion.analysis.data_preprocessing import (
 IDENTITY_DIR = Path("/home/moritz/Workspace/masterthesis/data/identities")
 
 
-def compute_gradients(point_list: list[int]):
+def compute_gradients(point_list: List[int]):
     gradients = []
 
     for i in range(len(point_list) - 1):
-
         gradient = point_list[i + 1] - point_list[i]
         gradients.append(gradient)
 
@@ -80,20 +81,18 @@ def prepare_data(x, y):
 
 
 def plot_point_derivatives(
-    df: pd.DataFrame, max_len: int = 250, plot: bool = True
+    df: pd.DataFrame, filename: str, max_len: int = 250, plot: bool = True
 ) -> Figure:
-
     # group the data by ClassID and Frame
     grouped = df.groupby("ClassID")
-    max_height = df["Derivatives"].max()
-    min_height = df["Derivatives"].min()
+    max_height = df["Velocity"].max()
+    min_height = df["Velocity"].min()
 
     fig = plt.figure(figsize=(20, 5), tight_layout=True)
     fig.suptitle("Point Derivatives")
 
     for i, (person_id, group) in enumerate(grouped):
-
-        gradients = group["Derivatives"]
+        gradients = group["Velocity"]
         z = gaussian_kde(np.array(gradients))
 
         # Plot the gradients
@@ -103,13 +102,14 @@ def plot_point_derivatives(
         ax.set_xlim(left=min_height, right=max_height)
         ax.set_ylim(bottom=0, top=max_len)
         ax.set_title(f"2D Gaussian KDE of center derivatives for {person_id}")
-        ax.set_xlabel("Derivatives")
+        ax.set_xlabel("Velocity")
         ax.set_ylabel("PDF")
 
     if plot:
         plt.show()
 
-    fig.savefig(IDENTITY_DIR / "point_derivatives.png")
+    path = DATA_DIR_OUTPUT / (filename + "/extraction_results/")
+    fig.savefig(path / "point_derivatives.png")
 
     return fig
 
@@ -125,7 +125,6 @@ def plot_2d_point_derivatives():
     fig = plt.figure(figsize=(10, 15), tight_layout=True)
 
     for i, (person_id, group) in enumerate(grouped):
-
         # Compute the center point (x, y) of the bounding box for each frame
         x = (group["XMax"] + group["XMin"]) * 0.5
         y = (group["YMax"] + group["YMin"]) * 0.5
@@ -168,7 +167,6 @@ def plot_2d_point_contour_derivatives():
     fig = plt.figure(figsize=(10, 15), tight_layout=True)
 
     for i, (person_id, group) in enumerate(grouped):
-
         # Compute the center point (x, y) of the bounding box for each frame
         x = (group["XMax"] + group["XMin"]) * 0.5
         y = (group["YMax"] + group["YMin"]) * 0.5
@@ -200,7 +198,6 @@ def plot_3d_point_derivatives():
     fig = plt.figure(figsize=(10, 15), tight_layout=True)
 
     for i, (person_id, group) in enumerate(grouped):
-
         # Compute the center point (x, y) of the bounding box for each frame
         x = (group["XMax"] + group["XMin"]) * 0.5
         y = (group["YMax"] + group["YMin"]) * 0.5
@@ -235,7 +232,6 @@ def plot_point_positions():
     fig = plt.figure(figsize=(10, 15), tight_layout=True)
 
     for i, (person_id, group) in enumerate(grouped):
-
         # Compute the center point (x, y) of the bounding box for each frame
         x = (group["XMax"] + group["XMin"]) * 0.5
         y = (group["YMax"] + group["YMin"]) * 0.5
@@ -259,15 +255,15 @@ if __name__ == "__main__":
 
     preprocessing_pipeline = [
         LinearInterpolator(),
-        DerivativesGetter(negatives=True),
-        RollingAverageSmoother(window_size=5, cols=["Derivatives"]),
-        MinusOneToOneNormalizer(cols=["Derivatives"]),
+        VelocityGenerator(negatives=True),
+        RollingAverageSmoother(window_size=5, cols=["Velocity"]),
+        MinusOneToOneNormalizer(cols=["Velocity"]),
     ]
 
     preprocessor = DataPreprocessor(preprocessing_pipeline)
     pre_df = preprocessor.preprocess_data(df)
 
-    plot_point_derivatives(pre_df, 250)
+    plot_point_derivatives(pre_df, str(IDENTITY_DIR), 250)
     plot_2d_point_contour_derivatives()
     plot_2d_point_derivatives()
     plot_3d_point_derivatives()

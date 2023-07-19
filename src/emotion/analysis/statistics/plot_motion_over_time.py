@@ -8,11 +8,12 @@ from matplotlib.figure import Figure
 
 from src.emotion.analysis.data_preprocessing import (
     DataPreprocessor,
-    DerivativesGetter,
     LinearInterpolator,
     RollingAverageSmoother,
     ZeroToOneNormalizer,
 )
+from src.emotion.analysis.feature_generator import VelocityGenerator
+from src.emotion.utils.constants import DATA_DIR_OUTPUT
 
 # grandparent_folder = os.path.abspath(
 #     os.path.join(
@@ -29,18 +30,18 @@ from src.emotion.analysis.data_preprocessing import (
 IDENTITY_DIR = Path("/home/moritz/Workspace/masterthesis/data/identities")
 
 
-def plot_smoothed_motion_over_time(df: pd.DataFrame, plot: bool = True) -> Figure:
-
+def plot_smoothed_motion_over_time(
+    df: pd.DataFrame, filename: str, plot: bool = True
+) -> Figure:
     # group the data by ClassID and Frame
     grouped = df.groupby("ClassID")
-    max_height = df["Derivatives"].max()
+    max_height = df["Velocity"].max()
 
     fig = plt.figure(figsize=(20, 5), tight_layout=True)
     fig.suptitle("Motion over Time")
 
     for i, (person_id, group) in enumerate(grouped):
-
-        smoothed_derivatives = group["Derivatives"]
+        smoothed_derivatives = group["Velocity"]
         # x = smoothed_derivatives.index.values
         x = range(len(smoothed_derivatives))
 
@@ -55,7 +56,8 @@ def plot_smoothed_motion_over_time(df: pd.DataFrame, plot: bool = True) -> Figur
     if plot:
         plt.show()
 
-    fig.savefig(IDENTITY_DIR / "point_derivatives_over_time.png")
+    path = DATA_DIR_OUTPUT / (filename + "/extraction_results/")
+    fig.savefig(path / "point_derivatives_over_time.png")
 
     return fig
 
@@ -66,13 +68,13 @@ if __name__ == "__main__":
 
     preprocessing_pipeline = [
         LinearInterpolator(),
-        DerivativesGetter(),
-        RollingAverageSmoother(window_size=5, cols=["Derivatives"]),
-        ZeroToOneNormalizer(cols=["Derivatives"]),
+        VelocityGenerator(),
+        RollingAverageSmoother(window_size=5, cols=["Velocity"]),
+        ZeroToOneNormalizer(cols=["Velocity"]),
     ]
 
     preprocessor = DataPreprocessor(preprocessing_pipeline)
     pre_df = preprocessor.preprocess_data(df)
 
     # If window size is 1, no smoothing is applied
-    plot_smoothed_motion_over_time(pre_df)
+    plot_smoothed_motion_over_time(pre_df, str(IDENTITY_DIR))

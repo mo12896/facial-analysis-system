@@ -7,6 +7,7 @@ import pandas as pd
 from matplotlib.figure import Figure
 
 from src.emotion.analysis.data_preprocessing import DataPreprocessor, LinearInterpolator
+from src.emotion.utils.constants import DATA_DIR_OUTPUT
 
 # grandparent_folder = os.path.abspath(
 #     os.path.join(
@@ -23,8 +24,9 @@ from src.emotion.analysis.data_preprocessing import DataPreprocessor, LinearInte
 IDENTITY_DIR = Path("/home/moritz/Workspace/masterthesis/data/identities")
 
 
-def plot_max_emotion_distribution(df: pd.DataFrame, plot: bool = True) -> Figure:
-
+def plot_max_emotion_distribution(
+    df: pd.DataFrame, filename: str, plot: bool = True
+) -> Figure:
     emotions = ["Angry", "Disgust", "Happy", "Sad", "Surprise", "Fear", "Neutral"]
 
     # Find the maximum emotion for each person_id by selecting the column with the maximum value
@@ -38,7 +40,6 @@ def plot_max_emotion_distribution(df: pd.DataFrame, plot: bool = True) -> Figure
     fig.suptitle("Categorical distribution of maximum emotions")
 
     for i, (person_id, group) in enumerate(grouped):
-
         # Group the data by person_id and calculate the count of each emotion for each person
         grouped = group.groupby("Max_Emotion").size().reset_index(name="counts")
 
@@ -62,7 +63,8 @@ def plot_max_emotion_distribution(df: pd.DataFrame, plot: bool = True) -> Figure
     # Show the plot
     if plot:
         plt.show()
-    fig.savefig(IDENTITY_DIR / "max_emotion_distribution.png")
+    path = DATA_DIR_OUTPUT / (filename + "/extraction_results/")
+    fig.savefig(path / "max_emotion_distribution.png")
 
     return fig
 
@@ -75,4 +77,4 @@ if __name__ == "__main__":
     preprocessor = DataPreprocessor(preprocessing_pipeline)
     pre_df = preprocessor.preprocess_data(df)
 
-    plot_max_emotion_distribution(pre_df)
+    plot_max_emotion_distribution(pre_df, str(IDENTITY_DIR))
