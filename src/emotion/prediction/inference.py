@@ -188,7 +188,7 @@ def perma_inference(prediction: str, dataset: str, filename: str):
     perma = predict(df_preproc, features, path)
 
     # Save the plot to the defined path
-    save_path = DATA_DIR_OUTPUT / ("short_clip/prediction_results/")
+    save_path = DATA_DIR_OUTPUT / (filename + "/prediction_results/")
     if not save_path.exists():
         save_path.mkdir(parents=True, exist_ok=True)
 
@@ -204,7 +204,8 @@ def perma_inference(prediction: str, dataset: str, filename: str):
         radar_plot(scaled_predicts, dataset)
         plt.savefig(save_path / ("perma_radar_" + dataset + ".png"))
 
-        scaled_predicts.to_csv(
+        concatenated_df = pd.concat([scaled_predicts, perma], ignore_index=True)
+        concatenated_df.to_csv(
             save_path / ("perma_" + prediction + "_" + dataset + ".csv"), index=False
         )
     else:

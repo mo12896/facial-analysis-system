@@ -176,10 +176,23 @@ python main.py -d
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
 
+## Model Performances for PERMA Prediction
+
+Two types of approaches for PERMA prediction have been followed: binary classification and regression. Both types of approaches have been evaluated on two different feature sets: a small feature set and a big feature set. The small feature set contains 125 features in total, while the big feature set contains 9,341 features. The following table shows the performance of the different approaches compared to a task-specific baseline on the test set. The models are evaluated using the mean absolute error (MAE) and the balanced accuracy score (ACC) for regression and binary classification, respectively.
+
+**Binary Classification Models**: These models categorize PERMA scores into 'high' or 'low'. The 'Small' model outperforms the baseline by 5.6%, while the 'Big' model does so by 5.9%. Ideal for high-level PERMA categorizations.
+
+**Regression Models**: These models provide a detailed PERMA score between 1 and 7. The 'Small' model outperforms the baseline by 1.5%, while the 'Big' model underperforms by -3.9%. Suitable for granular PERMA estimations.
+
+
+<img src="./docs/performance.png" widt="920" height="500" alt="animated" />
+
+
 ## Known Problems
 
 - If there are problems with the setup.sh script, conduct the steps manually. For the Synergy setup refer to the SynergyNet [README](https://github.com/choyingw/SynergyNet)
 - The feature_vector.py script might generate less than 776 features per time series for shorter videos. This is known and is due to the script automatically filtering columns with NaN values. By providing longer videos, the problem should be resolved.
+- The same issue account for the mutual gaze matrix, which might not be rendered in streamlit for shorter videos.
 
 
 
