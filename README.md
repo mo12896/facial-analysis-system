@@ -106,7 +106,7 @@ To harness the full power of CUDA GPU acceleration during inference, ensure that
     ... or create a virtual environment using venv:
     ```sh
     cd facial-analysis-system
-    python3.10 -m venv facesys
+    python3 -m venv facesys
     source facesys/bin/activate
     ```
 3. Run the provided setup script to install all necessary dependencies:
