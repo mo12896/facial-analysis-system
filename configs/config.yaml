@@ -4,9 +4,6 @@ VIDEO_CODEC: MP4V
 # The name of the input video file to process.
 VIDEO: "short_clip.mp4"
 
-# The device for analysis
-DEVICE: GPU
-
 
 
 ### OFFLINE ###
@@ -39,9 +36,10 @@ K: 4
 
 ### ONLINE ###
 
-# The number of frames between face detections.
+# The frame subsampling rate of the facial analysis system
 DETECTION_FREQUENCY: 5
 
+# The brightness formula
 BRIGHTNESS: perceived_brightness_rms
 
 # The face detector to use.
@@ -58,7 +56,7 @@ EMBEDDER:
   # The size of the face detection window to use.
   det_size: 128
 
-# The face tracker to use.
+# The face tracker to use. Currently not supported.
 TRACKER:
   # The type of face tracker to use (currently only "byte" is supported).
   type: byte
@@ -68,7 +66,7 @@ EMOTION_DETECTOR:
   # The type of emotion detection method to use (currently only "rmn" and "deepface" are supported).
   type: rmn
 
-# The pose estimator to use.
+# The pose estimator to use. Currently not supported.
 POSE_ESTIMATOR:
   # The type of pose estimator to use (currently only "l_openpose" is supported).
   type: l_openpose
@@ -87,8 +85,8 @@ GAZE_DETECTOR:
   # The length of the gaze detection axis.
   axis_length: 2000
 
-# Small feature datatset or big feature dataset
+# Small feature datatset or big feature dataset for the feature extraction and PERMA prediction.
 DATASET: small
 
-# Prediction mode. Can be either set to "regression" or "classification"
+# Prediction mode for the PERMA prediction task. Can be either set to "regression" or "classification"
 PREDICTION: regression
