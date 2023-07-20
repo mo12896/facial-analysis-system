@@ -33,6 +33,7 @@
 
   <p align="center">
     The main repository for my master thesis on "Prediciting Well-Being in Team Collaboration from Video Data Using Machine Learning"
+  </p>
 
   <a href="https://github.com/mo12896/facial-analysis-system/blob/master/LICENSE">
     <img src="https://img.shields.io/github/license/othneildrew/Best-README-Template.svg?style=for-the-badge" alt="MIT License" />
@@ -43,7 +44,6 @@
   <br />
   <br />
   <img src="./docs/animation.gif" widt="920" height="500" alt="animated" />
-  </p>
 </div>
 
 ## Table of Contents
