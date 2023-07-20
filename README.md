@@ -87,7 +87,7 @@ To get a local copy up and running follow the following steps.
 
 <h3 id="prerequisites">📝 Prerequisites</h3>
 
-To harness the full power of CUDA GPU acceleration during inference, ensure that your machine is equipped with an NVIDIA Graphics Card (GPU).
+To harness the full power of CUDA GPU acceleration during inference, ensure that your machine is equipped with an NVIDIA Graphics Card (GPU). Furthermore, this script was run and tested with Python `version=3.10.6`. Other versions might work as well, but are not guaranteed to do so.
 
 <h3 id="installation">🔧 Installation</h3>
 
@@ -95,7 +95,7 @@ To harness the full power of CUDA GPU acceleration during inference, ensure that
    ```sh
    git clone --recurse-submodules https://github.com/mo12896/facial-analysis-system.git
    ```
-2. Go into working directory and create a virtual environment using conda:
+2. Go into working directory and create a virtual environment using conda (recommended):
     ```sh
     cd facial-analysis-system
     conda create -n facesys python=3.10.6
@@ -104,7 +104,7 @@ To harness the full power of CUDA GPU acceleration during inference, ensure that
     ... or create a virtual environment using venv:
     ```sh
     cd facial-analysis-system
-    python3 -m venv facesys
+    python3.10 -m venv facesys
     source facesys/bin/activate
     ```
 3. Run the provided setup script to install all necessary dependencies:
@@ -112,6 +112,7 @@ To harness the full power of CUDA GPU acceleration during inference, ensure that
    chmod +x setup.sh
    bash setup.sh
     ```
+    If there are any problems with the setup.sh script, conduct the steps manually. Specifically the download of the data sometimes fails. For this, refer to the Synergy [README](https://github.com/choyingw/SynergyNet).
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
@@ -127,7 +128,7 @@ Place the video file in the folder `data/input` and write the full `<video_name>
 </div>
 
 
-<h3 id="pre-processing-0">⛏ Pre-Processing</h3>
+<h3 id="pre-processing-0">⛏ Pre-Processing [0]</h3>
 
 Set the relevant parameters in the config file `config/config.yaml` in the `OFFLINE` part and run the following command, which starts the pre-processing script to generate the template embedding database for the relevant team members. The pre-processing step is optional and can be skipped if the database already exists. Different approaches to generate the template embeddings are imaginable and can be exchanged with the proposed approach. The following script runs the template generation process outlined in the master thesis and stores the face ID images and templates database under `data/output/<video_name>/utils/`. Note, that the first setup takes a while, since pretrained checkpoints for the deep learning models have to be downloaded!
 
@@ -156,7 +157,7 @@ As an exmaple, running all three analysis steps [1, 2, 3] in sequence (assuming 
 python main.py --mode 123
 ```
 
-<h3 id="feature-visualization">📊 Feature Visualization</h3>
+<h3 id="feature-visualization">📊 Feature Visualization [-d]</h3>
 
 After running all pipeline steps, the resulting features and perma prediction plots can be rendered unified using a streamlit dashboard by simply providing the `-d` flag in the command. By running this command, the script will automatically generate the feature visualizations as PNG-files into the `data/output/<video_name>/extraction_results/` folder and fetch the generated PERMA prediction PNG files from `data/output/<video_name>/prediction_results/`. Both sources will be rendered in the streamlit app. Note, that the flag can also be combined with running the full pipeline.
 
