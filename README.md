@@ -46,7 +46,7 @@
   <img src="./docs/animation.gif" widt="920" height="500" alt="animated" />
 </div>
 
-## Table of Contents
+## 🗃 Table of Contents
 * [About The Project](#about-the-project)
 * [Getting Started](#getting-started)
   * [Prerequisites](#prerequisites)
@@ -65,7 +65,7 @@
 
 
 <!-- ABOUT THE PROJECT -->
-## About The Project
+## 📋 About The Project
 
 This repository contains the work for my master's thesis, which investigates the prediction of individual well-being in team settings through video data. By harnessing AI tools, the project detects facial emotions, gaze and head motion patterns from 56 participants across multiple teamwork tasks. The aim is to modernize well-being prediction, traditionally done via surveys, providing more immediate and automatic feedback. We extract and analyze relevant features such as non-verbal cues from the video data, using state-of-the-art AI tools for face detection, tracking, re-identification, facial emotion recognition and head pose estimation for example. them to estimate well-being according to the PERMA framework. The generated features were used to predict the well-being of each team member using both regression and binary classification
 
@@ -83,7 +83,7 @@ If you have any questions or ideas, please don't hesitate to get in touch. I am 
 
 
 <!-- GETTING STARTED -->
-## Getting Started
+## ⚙ Getting Started
 
 To get a local copy up and running follow the following steps.
 
@@ -91,7 +91,7 @@ To get a local copy up and running follow the following steps.
 
 To harness the full power of CUDA GPU acceleration during inference, ensure that your machine is equipped with an NVIDIA Graphics Card (GPU).
 
-### Installation
+### 🖥 Installation
 
 1. Clone the repo and the utilized submodules:
    ```sh
@@ -120,12 +120,12 @@ To harness the full power of CUDA GPU acceleration during inference, ensure that
 
 
 <!-- USAGE EXAMPLES -->
-## How to Use it
+## 🌟 How to Use it
 
 Place the video file in the folder `data/input` and write the full `<video_name>`, e.g. `video.mp4` of the video file alongside the video format in the the config file `config/config.yaml` at the top. The video file must be in the correct format, i.e. .mp4 or .avi and contain video recordings of team collaboration. To enable the 3D gaze pattern estimation framework, the video must be captured with a 360° camera of j5create in the "two 180° images" mode.
 
 
-### Pre-Processing [0]
+### ⛏ Pre-Processing [0]
 
 Set the relevant parameters in the config file `config/config.yaml` in the `OFFLINE` part and run the following command, which starts the pre-processing script to generate the template embedding database for the relevant team members. The pre-processing step is optional and can be skipped if the database already exists. Different approaches to generate the template embeddings are imaginable and can be exchanged with the proposed approach. The following script runs the template generation process outlined in the master thesis and stores the face ID images and templates database under `data/output/<video_name>/utils/`. Note, that the first setup takes a while, since pretrained checkpoints for the deep learning models have to be downloaded!
 
@@ -134,7 +134,7 @@ python main.py --mode 0
 ```
 
 
-### Analysis Pipeline [1, 2, 3]
+### 📈 Analysis Pipeline [1, 2, 3]
 
 Set the relevant parameters for the facial anylsis and the feature extraction/PERMA predictionin the config file `config/config.yaml` in the `ONLINE` part. The pipeline can be used in three main steps, which can be run in sequences of different length. Each downstream step depends on the previous step and can only be executed when its predecessor has been executed at least once. The steps can each be run seperately - if the previous steps have already been run - or directly in sequences, i.e. one of these combinations: ["0", "1", "2", "3", "01", "012", "0123", "12", "23", "123"], where 0 is the preprocessing step. The single steps are defined as follows:
 
@@ -154,7 +154,7 @@ As an exmaple, running all three analysis steps [1, 2, 3] in sequence (assuming 
 python main.py --mode 123
 ```
 
-### Data Visualization
+### 📊 Data Visualization
 
 After running all pipeline steps, the resulting features and perma prediction plots can be rendered unified using a streamlit dashboard by simply providing the `-d` flag in the command. By running this command, the script will automatically generate the feature visualizations as PNG-files into the `data/output/<video_name>/extraction_results/` folder and fetch the generated PERMA prediction PNG files from `data/output/<video_name>/prediction_results/`. Both sources will be rendered in the streamlit app. Note, that the flag can also be combined with running the full pipeline.
 
@@ -166,7 +166,7 @@ python main.py -d
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
 
-## Model Performances for PERMA Prediction
+## 💪 Model Performances for PERMA Prediction
 
 This study outlines two approaches to PERMA prediction: binary classification and regression. Both types of approaches have been evaluated on two different feature sets: a small feature set and a big feature set. The small feature set contains 125 features in total, while the big feature set contains 9,341 features. The following table shows the performance of the different approaches compared to a task-specific baseline on the test set. The models are evaluated using the mean absolute error (MAE) and the balanced accuracy score (ACC) for regression and binary classification, respectively.
 
@@ -180,7 +180,7 @@ This study outlines two approaches to PERMA prediction: binary classification an
 </div>
 
 
-## Known Issues
+## 😨 Known Issues
 
 - If there are problems with the setup.sh script, conduct the steps manually.Specifically the download of the data sometimes fails. For this, refer to the Synergy [README](https://github.com/choyingw/SynergyNet), where all steps and download links are provided.
 - The feature_vector.py script might generate less than 776 features per time series for shorter videos. This is known and is due to the script automatically filtering columns with NaN values. By providing longer videos, the problem should be resolved.
@@ -191,7 +191,7 @@ This study outlines two approaches to PERMA prediction: binary classification an
 
 
 <!-- LICENSE -->
-## License
+## ⚖ License
 
 Distributed under the MIT License. See `LICENSE` for more information.
 
@@ -200,7 +200,7 @@ Distributed under the MIT License. See `LICENSE` for more information.
 
 
 <!-- CONTACT -->
-## Contact
+## 📞 Contact
 Should you come across any problems, feel free to contact me or initiate a new issue in this repo.
 
 Moritz Müller - moritz1996.mueller@gmail.com
