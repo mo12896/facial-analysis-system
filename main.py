@@ -15,7 +15,7 @@ def main() -> None:
     args = parse_arguments()
     video = args.get("VIDEO")
 
-    modes = ["0", "1", "2", "3", "01", "012", "0123", "12", "23", "123"]
+    modes = ["", "0", "1", "2", "3", "01", "012", "0123", "12", "23", "123"]
 
     if args.get("MODE") not in modes:
         raise ValueError(f"Invalid mode. Please choose from {modes}")
@@ -30,8 +30,11 @@ def main() -> None:
     if args.get("MODE") in ["0", "01", "012", "0123"]:
         verbose = args.get("VERBOSE", False)
         clusterer = FaceClusterer(args)
-        clusterer.create_database(verbose=verbose)
-        print("Finished with automatic template embedding generator ...")
+        success = clusterer.create_database(verbose=verbose)
+        if success:
+            print("Finished with automatic template embedding generator ...")
+        else:
+            print("Mode 0 stopped by user.")
 
     # Facial analysis pipeline
     if args.get("MODE") in ["1", "01", "012", "0123", "12", "123"]:

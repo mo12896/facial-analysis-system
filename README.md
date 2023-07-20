@@ -41,7 +41,7 @@
   </a>
   <br />
   <br />
-  <img src="./docs/animation.gif" widt="920" height="500" alt="animated" />
+  <img src="./docs/animation.gif" alt="animated" />
 </div>
 
 ## 🗃 Table of Contents
@@ -123,7 +123,7 @@ To harness the full power of CUDA GPU acceleration during inference, ensure that
 Place the video file in the folder `data/input` and write the full `<video_name>`, e.g. `video.mp4` of the video file alongside the video format in the the config file `config/config.yaml` at the top. The video file must be in the correct format, i.e. .mp4 or .avi and contain video recordings of team collaboration. To enable the 3D gaze pattern estimation framework, the video must be captured with a 360° camera of j5create in the "two 180° images" mode.
 
 <div align="center">
-  <img src="./docs/pipeline_2.png" width="1050" height="300" alt="animated" />
+  <img src="./docs/pipeline_2.png" alt="animated" />
 </div>
 
 
@@ -178,7 +178,7 @@ This study outlines two approaches to PERMA prediction: binary classification an
 
 
 <div align="center">
-  <img src="./docs/performance.png" width="920" height="500" alt="animated" />
+  <img src="./docs/performance.png" alt="animated" />
 </div>
 
 

@@ -62,12 +62,12 @@ class FaceClusterer:
         self.save_embeddings = params.get("SAVE_EMBEDDINGS", True)
         self.K = params.get("K", 4)
 
-    def create_database(self, verbose: bool = False) -> None:
+    def create_database(self, verbose: bool = False) -> bool:
         if self.output_folder.exists():
             response = input(f"{self.output_folder} already exists. Overwrite? [y/n] ")
             if response != "y":
                 print("Script stopped by user.")
-                exit()
+                return False
             cleanup(self.output_folder)
         else:
             self.output_folder.mkdir(parents=True, exist_ok=True)
@@ -128,7 +128,7 @@ class FaceClusterer:
             if self.database.exists():
                 response = input(f"{self.database} already exists. Overwrite? [y/n] ")
                 if response != "y":
-                    exit()
+                    return False
                 self.database.unlink()
             else:
                 self.database.parent.mkdir(parents=True, exist_ok=True)
@@ -149,6 +149,8 @@ class FaceClusterer:
                     for person_id, embedding in conn
                 }
                 print(data)
+
+        return True
 
 
 # if __name__ == "__main__":

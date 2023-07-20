@@ -30,7 +30,7 @@ def parse_arguments() -> Dict[str, Any]:
     parser.add_argument(
         "-m",
         "--mode",
-        default="0123",
+        default="",
         help="""
         Specifies which processes to run. The argument is a string that can contain any combination of the
         following digits, in increasing order:
