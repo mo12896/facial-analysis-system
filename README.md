@@ -124,6 +124,10 @@ To harness the full power of CUDA GPU acceleration during inference, ensure that
 
 Place the video file in the folder `data/input` and write the full `<video_name>`, e.g. `video.mp4` of the video file alongside the video format in the the config file `config/config.yaml` at the top. The video file must be in the correct format, i.e. .mp4 or .avi and contain video recordings of team collaboration. To enable the 3D gaze pattern estimation framework, the video must be captured with a 360° camera of j5create in the "two 180° images" mode.
 
+<div align="center">
+  <img src="./docs/pipeline_2.png" width="1050" height="300" alt="animated" />
+</div>
+
 
 ### ⛏ Pre-Processing [0]
 
@@ -154,7 +158,7 @@ As an exmaple, running all three analysis steps [1, 2, 3] in sequence (assuming 
 python main.py --mode 123
 ```
 
-### 📊 Data Visualization
+### 📊 Feature Visualization
 
 After running all pipeline steps, the resulting features and perma prediction plots can be rendered unified using a streamlit dashboard by simply providing the `-d` flag in the command. By running this command, the script will automatically generate the feature visualizations as PNG-files into the `data/output/<video_name>/extraction_results/` folder and fetch the generated PERMA prediction PNG files from `data/output/<video_name>/prediction_results/`. Both sources will be rendered in the streamlit app. Note, that the flag can also be combined with running the full pipeline.
 
