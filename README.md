@@ -87,7 +87,7 @@ To get a local copy up and running follow the following steps.
 
 <h3 id="prerequisites">📝 Prerequisites</h3>
 
-To harness the full power of CUDA GPU acceleration during inference, ensure that your machine is equipped with an NVIDIA Graphics Card (GPU). Furthermore, this script was run and tested with Python `version=3.10.6`. Other versions might work as well, but are not guaranteed to do so.
+To harness the full power of CUDA GPU acceleration during inference, ensure that your machine is equipped with an NVIDIA Graphics Card (GPU). Furthermore, this script was run and tested with Python `version=3.10.6`. Other versions might work as well, but are not guaranteed to do so. Lastly, the software was developed and tested on a Unix-based system as thus should work on MacOS and Linux. Since the utilized SynergyNet submodule uses Unix-specifc build scripts, the software is not easy to run on Windows. While in general it should be possible to run the software on Windows, it is not recommended and not tested. If you are using Windows, consider using the Windows Subsystem for Linux (WSL) to run the software.
 
 <h3 id="installation">🔧 Installation</h3>
 
@@ -185,6 +185,7 @@ This study outlines two approaches to PERMA prediction: binary classification an
 
 <h2 id="known-issues">🐞 Known Issues</h2>
 
+- Since the utilized SynergyNet submodule uses Unix-specifc build scripts, the software is not easy to run on Windows. While in general it should be possible to run the software on Windows, it is not recommended and not tested. If you are using Windows, consider using the Windows Subsystem for Linux (WSL) to run the software.
 - If there are problems with the setup.sh script, conduct the steps manually.Specifically the download of the data sometimes fails. For this, refer to the SynergyNet [README](https://github.com/choyingw/SynergyNet), where all steps and download links are provided.
 - The feature_vector.py script might generate less than 776 features per time series for shorter videos in the big dataset. This is known and is due to the script automatically filtering columns with NaN values. Eihter only use the small dataset or provide longer videos to resolve the problem.
 - The same issue account for the mutual gaze matrix, which might not be rendered in streamlit for shorter videos.
