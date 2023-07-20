@@ -41,7 +41,7 @@
   </a>
   <br />
   <br />
-  <img src="./docs/animation.gif" alt="animated" />
+  <img src="./docs/animation.gif" width="100%" height="100%" alt="animated" />
 </div>
 
 ## 🗃 Table of Contents
@@ -178,7 +178,7 @@ This study outlines two approaches to PERMA prediction: binary classification an
 
 
 <div align="center">
-  <img src="./docs/performance.png" alt="animated" />
+  <img src="./docs/performance.png" width="80%" height="80%" alt="animated" />
 </div>
 
 
