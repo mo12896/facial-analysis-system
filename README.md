@@ -112,7 +112,7 @@ To harness the full power of CUDA GPU acceleration during inference, ensure that
    chmod +x setup.sh
    bash setup.sh
     ```
-    If there are any problems with the setup.sh script, conduct the steps manually. Specifically the download of the data sometimes fails. For this, refer to the Synergy [README](https://github.com/choyingw/SynergyNet).
+    If there are any problems with the setup.sh script, conduct the steps manually. Specifically the download of the data sometimes fails. For this, refer to the SynergyNet [README](https://github.com/choyingw/SynergyNet).
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
@@ -185,8 +185,8 @@ This study outlines two approaches to PERMA prediction: binary classification an
 
 <h2 id="known-issues">🐞 Known Issues</h2>
 
-- If there are problems with the setup.sh script, conduct the steps manually.Specifically the download of the data sometimes fails. For this, refer to the Synergy [README](https://github.com/choyingw/SynergyNet), where all steps and download links are provided.
-- The feature_vector.py script might generate less than 776 features per time series for shorter videos. This is known and is due to the script automatically filtering columns with NaN values. By providing longer videos, the problem should be resolved.
+- If there are problems with the setup.sh script, conduct the steps manually.Specifically the download of the data sometimes fails. For this, refer to the SynergyNet [README](https://github.com/choyingw/SynergyNet), where all steps and download links are provided.
+- The feature_vector.py script might generate less than 776 features per time series for shorter videos in the big dataset. This is known and is due to the script automatically filtering columns with NaN values. Eihter only use the small dataset or provide longer videos to resolve the problem.
 - The same issue account for the mutual gaze matrix, which might not be rendered in streamlit for shorter videos.
 - Currently, the verification video in the facial analysis step can only be invoked with the single step, like this `python main.py --mode 1 -o`, and not with the full pipeline, like this `python main.py --mode 123 -o`. This will be fixed in the future.
 
